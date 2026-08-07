@@ -1,6 +1,10 @@
 const app = require('./app');
 const env = require('./config/env');
 const logger = require('./utils/logger');
+const runAutoMigration = require('./scripts/migrate');
+
+// Run automated Hostinger MySQL table provisioning on boot
+runAutoMigration();
 
 const server = app.listen(env.PORT, () => {
   logger.info(`Enterprise ERP API Server running on port ${env.PORT} in [${env.NODE_ENV}] mode.`);
