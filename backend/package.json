@@ -2,11 +2,11 @@
   "name": "enterprise-erp-backend",
   "version": "1.0.0",
   "description": "Enterprise ERP Platform Core & Department Request Management System",
-  "main": "src/server.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "node server.js",
     "build": "node -e \"console.log('Hostinger Backend & SPA Assets Ready')\"",
-    "dev": "node --watch src/server.js",
+    "dev": "node --watch server.js",
     "test": "node tests/api.test.js"
   },
   "keywords": ["erp", "request-management", "enterprise", "express", "jwt", "mysql"],
