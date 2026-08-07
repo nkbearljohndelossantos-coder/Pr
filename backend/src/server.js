@@ -2,26 +2,48 @@ const app = require('./app');
 const env = require('./config/env');
 const logger = require('./utils/logger');
 
-const PORT = env.PORT || 5000;
-
-const server = app.listen(PORT, () => {
-  logger.info(`=======================================================`);
-  logger.info(`🚀 Enterprise ERP Backend Core Server Running on Port ${PORT}`);
-  logger.info(`📖 OpenAPI / Swagger Docs: http://localhost:${PORT}/api-docs`);
-  logger.info(`🏥 Health Check Endpoint: http://localhost:${PORT}/api/system/health`);
-  logger.info(`=======================================================`);
+// Catch uncaught exceptions to prevent silent process crashes on Hostinger
+process.on('uncaughtException', (err) => {
+  console.error('💥 UNCAUGHT EXCEPTION:', err);
 });
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 UNHANDLED REJECTION at:', promise, 'reason:', reason);
+});
+
+const PORT = process.env.PORT || env.PORT || 5000;
+let server;
+
+// Hostinger / Phusion Passenger Node.js compatibility check
+if (typeof PhusionPassenger !== 'undefined') {
+  PhusionPassenger.configure({ autoInstall: false });
+  server = app.listen('passenger', () => {
+    logger.info('🚀 Enterprise ERP Core Running on Hostinger Phusion Passenger');
+  });
+} else {
+  server = app.listen(PORT, () => {
+    logger.info(`=======================================================`);
+    logger.info(`🚀 Enterprise ERP Backend Core Server Running on Port ${PORT}`);
+    logger.info(`📖 OpenAPI / Swagger Docs: http://localhost:${PORT}/api-docs`);
+    logger.info(`🏥 Health Check Endpoint: http://localhost:${PORT}/api/system/health`);
+    logger.info(`=======================================================`);
+  });
+}
 
 // Graceful Shutdown Handlers
 const handleShutdown = (signal) => {
   logger.info(`${signal} signal received. Closing Enterprise ERP Server gracefully...`);
-  server.close(() => {
-    logger.info('HTTP server closed cleanly. Exiting process.');
+  if (server && server.close) {
+    server.close(() => {
+      logger.info('HTTP server closed cleanly. Exiting process.');
+      process.exit(0);
+    });
+  } else {
     process.exit(0);
-  });
+  }
 };
 
 process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 process.on('SIGINT', () => handleShutdown('SIGINT'));
 
-module.exports = server;
+module.exports = app;
