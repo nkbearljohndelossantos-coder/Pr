@@ -1,3 +1,5 @@
+require('dotenv').config();
+const mysql = require('mysql2/promise');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -151,8 +153,42 @@ if (!loaded || !store.departments || store.departments.length === 0 || !store.re
   initData();
 }
 
+// Hostinger Live MySQL Connection Pool Initialization
+let mysqlPool = null;
+const dbPass = process.env.DB_PASSWORD || env.DB_PASS;
+
+if (dbPass && dbPass !== 'YOUR_DATABASE_PASSWORD') {
+  try {
+    mysqlPool = mysql.createPool({
+      host: process.env.DB_HOST || env.DB_HOST || 'localhost',
+      user: process.env.DB_USER || env.DB_USER || 'u335953510_Request',
+      password: dbPass,
+      database: process.env.DB_NAME || env.DB_NAME || 'u335953510_pr_data',
+      port: Number(process.env.DB_PORT || env.DB_PORT || 3306),
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0
+    });
+    logger.info(`Hostinger MySQL Connection Pool created for database [${process.env.DB_NAME || env.DB_NAME}] on host [${process.env.DB_HOST || env.DB_HOST}]`);
+  } catch (err) {
+    logger.warn('Failed to initialize Hostinger MySQL pool:', err.message);
+  }
+}
+
 const db = {
+  createPool: (config) => {
+    return mysql.createPool(config);
+  },
   query: async (sql, params = []) => {
+    if (mysqlPool) {
+      try {
+        const [rows, fields] = await mysqlPool.query(sql, params);
+        return [rows, fields];
+      } catch (err) {
+        logger.warn('MySQL Query Error, falling back to JSON engine:', err.message);
+      }
+    }
+
     const cleanSql = sql.trim().replace(/\s+/g, ' ');
     const upper = cleanSql.toUpperCase();
 
@@ -207,9 +243,9 @@ const db = {
       if (dept) {
         dept.seq_counter = (dept.seq_counter || 0) + 1;
         saveStore();
-        return [[{ affectedRows: 1, seq_counter: dept.seq_counter }], []];
+        return [{ affectedRows: 1, seq_counter: dept.seq_counter }, []];
       }
-      return [[{ affectedRows: 0 }], []];
+      return [{ affectedRows: 0 }, []];
     }
 
     if (upper.includes('INSERT INTO DEPARTMENTS')) {
@@ -337,9 +373,9 @@ const db = {
         if (remarks) req.remarks = remarks;
         req.updated_at = new Date().toISOString();
         saveStore();
-        return [[{ affectedRows: 1 }], []];
+        return [{ affectedRows: 1 }, []];
       }
-      return [[{ affectedRows: 0 }], []];
+      return [{ affectedRows: 0 }, []];
     }
 
     if (upper.includes('FROM MASTER_UNITS')) {
