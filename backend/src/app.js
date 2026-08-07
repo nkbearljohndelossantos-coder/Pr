@@ -49,23 +49,33 @@ app.get('/api/modules', (req, res) => {
 
 // Explicit Favicon Handler
 app.get(['/favicon.ico', '/favicon.svg'], (req, res) => {
-  const backendPublicFavicon = path.join(__dirname, '../public', req.path);
-  const frontendDistFavicon = path.join(__dirname, '../../frontend/dist', req.path);
-  if (fs.existsSync(backendPublicFavicon)) {
-    return res.sendFile(backendPublicFavicon);
-  } else if (fs.existsSync(frontendDistFavicon)) {
-    return res.sendFile(frontendDistFavicon);
+  const possibleFavicons = [
+    path.resolve(__dirname, '../public', req.path.replace('/', '')),
+    path.resolve(__dirname, '..', req.path.replace('/', '')),
+    path.resolve(__dirname, '../../frontend/dist', req.path.replace('/', '')),
+    path.resolve(process.cwd(), req.path.replace('/', ''))
+  ];
+
+  for (const favPath of possibleFavicons) {
+    if (fs.existsSync(favPath)) {
+      return res.sendFile(favPath);
+    }
   }
   return res.status(204).end();
 });
 
-// Determine Static Frontend Directory (backend/public takes precedence on Hostinger)
-const backendPublicPath = path.join(__dirname, '../public');
-const frontendDistPath = path.join(__dirname, '../../frontend/dist');
-const staticPath = fs.existsSync(backendPublicPath) ? backendPublicPath : frontendDistPath;
+// Serve Static Assets from all possible build locations
+const possibleStaticDirs = [
+  path.resolve(__dirname, '../public'),
+  path.resolve(__dirname, '..'),
+  path.resolve(__dirname, '../../frontend/dist'),
+  path.resolve(process.cwd())
+];
 
-if (fs.existsSync(staticPath)) {
-  app.use(express.static(staticPath));
+for (const dir of possibleStaticDirs) {
+  if (fs.existsSync(dir)) {
+    app.use(express.static(dir));
+  }
 }
 
 // System Status API Endpoint
@@ -78,18 +88,25 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-// Fallback Route Handler: Serve SPA index.html for Frontend Routes or System Gateway Info
+// Robust SPA Client Route Fallback
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.startsWith('/api-docs')) {
     return next();
   }
-  const indexPath = fs.existsSync(path.join(backendPublicPath, 'index.html'))
-    ? path.join(backendPublicPath, 'index.html')
-    : path.join(frontendDistPath, 'index.html');
 
-  if (fs.existsSync(indexPath)) {
-    return res.sendFile(indexPath);
+  const possibleIndexPaths = [
+    path.resolve(__dirname, '../public/index.html'),
+    path.resolve(__dirname, '../index.html'),
+    path.resolve(__dirname, '../../frontend/dist/index.html'),
+    path.resolve(process.cwd(), 'index.html')
+  ];
+
+  for (const indexPath of possibleIndexPaths) {
+    if (fs.existsSync(indexPath)) {
+      return res.sendFile(indexPath);
+    }
   }
+
   res.json({
     status: 'ONLINE',
     system: env.COMPANY_NAME,

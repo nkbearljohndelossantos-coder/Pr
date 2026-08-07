@@ -1,17 +1,11 @@
-# Hostinger Apache / LiteSpeed Web Server Configuration
+# Enterprise ERP Hostinger Apache / LiteSpeed SPA Rewrite Configuration
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
-
-  # Handle static index.html
   RewriteRule ^index\.html$ - [L]
-
-  # Don't rewrite existing files or directories
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  
-  # Rewrite all frontend routes to SPA index.html
-  RewriteRule . /index.html [L]
+  RewriteRule ^(.*)$ /index.html [L]
 </IfModule>
 
 # Enable Gzip Compression for Hostinger
@@ -19,7 +13,7 @@
   AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json image/svg+xml
 </IfModule>
 
-# Security Headers
+# Security & Cache Control Headers
 <IfModule mod_headers.c>
   Header set X-Content-Type-Options "nosniff"
   Header set X-Frame-Options "SAMEORIGIN"
