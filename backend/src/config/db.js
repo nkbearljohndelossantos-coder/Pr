@@ -4,13 +4,24 @@ const bcrypt = require('bcryptjs');
 const env = require('./env');
 const logger = require('../utils/logger');
 
-// JSON Data Storage Path
-const dataDir = path.join(__dirname, '../../data');
-const dbFile = path.join(dataDir, 'erp_store.json');
-
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+// JSON Data Storage Path with Fail-Safe Directory Resolution
+let dataDir = path.join(__dirname, '../data');
+try {
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+} catch (e) {
+  try {
+    dataDir = path.join(__dirname, '../../data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+  } catch (err) {
+    dataDir = path.join(__dirname, '..');
+  }
 }
+
+const dbFile = path.join(dataDir, 'erp_store.json');
 
 let store = {
   departments: [],
