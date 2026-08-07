@@ -56,8 +56,9 @@ export default function RequestDetailPage() {
   };
 
   const handlePrintPdf = () => {
-    const token = localStorage.getItem('token');
-    const pdfUrl = `http://localhost:5000/api/v1/requests/${id}/pdf?token=${token}`;
+    const token = localStorage.getItem('token') || localStorage.getItem('erp_token');
+    const baseUrl = window.location.origin.includes('localhost') ? 'http://localhost:5000' : window.location.origin;
+    const pdfUrl = `${baseUrl}/api/v1/requests/${id}/pdf?token=${token}`;
     window.open(pdfUrl, '_blank');
   };
 
