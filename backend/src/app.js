@@ -47,22 +47,25 @@ app.get('/api/modules', (req, res) => {
   return res.json({ success: true, data: MODULE_REGISTRY });
 });
 
-// Explicit Favicon Handler to prevent 404 / 503 errors
+// Explicit Favicon Handler
 app.get(['/favicon.ico', '/favicon.svg'], (req, res) => {
-  const distFavicon = path.join(__dirname, '../../frontend/dist', req.path);
-  const publicFavicon = path.join(__dirname, '../../frontend/public', req.path);
-  if (fs.existsSync(distFavicon)) {
-    return res.sendFile(distFavicon);
-  } else if (fs.existsSync(publicFavicon)) {
-    return res.sendFile(publicFavicon);
+  const backendPublicFavicon = path.join(__dirname, '../public', req.path);
+  const frontendDistFavicon = path.join(__dirname, '../../frontend/dist', req.path);
+  if (fs.existsSync(backendPublicFavicon)) {
+    return res.sendFile(backendPublicFavicon);
+  } else if (fs.existsSync(frontendDistFavicon)) {
+    return res.sendFile(frontendDistFavicon);
   }
   return res.status(204).end();
 });
 
-// Frontend SPA Distribution Static File Serving
+// Determine Static Frontend Directory (backend/public takes precedence on Hostinger)
+const backendPublicPath = path.join(__dirname, '../public');
 const frontendDistPath = path.join(__dirname, '../../frontend/dist');
-if (fs.existsSync(frontendDistPath)) {
-  app.use(express.static(frontendDistPath));
+const staticPath = fs.existsSync(backendPublicPath) ? backendPublicPath : frontendDistPath;
+
+if (fs.existsSync(staticPath)) {
+  app.use(express.static(staticPath));
 }
 
 // System Status API Endpoint
@@ -80,7 +83,10 @@ app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.startsWith('/api-docs')) {
     return next();
   }
-  const indexPath = path.join(frontendDistPath, 'index.html');
+  const indexPath = fs.existsSync(path.join(backendPublicPath, 'index.html'))
+    ? path.join(backendPublicPath, 'index.html')
+    : path.join(frontendDistPath, 'index.html');
+
   if (fs.existsSync(indexPath)) {
     return res.sendFile(indexPath);
   }
