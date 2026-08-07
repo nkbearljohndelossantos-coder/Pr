@@ -2,7 +2,7 @@ const app = require('./app');
 const env = require('./config/env');
 const logger = require('./utils/logger');
 
-// Catch uncaught exceptions to prevent silent process crashes on Hostinger
+// Catch uncaught exceptions to prevent silent process crashes
 process.on('uncaughtException', (err) => {
   console.error('💥 UNCAUGHT EXCEPTION:', err);
 });
@@ -12,15 +12,11 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 const PORT = process.env.PORT || env.PORT || 5000;
+
 let server;
 
-// Hostinger / Phusion Passenger Node.js compatibility check
-if (typeof PhusionPassenger !== 'undefined') {
-  PhusionPassenger.configure({ autoInstall: false });
-  server = app.listen('passenger', () => {
-    logger.info('🚀 Enterprise ERP Core Running on Hostinger Phusion Passenger');
-  });
-} else {
+// Only start listening if this file is executed directly (not required as module)
+if (require.main === module) {
   server = app.listen(PORT, () => {
     logger.info(`=======================================================`);
     logger.info(`🚀 Enterprise ERP Backend Core Server Running on Port ${PORT}`);
@@ -28,22 +24,21 @@ if (typeof PhusionPassenger !== 'undefined') {
     logger.info(`🏥 Health Check Endpoint: http://localhost:${PORT}/api/system/health`);
     logger.info(`=======================================================`);
   });
-}
 
-// Graceful Shutdown Handlers
-const handleShutdown = (signal) => {
-  logger.info(`${signal} signal received. Closing Enterprise ERP Server gracefully...`);
-  if (server && server.close) {
-    server.close(() => {
-      logger.info('HTTP server closed cleanly. Exiting process.');
+  const handleShutdown = (signal) => {
+    logger.info(`${signal} signal received. Closing Enterprise ERP Server gracefully...`);
+    if (server && server.close) {
+      server.close(() => {
+        logger.info('HTTP server closed cleanly. Exiting process.');
+        process.exit(0);
+      });
+    } else {
       process.exit(0);
-    });
-  } else {
-    process.exit(0);
-  }
-};
+    }
+  };
 
-process.on('SIGTERM', () => handleShutdown('SIGTERM'));
-process.on('SIGINT', () => handleShutdown('SIGINT'));
+  process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+  process.on('SIGINT', () => handleShutdown('SIGINT'));
+}
 
 module.exports = app;
