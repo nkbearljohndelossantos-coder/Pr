@@ -1,0 +1,245 @@
+{
+  "departments": [
+    {
+      "id": 1,
+      "code": "IT",
+      "name": "Information Technology Department",
+      "username": "it_dept",
+      "password_hash": "$2a$10$aSVt2YCgVJfNGJY4GQQStudru9L55Tu2LD1CT8e9UDcBQkJnMlBrq",
+      "seq_counter": 1,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 2,
+      "code": "HR",
+      "name": "Human Resources Department",
+      "username": "hr_dept",
+      "password_hash": "$2a$10$aSVt2YCgVJfNGJY4GQQStudru9L55Tu2LD1CT8e9UDcBQkJnMlBrq",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 3,
+      "code": "ACCT",
+      "name": "Accounting Department",
+      "username": "acct_dept",
+      "password_hash": "$2a$10$aSVt2YCgVJfNGJY4GQQStudru9L55Tu2LD1CT8e9UDcBQkJnMlBrq",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 4,
+      "code": "PURCH",
+      "name": "Purchasing Department",
+      "username": "purch_dept",
+      "password_hash": "$2a$10$aSVt2YCgVJfNGJY4GQQStudru9L55Tu2LD1CT8e9UDcBQkJnMlBrq",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 5,
+      "code": "PROD",
+      "name": "Production Department",
+      "username": "prod_dept",
+      "password_hash": "$2a$10$aSVt2YCgVJfNGJY4GQQStudru9L55Tu2LD1CT8e9UDcBQkJnMlBrq",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 6,
+      "code": "WH",
+      "name": "Warehouse Department",
+      "username": "wh_dept",
+      "password_hash": "$2a$10$aSVt2YCgVJfNGJY4GQQStudru9L55Tu2LD1CT8e9UDcBQkJnMlBrq",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 7,
+      "code": "QA",
+      "name": "Quality Assurance Department",
+      "username": "qa_dept",
+      "password_hash": "$2a$10$aSVt2YCgVJfNGJY4GQQStudru9L55Tu2LD1CT8e9UDcBQkJnMlBrq",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password_hash": "$2a$10$p5R0YDkK/sVRAQzkuZhwTO3ipVuhFUNjFz8xfQBMc/K3WoWU6AivC",
+      "role": "admin",
+      "department_id": null,
+      "full_name": "System Administrator (IT)",
+      "email": "admin@company.com",
+      "is_active": 1,
+      "is_deleted": 0,
+      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImRlcGFydG1lbnRfaWQiOm51bGwsImRlcGFydG1lbnRfY29kZSI6bnVsbCwiZGVwYXJ0bWVudF9uYW1lIjpudWxsLCJmdWxsX25hbWUiOiJTeXN0ZW0gQWRtaW5pc3RyYXRvciAoSVQpIiwiaWF0IjoxNzg2MDgyODgwLCJleHAiOjE3ODY2ODc2ODB9.RkmA7Lfek4rnbjy9wZiQGp8Dct8rH0xvHhC9uiTRc6g"
+    },
+    {
+      "id": 2,
+      "username": "boss",
+      "password_hash": "$2a$10$nBk7tXq74UBsp4mreGr/NuepizWi5g1IndWCmLXh.UdbwgrgDNyBO",
+      "role": "executive",
+      "department_id": null,
+      "full_name": "Executive Administrator",
+      "email": "boss@company.com",
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 3,
+      "username": "it_dept",
+      "password_hash": "$2a$10$aSVt2YCgVJfNGJY4GQQStudru9L55Tu2LD1CT8e9UDcBQkJnMlBrq",
+      "role": "department",
+      "department_id": 1,
+      "full_name": "Information Technology Dept",
+      "email": "it@company.com",
+      "is_active": 1,
+      "is_deleted": 0,
+      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJpdF9kZXB0Iiwicm9sZSI6ImRlcGFydG1lbnQiLCJkZXBhcnRtZW50X2lkIjoxLCJkZXBhcnRtZW50X2NvZGUiOiJJVCIsImRlcGFydG1lbnRfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwYXJ0bWVudCIsImZ1bGxfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwdCIsImlhdCI6MTc4NjA4Mjg4MCwiZXhwIjoxNzg2Njg3NjgwfQ.mYl84INDgw9UB2_2d26LmAB8TQIJ1JBOeZasqHj5zeo"
+    }
+  ],
+  "requests": [
+    {
+      "id": 1,
+      "request_number": "REQ-IT-20260807-00001",
+      "department_id": 1,
+      "prepared_by": "Alex Vance",
+      "position": "IT Infrastructure Specialist",
+      "required_date": "2026-08-15",
+      "purpose": "Server Upgrade Components for Enterprise ERP Deployment",
+      "business_justification": "High performance database node expansion",
+      "priority": "High",
+      "status": "Submitted",
+      "total_estimated_cost": 3580,
+      "created_by": 3,
+      "revision_number": 1,
+      "remarks": "",
+      "created_at": "2026-08-07T06:08:00.400Z",
+      "updated_at": "2026-08-07T06:08:00.400Z",
+      "is_deleted": 0
+    }
+  ],
+  "request_items": [
+    {
+      "id": 1,
+      "request_id": 1,
+      "item_description": "Dell PowerEdge R750 RAM Module 64GB",
+      "quantity": 4,
+      "unit": "PCS",
+      "estimated_cost": 450,
+      "total_cost": 1800,
+      "remarks": "",
+      "is_deleted": 0
+    },
+    {
+      "id": 2,
+      "request_id": 1,
+      "item_description": "Samsung Enterprise 3.84TB NVMe SSD",
+      "quantity": 2,
+      "unit": "PCS",
+      "estimated_cost": 890,
+      "total_cost": 1780,
+      "remarks": "",
+      "is_deleted": 0
+    }
+  ],
+  "attachments": [],
+  "master_dropdowns": [
+    {
+      "id": 1,
+      "category": "unit_of_measure",
+      "code": "PCS",
+      "label": "Pieces (PCS)",
+      "sort_order": 1,
+      "is_active": 1
+    },
+    {
+      "id": 2,
+      "category": "unit_of_measure",
+      "code": "BOX",
+      "label": "Boxes (BOX)",
+      "sort_order": 2,
+      "is_active": 1
+    },
+    {
+      "id": 3,
+      "category": "unit_of_measure",
+      "code": "SET",
+      "label": "Sets (SET)",
+      "sort_order": 3,
+      "is_active": 1
+    },
+    {
+      "id": 4,
+      "category": "unit_of_measure",
+      "code": "LOT",
+      "label": "Lots (LOT)",
+      "sort_order": 4,
+      "is_active": 1
+    },
+    {
+      "id": 5,
+      "category": "unit_of_measure",
+      "code": "KG",
+      "label": "Kilograms (KG)",
+      "sort_order": 5,
+      "is_active": 1
+    },
+    {
+      "id": 6,
+      "category": "priority",
+      "code": "Low",
+      "label": "Low Priority",
+      "sort_order": 1,
+      "is_active": 1
+    },
+    {
+      "id": 7,
+      "category": "priority",
+      "code": "Normal",
+      "label": "Normal Priority",
+      "sort_order": 2,
+      "is_active": 1
+    },
+    {
+      "id": 8,
+      "category": "priority",
+      "code": "High",
+      "label": "High Priority",
+      "sort_order": 3,
+      "is_active": 1
+    },
+    {
+      "id": 9,
+      "category": "priority",
+      "code": "Urgent",
+      "label": "Urgent Priority",
+      "sort_order": 4,
+      "is_active": 1
+    }
+  ],
+  "notifications": [
+    {
+      "id": 1,
+      "user_id": null,
+      "department_id": 1,
+      "title": "New Request Created",
+      "message": "Request REQ-IT-20260807-00001 created by Alex Vance.",
+      "type": "info",
+      "is_read": 0,
+      "created_at": "2026-08-07T06:08:00.403Z"
+    }
+  ],
+  "audit_logs": [],
+  "backups": []
+}

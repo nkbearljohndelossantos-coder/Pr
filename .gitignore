@@ -1,0 +1,23 @@
+# Dependencies
+**/node_modules/
+
+# Environment Variables & Secrets
+**/.env
+**/.env.local
+**/.env.production
+
+# Build Outputs & Logs
+**/dist/
+**/logs/
+*.log
+
+# Database & Uploads Dynamic Data (keep structure, ignore dynamic files)
+backend/data/*.sqlite
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# IDE & System Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
