@@ -12,21 +12,20 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 const PORT = process.env.PORT || env.PORT || 5000;
+const HOST = process.env.HOST || '0.0.0.0';
 
 if (!app.get('server_started')) {
   app.set('server_started', true);
   
   if (typeof PhusionPassenger !== 'undefined') {
     PhusionPassenger.configure({ autoInstall: false });
-    app.listen('passenger', () => {
-      logger.info('🚀 Enterprise ERP Core Running on Hostinger Phusion Passenger');
-    });
+    app.listen('passenger');
   } else {
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, HOST, () => {
       logger.info(`=======================================================`);
-      logger.info(`🚀 Enterprise ERP Backend Core Server Running on Port ${PORT}`);
-      logger.info(`📖 OpenAPI / Swagger Docs: http://localhost:${PORT}/api-docs`);
-      logger.info(`🏥 Health Check Endpoint: http://localhost:${PORT}/api/system/health`);
+      logger.info(`🚀 Enterprise ERP Backend Core Server Running on http://${HOST}:${PORT}`);
+      logger.info(`📖 OpenAPI / Swagger Docs: http://${HOST}:${PORT}/api-docs`);
+      logger.info(`🏥 Health Check Endpoint: http://${HOST}:${PORT}/api/system/health`);
       logger.info(`=======================================================`);
     });
 
