@@ -54,8 +54,12 @@ export default function RequestListPage() {
       };
       const res = await requestApi.list(params);
       if (res.data.success) {
-        setRequests(res.data.data.data);
-        setTotalCount(res.data.data.total);
+        const rawList = Array.isArray(res.data.data?.data)
+          ? res.data.data.data
+          : (Array.isArray(res.data.data) ? res.data.data : []);
+        const validList = rawList.filter(r => r && r.request_number && r.id);
+        setRequests(validList);
+        setTotalCount(res.data.data?.total !== undefined ? res.data.data.total : validList.length);
       }
     } catch (e) {
       console.error(e);

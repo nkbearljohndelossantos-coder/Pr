@@ -299,7 +299,7 @@ const db = {
         return [[]];
       }
 
-      let list = store.requests.filter(r => !r.is_deleted);
+      let list = store.requests.filter(r => r && r.id && r.request_number && !r.is_deleted);
 
       // Filtering logic
       let paramIdx = 0;
