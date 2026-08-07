@@ -1,0 +1,436 @@
+{
+  "companies": [
+    {
+      "id": "c1000000-0000-4000-a000-000000000001",
+      "code": "EGI-CORP",
+      "name": "Enterprise Global Industries Inc.",
+      "is_active": 1,
+      "is_deleted": 0
+    }
+  ],
+  "branches": [
+    {
+      "id": "b1000000-0000-4000-a000-000000000001",
+      "company_id": "c1000000-0000-4000-a000-000000000001",
+      "code": "MNL-HQ",
+      "name": "Manila Corporate Headquarters",
+      "is_active": 1,
+      "is_deleted": 0
+    }
+  ],
+  "accounts": [
+    {
+      "id": "a1000000-0000-4000-a000-000000000001",
+      "username": "admin",
+      "password_hash": "$2a$10$UZLl2pBzLyqF5pNQplwJb.x/g1T/ZIqzCpxRkPZAUV3j4n6UQC0bK",
+      "account_type": "System Administrator",
+      "role": "admin",
+      "department_id": null,
+      "company_id": "c1000000-0000-4000-a000-000000000001",
+      "branch_id": "b1000000-0000-4000-a000-000000000001",
+      "status": "ACTIVE",
+      "is_deleted": 0
+    },
+    {
+      "id": "a1000000-0000-4000-a000-000000000002",
+      "username": "boss",
+      "password_hash": "$2a$10$maBFRTZ6unrlgM7ifOrb7O9DuaeRAwjxk/vWvKupHK7JHW.sdiKBe",
+      "account_type": "Executive Administrator",
+      "role": "executive",
+      "department_id": null,
+      "company_id": "c1000000-0000-4000-a000-000000000001",
+      "branch_id": "b1000000-0000-4000-a000-000000000001",
+      "status": "ACTIVE",
+      "is_deleted": 0
+    },
+    {
+      "id": "a1000000-0000-4000-a000-000000000003",
+      "username": "it_dept",
+      "password_hash": "$2a$10$acqQgz6E6krSVYNYFQgM/OXp3oq5hDrdFOJU8CSd4uxiDVMdS2sj.",
+      "account_type": "Department Account",
+      "role": "department",
+      "department_id": 1,
+      "company_id": "c1000000-0000-4000-a000-000000000001",
+      "branch_id": "b1000000-0000-4000-a000-000000000001",
+      "status": "ACTIVE",
+      "is_deleted": 0
+    }
+  ],
+  "departments": [
+    {
+      "id": 1,
+      "uuid": "d1000000-0000-4000-a000-000000000001",
+      "code": "IT",
+      "name": "Information Technology Department",
+      "username": "it_dept",
+      "password_hash": "$2a$10$acqQgz6E6krSVYNYFQgM/OXp3oq5hDrdFOJU8CSd4uxiDVMdS2sj.",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 2,
+      "uuid": "d1000000-0000-4000-a000-000000000002",
+      "code": "HR",
+      "name": "Human Resources Department",
+      "username": "hr_dept",
+      "password_hash": "$2a$10$acqQgz6E6krSVYNYFQgM/OXp3oq5hDrdFOJU8CSd4uxiDVMdS2sj.",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 3,
+      "uuid": "d1000000-0000-4000-a000-000000000003",
+      "code": "ACCT",
+      "name": "Accounting Department",
+      "username": "acct_dept",
+      "password_hash": "$2a$10$acqQgz6E6krSVYNYFQgM/OXp3oq5hDrdFOJU8CSd4uxiDVMdS2sj.",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 4,
+      "uuid": "d1000000-0000-4000-a000-000000000004",
+      "code": "PURCH",
+      "name": "Purchasing Department",
+      "username": "purch_dept",
+      "password_hash": "$2a$10$acqQgz6E6krSVYNYFQgM/OXp3oq5hDrdFOJU8CSd4uxiDVMdS2sj.",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 5,
+      "uuid": "d1000000-0000-4000-a000-000000000005",
+      "code": "PROD",
+      "name": "Production Department",
+      "username": "prod_dept",
+      "password_hash": "$2a$10$acqQgz6E6krSVYNYFQgM/OXp3oq5hDrdFOJU8CSd4uxiDVMdS2sj.",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 6,
+      "uuid": "d1000000-0000-4000-a000-000000000006",
+      "code": "WH",
+      "name": "Warehouse Department",
+      "username": "wh_dept",
+      "password_hash": "$2a$10$acqQgz6E6krSVYNYFQgM/OXp3oq5hDrdFOJU8CSd4uxiDVMdS2sj.",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 7,
+      "uuid": "d1000000-0000-4000-a000-000000000007",
+      "code": "QA",
+      "name": "Quality Assurance Department",
+      "username": "qa_dept",
+      "password_hash": "$2a$10$acqQgz6E6krSVYNYFQgM/OXp3oq5hDrdFOJU8CSd4uxiDVMdS2sj.",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "uuid": "a1000000-0000-4000-a000-000000000001",
+      "username": "admin",
+      "password_hash": "$2a$10$UZLl2pBzLyqF5pNQplwJb.x/g1T/ZIqzCpxRkPZAUV3j4n6UQC0bK",
+      "role": "admin",
+      "department_id": null,
+      "full_name": "System Administrator (IT)",
+      "email": "admin@company.com",
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 2,
+      "uuid": "a1000000-0000-4000-a000-000000000002",
+      "username": "boss",
+      "password_hash": "$2a$10$maBFRTZ6unrlgM7ifOrb7O9DuaeRAwjxk/vWvKupHK7JHW.sdiKBe",
+      "role": "executive",
+      "department_id": null,
+      "full_name": "Executive Administrator",
+      "email": "boss@company.com",
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 3,
+      "uuid": "a1000000-0000-4000-a000-000000000003",
+      "username": "it_dept",
+      "password_hash": "$2a$10$acqQgz6E6krSVYNYFQgM/OXp3oq5hDrdFOJU8CSd4uxiDVMdS2sj.",
+      "role": "department",
+      "department_id": 1,
+      "full_name": "Information Technology Dept",
+      "email": "it@company.com",
+      "is_active": 1,
+      "is_deleted": 0
+    }
+  ],
+  "requests": [
+    {
+      "id": 1,
+      "uuid": "50e91f38-f12b-4285-a96a-63b5037e4bb1",
+      "request_number": "REQ-IT-20260807-00001",
+      "department_id": 1,
+      "prepared_by": "Earl John Delos Santos",
+      "position": "IT Lead",
+      "required_date": "2026-08-25",
+      "purpose": "Hostinger VPS Server KVM4 Subscription",
+      "business_justification": "",
+      "priority": "High",
+      "status": "Submitted",
+      "total_estimated_cost": 20133.12,
+      "created_by": 1,
+      "revision_number": 1,
+      "remarks": "",
+      "created_at": "2026-08-07T05:30:07.990Z",
+      "updated_at": "2026-08-07T05:30:07.990Z",
+      "is_deleted": 0
+    }
+  ],
+  "request_items": [
+    {
+      "id": 1,
+      "request_id": 1,
+      "item_description": "Hostinger KVM4 VPS Annual Plan",
+      "quantity": 1,
+      "unit": "YEAR",
+      "estimated_cost": 20133.12,
+      "remarks": "Primary Server Host"
+    }
+  ],
+  "attachments": [],
+  "master_dropdowns": [
+    {
+      "id": 1,
+      "category": "unit_of_measure",
+      "code": "PCS",
+      "label": "Pieces (PCS)",
+      "sort_order": 1,
+      "is_active": 1
+    },
+    {
+      "id": 2,
+      "category": "unit_of_measure",
+      "code": "BOX",
+      "label": "Boxes (BOX)",
+      "sort_order": 2,
+      "is_active": 1
+    },
+    {
+      "id": 3,
+      "category": "unit_of_measure",
+      "code": "SET",
+      "label": "Sets (SET)",
+      "sort_order": 3,
+      "is_active": 1
+    },
+    {
+      "id": 4,
+      "category": "unit_of_measure",
+      "code": "LOT",
+      "label": "Lots (LOT)",
+      "sort_order": 4,
+      "is_active": 1
+    },
+    {
+      "id": 5,
+      "category": "unit_of_measure",
+      "code": "KG",
+      "label": "Kilograms (KG)",
+      "sort_order": 5,
+      "is_active": 1
+    },
+    {
+      "id": 6,
+      "category": "priority",
+      "code": "Low",
+      "label": "Low Priority",
+      "sort_order": 1,
+      "is_active": 1
+    },
+    {
+      "id": 7,
+      "category": "priority",
+      "code": "Normal",
+      "label": "Normal Priority",
+      "sort_order": 2,
+      "is_active": 1
+    },
+    {
+      "id": 8,
+      "category": "priority",
+      "code": "High",
+      "label": "High Priority",
+      "sort_order": 3,
+      "is_active": 1
+    },
+    {
+      "id": 9,
+      "category": "priority",
+      "code": "Urgent",
+      "label": "Urgent Priority",
+      "sort_order": 4,
+      "is_active": 1
+    }
+  ],
+  "master_units": [
+    {
+      "id": "u1",
+      "code": "PCS",
+      "label": "Pieces (PCS)",
+      "sort_order": 1,
+      "is_active": 1
+    },
+    {
+      "id": "u2",
+      "code": "BOX",
+      "label": "Boxes (BOX)",
+      "sort_order": 2,
+      "is_active": 1
+    },
+    {
+      "id": "u3",
+      "code": "SET",
+      "label": "Sets (SET)",
+      "sort_order": 3,
+      "is_active": 1
+    },
+    {
+      "id": "u4",
+      "code": "LOT",
+      "label": "Lots (LOT)",
+      "sort_order": 4,
+      "is_active": 1
+    },
+    {
+      "id": "u5",
+      "code": "UNIT",
+      "label": "Units (UNIT)",
+      "sort_order": 5,
+      "is_active": 1
+    },
+    {
+      "id": "u6",
+      "code": "YEAR",
+      "label": "Years (YEAR)",
+      "sort_order": 6,
+      "is_active": 1
+    },
+    {
+      "id": "u7",
+      "code": "MONTH",
+      "label": "Months (MONTH)",
+      "sort_order": 7,
+      "is_active": 1
+    }
+  ],
+  "master_categories": [],
+  "master_priorities": [
+    {
+      "id": "p1",
+      "code": "Low",
+      "label": "Low Priority",
+      "sort_order": 1,
+      "is_active": 1
+    },
+    {
+      "id": "p2",
+      "code": "Normal",
+      "label": "Normal Priority",
+      "sort_order": 2,
+      "is_active": 1
+    },
+    {
+      "id": "p3",
+      "code": "High",
+      "label": "High Priority",
+      "sort_order": 3,
+      "is_active": 1
+    },
+    {
+      "id": "p4",
+      "code": "Urgent",
+      "label": "Urgent Priority",
+      "sort_order": 4,
+      "is_active": 1
+    }
+  ],
+  "master_statuses": [
+    {
+      "id": "s1",
+      "code": "Draft",
+      "label": "Draft",
+      "is_active": 1
+    },
+    {
+      "id": "s2",
+      "code": "Submitted",
+      "label": "Submitted",
+      "is_active": 1
+    },
+    {
+      "id": "s3",
+      "code": "Under Review",
+      "label": "Under Review",
+      "is_active": 1
+    },
+    {
+      "id": "s4",
+      "code": "Approved",
+      "label": "Approved",
+      "is_active": 1
+    },
+    {
+      "id": "s5",
+      "code": "Rejected",
+      "label": "Rejected",
+      "is_active": 1
+    },
+    {
+      "id": "s6",
+      "code": "Completed",
+      "label": "Completed",
+      "is_active": 1
+    }
+  ],
+  "permissions": [
+    {
+      "id": "pm1",
+      "code": "request.create",
+      "name": "Create Requisition"
+    },
+    {
+      "id": "pm2",
+      "code": "request.approve",
+      "name": "Approve Requisition"
+    },
+    {
+      "id": "pm3",
+      "code": "request.export",
+      "name": "Export Reports"
+    },
+    {
+      "id": "pm4",
+      "code": "department.manage",
+      "name": "Manage Departments"
+    },
+    {
+      "id": "pm5",
+      "code": "system.manage",
+      "name": "System Settings & Backups"
+    }
+  ],
+  "role_permissions": [],
+  "workflow_templates": [],
+  "notifications": [],
+  "audit_logs": [],
+  "backups": []
+}
