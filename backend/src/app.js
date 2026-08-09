@@ -64,7 +64,33 @@ app.get(['/favicon.ico', '/favicon.svg'], (req, res) => {
   return res.status(204).end();
 });
 
-// Serve Static Assets from all possible build locations
+// Explicit /assets Static Handler with Strict JS/CSS MIME Types
+const possibleAssetDirs = [
+  path.resolve(__dirname, '../public/assets'),
+  path.resolve(__dirname, '../assets'),
+  path.resolve(__dirname, '../../frontend/dist/assets'),
+  path.resolve(process.cwd(), 'public/assets'),
+  path.resolve(process.cwd(), 'assets'),
+  path.resolve(process.cwd(), 'frontend/dist/assets')
+];
+
+for (const assetDir of possibleAssetDirs) {
+  if (fs.existsSync(assetDir)) {
+    app.use('/assets', express.static(assetDir, {
+      maxAge: '1y',
+      immutable: true,
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.js') || filePath.endsWith('.mjs')) {
+          res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+        } else if (filePath.endsWith('.css')) {
+          res.setHeader('Content-Type', 'text/css; charset=UTF-8');
+        }
+      }
+    }));
+  }
+}
+
+// Serve Static Root Assets
 const possibleStaticDirs = [
   path.resolve(__dirname, '../public'),
   path.resolve(__dirname, '..'),
@@ -92,6 +118,11 @@ app.get('/api/status', (req, res) => {
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.startsWith('/api-docs')) {
     return next();
+  }
+
+  // Block serving HTML index.html for missing assets or static files
+  if (req.path.startsWith('/assets') || req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|json)$/i)) {
+    return res.status(404).type('text/plain').send('Static asset not found');
   }
 
   const possibleIndexPaths = [

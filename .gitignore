@@ -6,12 +6,9 @@
 **/.env.*
 !.env.example
 
-# Compiled Build Outputs & Distribution Packages
+# Compiled Build Outputs
 **/dist/
 **/public_html_ready/
-**/assets/index-*.js
-**/assets/index-*.css
-backend/public/assets/
 
 # Logs & Temporary Files
 **/logs/
