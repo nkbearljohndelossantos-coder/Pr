@@ -10,10 +10,12 @@ import {
   ArrowLeft, 
   Building2,
   FileCheck,
-  CheckCheck
+  CheckCheck,
+  ZoomIn
 } from 'lucide-react';
 import RequestStatusStepper from '../components/RequestStatusStepper';
 import ConfirmModal from '../components/ConfirmModal';
+import FilePreviewModal from '../components/FilePreviewModal';
 import { requestApi } from '../services/systemApi';
 import { STATUS_COLORS } from '../constants/status';
 import { useAuth } from '../context/AuthContext';
@@ -29,6 +31,7 @@ export default function RequestDetailPage() {
   const [loading, setLoading] = useState(true);
   const [approvalNotes, setApprovalNotes] = useState('');
   const [actionModal, setActionModal] = useState({ open: false, targetStatus: '' });
+  const [previewFile, setPreviewFile] = useState(null);
 
   useEffect(() => {
     fetchRequestDetails();
@@ -332,25 +335,65 @@ export default function RequestDetailPage() {
         </h3>
 
         {request.attachments && request.attachments.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {request.attachments.map((att) => (
-              <a
-                key={att.id}
-                href={`/uploads/${att.filename}`}
-                target="_blank"
-                rel="noreferrer"
-                className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between hover:bg-blue-50 hover:border-blue-300 transition-colors"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <FileText className="w-5 h-5 text-blue-600 shrink-0" />
-                  <div className="truncate">
-                    <p className="text-xs font-semibold text-slate-800 truncate">{att.original_name}</p>
-                    <p className="text-[10px] text-slate-400">{(att.file_size / 1024).toFixed(1)} KB</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {request.attachments.map((att) => {
+              const isImg = att.file_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(att.original_name);
+              const previewUrl = `/uploads/${att.filename}`;
+
+              return (
+                <div
+                  key={att.id}
+                  className="relative group border border-slate-200 rounded-lg overflow-hidden bg-white shadow-2xs hover:shadow-md transition-all flex flex-col"
+                >
+                  <div
+                    onClick={() => setPreviewFile(att)}
+                    className="h-28 bg-slate-100 flex items-center justify-center relative cursor-pointer overflow-hidden"
+                  >
+                    {isImg ? (
+                      <img
+                        src={previewUrl}
+                        alt={att.original_name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center gap-1.5 p-2 text-slate-500">
+                        <FileText className="w-8 h-8 text-indigo-500" />
+                        <span className="text-[10px] font-bold uppercase text-slate-600 bg-slate-200 px-1.5 py-0.5 rounded">
+                          {att.original_name.split('.').pop()}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-1 font-bold text-xs">
+                      <ZoomIn className="w-5 h-5" />
+                      <span>Enlarge</span>
+                    </div>
+                  </div>
+
+                  <div className="p-2 flex items-center justify-between gap-1 bg-white border-t border-slate-100">
+                    <div className="truncate min-w-0 pr-1">
+                      <p className="text-[11px] font-semibold text-slate-800 truncate" title={att.original_name}>
+                        {att.original_name}
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-mono">
+                        {(att.file_size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+                    <a
+                      href={previewUrl}
+                      download={att.original_name}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors shrink-0"
+                      title="Download File"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </a>
                   </div>
                 </div>
-                <Download className="w-4 h-4 text-slate-400 hover:text-blue-600 shrink-0 ml-2" />
-              </a>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-xs text-slate-400 py-2">No attachments uploaded for this request.</p>
@@ -377,6 +420,13 @@ export default function RequestDetailPage() {
         }
         confirmText={`Yes, ${actionModal.targetStatus}`}
         type={actionModal.targetStatus === 'Rejected' ? 'danger' : 'primary'}
+      />
+
+      {/* File Lightbox Preview Modal */}
+      <FilePreviewModal
+        isOpen={!!previewFile}
+        file={previewFile}
+        onClose={() => setPreviewFile(null)}
       />
     </div>
   );
