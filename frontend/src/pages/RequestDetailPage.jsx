@@ -221,7 +221,7 @@ export default function RequestDetailPage() {
       {/* Section 2: Items Table */}
       <div className="card-erp p-6 space-y-4">
         <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">
-          Request Items Breakdown
+          Request Items & Subscriptions Breakdown
         </h3>
 
         <div className="overflow-x-auto">

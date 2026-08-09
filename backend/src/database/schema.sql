@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS `backups` (
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Seed Data (Default Master Dropdowns)
+-- Seed Default Master Dropdowns
 INSERT IGNORE INTO `master_dropdowns` (`category`, `code`, `label`, `sort_order`) VALUES
 ('unit_of_measure', 'PCS', 'Pieces (PCS)', 1),
 ('unit_of_measure', 'BOX', 'Boxes (BOX)', 2),
@@ -152,6 +152,10 @@ INSERT IGNORE INTO `master_dropdowns` (`category`, `code`, `label`, `sort_order`
 ('unit_of_measure', 'KG', 'Kilograms (KG)', 5),
 ('unit_of_measure', 'MTR', 'Meters (MTR)', 6),
 ('unit_of_measure', 'UNIT', 'Units (UNIT)', 7),
+('unit_of_measure', 'SUBSCRIPTION', 'Subscription (SUB)', 8),
+('unit_of_measure', 'MONTHLY_SUB', 'Monthly Subscription', 9),
+('unit_of_measure', 'ANNUAL_SUB', 'Annual Subscription', 10),
+('unit_of_measure', 'LICENSE', 'Software License', 11),
 ('priority', 'Low', 'Low Priority', 1),
 ('priority', 'Normal', 'Normal Priority', 2),
 ('priority', 'High', 'High Priority', 3),

@@ -55,10 +55,14 @@ const initData = () => {
     { id: 3, category: 'unit_of_measure', code: 'SET', label: 'Sets (SET)', sort_order: 3, is_active: 1 },
     { id: 4, category: 'unit_of_measure', code: 'LOT', label: 'Lots (LOT)', sort_order: 4, is_active: 1 },
     { id: 5, category: 'unit_of_measure', code: 'KG', label: 'Kilograms (KG)', sort_order: 5, is_active: 1 },
-    { id: 6, category: 'priority', code: 'Low', label: 'Low Priority', sort_order: 1, is_active: 1 },
-    { id: 7, category: 'priority', code: 'Normal', label: 'Normal Priority', sort_order: 2, is_active: 1 },
-    { id: 8, category: 'priority', code: 'High', label: 'High Priority', sort_order: 3, is_active: 1 },
-    { id: 9, category: 'priority', code: 'Urgent', label: 'Urgent Priority', sort_order: 4, is_active: 1 }
+    { id: 6, category: 'unit_of_measure', code: 'SUBSCRIPTION', label: 'Subscription (SUB)', sort_order: 6, is_active: 1 },
+    { id: 7, category: 'unit_of_measure', code: 'MONTHLY_SUB', label: 'Monthly Subscription', sort_order: 7, is_active: 1 },
+    { id: 8, category: 'unit_of_measure', code: 'ANNUAL_SUB', label: 'Annual Subscription', sort_order: 8, is_active: 1 },
+    { id: 9, category: 'unit_of_measure', code: 'LICENSE', label: 'Software License', sort_order: 9, is_active: 1 },
+    { id: 10, category: 'priority', code: 'Low', label: 'Low Priority', sort_order: 1, is_active: 1 },
+    { id: 11, category: 'priority', code: 'Normal', label: 'Normal Priority', sort_order: 2, is_active: 1 },
+    { id: 12, category: 'priority', code: 'High', label: 'High Priority', sort_order: 3, is_active: 1 },
+    { id: 13, category: 'priority', code: 'Urgent', label: 'Urgent Priority', sort_order: 4, is_active: 1 }
   ];
 
   store.departments = [
