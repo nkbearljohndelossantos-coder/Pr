@@ -88,9 +88,38 @@ const initData = () => {
 // Always re-seed/ensure store exists
 initData();
 
-// Database Query Engine Emulator supporting standard SQL queries
+// Hostinger / MySQL Connection Pool Setup
+let pool = null;
+if (env.DB_TYPE === 'mysql' || process.env.DB_USER || process.env.DB_HOST) {
+  try {
+    const mysql = require('mysql2/promise');
+    pool = mysql.createPool({
+      host: env.DB_HOST || '127.0.0.1',
+      port: env.DB_PORT || 3306,
+      user: env.DB_USER || 'root',
+      password: env.DB_PASS || '',
+      database: env.DB_NAME || 'u335953510_pr_data',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0
+    });
+    logger.info(`Hostinger MySQL Connection Pool Initialized for Database: ${env.DB_NAME}`);
+  } catch (err) {
+    logger.warn('MySQL pool initialization skipped, falling back to JSON Store engine:', err.message);
+  }
+}
+
+// Database Query Engine supporting both Real MySQL and Fail-safe Store Emulator
 const db = {
   query: async (sql, params = []) => {
+    if (pool) {
+      try {
+        return await pool.query(sql, params);
+      } catch (mysqlErr) {
+        logger.warn(`MySQL connection error (${mysqlErr.message}), executing query via fallback engine.`);
+      }
+    }
+
     const cleanSql = sql.trim().replace(/\s+/g, ' ');
     const upper = cleanSql.toUpperCase();
 
