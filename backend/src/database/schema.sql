@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS `request_items` (
   `estimated_cost` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
   `total_cost` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
   `remarks` VARCHAR(255) NULL,
+  `item_type` VARCHAR(30) NOT NULL DEFAULT 'item', -- 'item' or 'subscription'
   `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
   FOREIGN KEY (`request_id`) REFERENCES `requests`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

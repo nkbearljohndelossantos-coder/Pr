@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Save, Send, ArrowLeft, AlertCircle } from 'lucide-react';
 import DynamicItemRows from '../components/DynamicItemRows';
+import DynamicSubscriptionRows from '../components/DynamicSubscriptionRows';
 import AttachmentUploader from '../components/AttachmentUploader';
 import { requestApi, systemApi } from '../services/systemApi';
 import { useAuth } from '../context/AuthContext';
@@ -23,8 +24,9 @@ export default function CreateRequestPage() {
   const [businessJustification, setBusinessJustification] = useState('');
   const [priority, setPriority] = useState('Normal');
   const [items, setItems] = useState([
-    { item_description: '', quantity: 1, unit: 'PCS', estimated_cost: 0, remarks: '' }
+    { item_description: '', quantity: 1, unit: 'PCS', estimated_cost: 0, remarks: '', item_type: 'item' }
   ]);
+  const [subscriptions, setSubscriptions] = useState([]);
   const [files, setFiles] = useState([]);
   const [uomOptions, setUomOptions] = useState([]);
   const [submitting, setSubmitting] = useState(false);
@@ -68,31 +70,57 @@ export default function CreateRequestPage() {
       return false;
     }
 
-    if (!items || items.length === 0) {
-      addToast('At least one item row is required.', 'error');
+    if ((!items || items.length === 0) && (!subscriptions || subscriptions.length === 0)) {
+      addToast('At least one item or subscription row is required.', 'error');
       return false;
     }
 
+    // Validate physical items
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       if (!item.item_description || !item.item_description.trim()) {
-        addToast(`Item Row #${i + 1}: "Item Description" cannot be left blank.`, 'error');
+        addToast(`Request Item Row #${i + 1}: "Item Description" cannot be left blank.`, 'error');
         return false;
       }
       if (!item.quantity || Number(item.quantity) <= 0) {
-        addToast(`Item Row #${i + 1}: "Quantity" must be a number greater than 0.`, 'error');
+        addToast(`Request Item Row #${i + 1}: "Quantity" must be a number greater than 0.`, 'error');
         return false;
       }
       if (!item.unit) {
-        addToast(`Item Row #${i + 1}: "Unit of Measure" must be selected.`, 'error');
+        addToast(`Request Item Row #${i + 1}: "Unit of Measure" must be selected.`, 'error');
         return false;
       }
       if (item.estimated_cost === undefined || item.estimated_cost === '' || Number(item.estimated_cost) <= 0) {
-        addToast(`Item Row #${i + 1}: "Estimated Cost" must be a valid amount greater than $0.00.`, 'error');
+        addToast(`Request Item Row #${i + 1}: "Estimated Cost" must be a valid amount greater than $0.00.`, 'error');
         return false;
       }
       if (!item.remarks || !item.remarks.trim()) {
-        addToast(`Item Row #${i + 1}: "Remarks / Specifications" cannot be left blank.`, 'error');
+        addToast(`Request Item Row #${i + 1}: "Remarks / Specs" cannot be left blank.`, 'error');
+        return false;
+      }
+    }
+
+    // Validate subscriptions
+    for (let i = 0; i < subscriptions.length; i++) {
+      const sub = subscriptions[i];
+      if (!sub.item_description || !sub.item_description.trim()) {
+        addToast(`Subscription Row #${i + 1}: "Subscription / Service Name" cannot be left blank.`, 'error');
+        return false;
+      }
+      if (!sub.quantity || Number(sub.quantity) <= 0) {
+        addToast(`Subscription Row #${i + 1}: "Seats / Qty" must be a number greater than 0.`, 'error');
+        return false;
+      }
+      if (!sub.unit) {
+        addToast(`Subscription Row #${i + 1}: "Billing Cycle" must be selected.`, 'error');
+        return false;
+      }
+      if (sub.estimated_cost === undefined || sub.estimated_cost === '' || Number(sub.estimated_cost) <= 0) {
+        addToast(`Subscription Row #${i + 1}: "Unit Rate" must be a valid amount greater than $0.00.`, 'error');
+        return false;
+      }
+      if (!sub.remarks || !sub.remarks.trim()) {
+        addToast(`Subscription Row #${i + 1}: "Period / Renewal Notes" cannot be left blank.`, 'error');
         return false;
       }
     }
@@ -105,6 +133,11 @@ export default function CreateRequestPage() {
 
     setSubmitting(true);
     try {
+      // Format items with item_type demarcation
+      const formattedItems = items.map((i) => ({ ...i, item_type: 'item' }));
+      const formattedSubs = subscriptions.map((s) => ({ ...s, item_type: 'subscription' }));
+      const allItemsCombined = [...formattedItems, ...formattedSubs];
+
       const formData = new FormData();
       formData.append('prepared_by', preparedBy.trim());
       formData.append('position', position.trim());
@@ -113,7 +146,8 @@ export default function CreateRequestPage() {
       formData.append('business_justification', businessJustification.trim());
       formData.append('priority', priority);
       formData.append('status', statusType);
-      formData.append('items', JSON.stringify(items));
+      formData.append('items', JSON.stringify(allItemsCombined));
+      formData.append('subscriptions', JSON.stringify(formattedSubs));
 
       files.forEach((file) => {
         formData.append('attachments', file);
@@ -321,12 +355,17 @@ export default function CreateRequestPage() {
           </div>
         </div>
 
-        {/* Section 3: Dynamic Request Items Table */}
+        {/* Section 3: Physical Request Items Table */}
         <div className="card-erp p-6">
           <DynamicItemRows items={items} onChange={setItems} uomOptions={uomOptions} />
         </div>
 
-        {/* Section 4: Attachments */}
+        {/* Section 4: Subscriptions Breakdown Table */}
+        <div className="card-erp p-6">
+          <DynamicSubscriptionRows subscriptions={subscriptions} onChange={setSubscriptions} />
+        </div>
+
+        {/* Section 5: Attachments */}
         <div className="card-erp p-6">
           <AttachmentUploader files={files} onFilesChange={setFiles} />
         </div>

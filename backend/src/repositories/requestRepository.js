@@ -39,12 +39,20 @@ class RequestRepository {
   }
 
   async addRequestItem(item) {
-    const { request_id, item_description, quantity, unit, estimated_cost, total_cost, remarks } = item;
-    await db.query(
-      `INSERT INTO request_items (request_id, item_description, quantity, unit, estimated_cost, total_cost, remarks)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [request_id, item_description, quantity, unit, estimated_cost, total_cost, remarks || '']
-    );
+    const { request_id, item_description, quantity, unit, estimated_cost, total_cost, remarks, item_type } = item;
+    try {
+      await db.query(
+        `INSERT INTO request_items (request_id, item_description, quantity, unit, estimated_cost, total_cost, remarks, item_type)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [request_id, item_description, quantity, unit, estimated_cost, total_cost, remarks || '', item_type || 'item']
+      );
+    } catch (err) {
+      await db.query(
+        `INSERT INTO request_items (request_id, item_description, quantity, unit, estimated_cost, total_cost, remarks)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [request_id, item_description, quantity, unit, estimated_cost, total_cost, remarks || '']
+      );
+    }
   }
 
   async addAttachment(att) {

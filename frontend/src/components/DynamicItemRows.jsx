@@ -31,7 +31,7 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-          Request Items & Subscriptions Breakdown ({items.length}) <span className="text-rose-500 font-bold">*</span>
+          Request Items Breakdown ({items.length}) <span className="text-rose-500 font-bold">*</span>
         </h3>
         <button
           type="button"
@@ -39,7 +39,7 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
           className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-md hover:bg-blue-700 transition-colors shadow-2xs"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span>Add Row</span>
+          <span>Add Item Row</span>
         </button>
       </div>
 
@@ -48,12 +48,12 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
           <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
             <tr>
               <th className="px-3 py-2 w-10">#</th>
-              <th className="px-3 py-2">Item Description / Subscription <span className="text-rose-500 font-bold">*</span></th>
+              <th className="px-3 py-2">Item Description <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2 w-24">Quantity <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2 w-32">Unit <span className="text-rose-500 font-bold">*</span></th>
+              <th className="px-3 py-2 w-28">Unit <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2 w-32">Est. Cost ($) <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2 w-32">Total ($)</th>
-              <th className="px-3 py-2 w-40">Remarks <span className="text-rose-500 font-bold">*</span></th>
+              <th className="px-3 py-2 w-40">Remarks / Specs <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2 w-12 text-center">Action</th>
             </tr>
           </thead>

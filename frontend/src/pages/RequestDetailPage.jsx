@@ -218,52 +218,93 @@ export default function RequestDetailPage() {
         )}
       </div>
 
-      {/* Section 2: Items Table */}
-      <div className="card-erp p-6 space-y-4">
-        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">
-          Request Items & Subscriptions Breakdown
-        </h3>
+      {/* Section 2: Request Items Breakdown */}
+      {(() => {
+        const allItems = request.items || [];
+        const physicalItems = allItems.filter(i => i.item_type !== 'subscription');
+        const subscriptionItems = allItems.filter(i => i.item_type === 'subscription');
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-              <tr>
-                <th className="px-3 py-2 w-10">#</th>
-                <th className="px-3 py-2">Item Description</th>
-                <th className="px-3 py-2 text-right">Quantity</th>
-                <th className="px-3 py-2">Unit</th>
-                <th className="px-3 py-2 text-right">Est. Cost ($)</th>
-                <th className="px-3 py-2 text-right">Total ($)</th>
-                <th className="px-3 py-2">Remarks</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {request.items && request.items.length > 0 ? (
-                request.items.map((item, idx) => (
-                  <tr key={item.id || idx} className="hover:bg-slate-50">
-                    <td className="px-3 py-2.5 font-bold text-slate-400">{idx + 1}</td>
-                    <td className="px-3 py-2.5 font-medium text-slate-800">{item.item_description}</td>
-                    <td className="px-3 py-2.5 text-right font-semibold text-slate-700">{Number(item.quantity).toFixed(2)}</td>
-                    <td className="px-3 py-2.5 font-mono text-slate-500">{item.unit}</td>
-                    <td className="px-3 py-2.5 text-right text-slate-600">${Number(item.estimated_cost).toFixed(2)}</td>
-                    <td className="px-3 py-2.5 text-right font-bold text-slate-800">${Number(item.total_cost).toFixed(2)}</td>
-                    <td className="px-3 py-2.5 text-slate-500">{item.remarks || '-'}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="text-center py-4 text-slate-400">No items recorded.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        return (
+          <>
+            {physicalItems.length > 0 && (
+              <div className="card-erp p-6 space-y-4">
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">
+                  Request Items Breakdown
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                      <tr>
+                        <th className="px-3 py-2 w-10">#</th>
+                        <th className="px-3 py-2">Item Description</th>
+                        <th className="px-3 py-2 text-right">Quantity</th>
+                        <th className="px-3 py-2">Unit</th>
+                        <th className="px-3 py-2 text-right">Est. Cost ($)</th>
+                        <th className="px-3 py-2 text-right">Total ($)</th>
+                        <th className="px-3 py-2">Remarks / Specs</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {physicalItems.map((item, idx) => (
+                        <tr key={item.id || idx} className="hover:bg-slate-50">
+                          <td className="px-3 py-2.5 font-bold text-slate-400">{idx + 1}</td>
+                          <td className="px-3 py-2.5 font-medium text-slate-800">{item.item_description}</td>
+                          <td className="px-3 py-2.5 text-right font-semibold text-slate-700">{Number(item.quantity).toFixed(2)}</td>
+                          <td className="px-3 py-2.5 font-mono text-slate-500">{item.unit}</td>
+                          <td className="px-3 py-2.5 text-right text-slate-600">${Number(item.estimated_cost).toFixed(2)}</td>
+                          <td className="px-3 py-2.5 text-right font-bold text-slate-800">${Number(item.total_cost).toFixed(2)}</td>
+                          <td className="px-3 py-2.5 text-slate-500">{item.remarks || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
-        <div className="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs font-bold text-slate-800">
-          <span>GRAND TOTAL ESTIMATED COST:</span>
-          <span className="text-sm text-blue-600">${Number(request.total_estimated_cost || 0).toFixed(2)}</span>
-        </div>
-      </div>
+            {subscriptionItems.length > 0 && (
+              <div className="card-erp p-6 space-y-4">
+                <h3 className="text-xs font-bold text-indigo-900 uppercase tracking-wide border-b border-indigo-100 pb-2 flex items-center gap-2">
+                  <span>Subscriptions Breakdown</span>
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-indigo-50/70 text-indigo-900 font-semibold border-b border-indigo-200">
+                      <tr>
+                        <th className="px-3 py-2 w-10">#</th>
+                        <th className="px-3 py-2">Subscription / Service Name</th>
+                        <th className="px-3 py-2">Billing Cycle</th>
+                        <th className="px-3 py-2 text-right">Seats / Licenses</th>
+                        <th className="px-3 py-2 text-right">Unit Rate ($)</th>
+                        <th className="px-3 py-2 text-right">Total ($)</th>
+                        <th className="px-3 py-2">Period / Renewal Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {subscriptionItems.map((item, idx) => (
+                        <tr key={item.id || idx} className="hover:bg-indigo-50/20">
+                          <td className="px-3 py-2.5 font-bold text-indigo-500">{idx + 1}</td>
+                          <td className="px-3 py-2.5 font-semibold text-slate-800">{item.item_description}</td>
+                          <td className="px-3 py-2.5 font-bold text-indigo-700 uppercase">{item.unit}</td>
+                          <td className="px-3 py-2.5 text-right font-semibold text-slate-700">{Number(item.quantity).toFixed(0)}</td>
+                          <td className="px-3 py-2.5 text-right text-slate-600">${Number(item.estimated_cost).toFixed(2)}</td>
+                          <td className="px-3 py-2.5 text-right font-bold text-indigo-800">${Number(item.total_cost).toFixed(2)}</td>
+                          <td className="px-3 py-2.5 text-slate-600">{item.remarks || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <div className="card-erp p-4 bg-slate-50 flex justify-between items-center text-xs font-bold text-slate-800">
+              <span>COMBINED GRAND TOTAL ESTIMATED COST:</span>
+              <span className="text-base text-blue-600">${Number(request.total_estimated_cost || 0).toFixed(2)}</span>
+            </div>
+          </>
+        );
+      })()}
 
       {/* Section 3: Attachments */}
       <div className="card-erp p-6 space-y-3">
