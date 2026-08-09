@@ -3,20 +3,29 @@
 
 # Environment Variables & Secrets
 **/.env
-**/.env.local
-**/.env.production
+**/.env.*
+!.env.example
 
-# Build Outputs & Logs
+# Compiled Build Outputs & Distribution Packages
 **/dist/
+**/public_html_ready/
+**/assets/index-*.js
+**/assets/index-*.css
+backend/public/assets/
+
+# Logs & Temporary Files
 **/logs/
 *.log
+*.tmp
+*.swp
 
-# Database & Uploads Dynamic Data (keep structure, ignore dynamic files)
+# Database Store & Dynamic Uploads
 backend/data/*.sqlite
+backend/data/*.json
 backend/uploads/*
 !backend/uploads/.gitkeep
 
-# IDE & System Files
+# Operating System & IDE Files
 .DS_Store
 Thumbs.db
 .vscode/
