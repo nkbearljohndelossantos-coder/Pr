@@ -224,6 +224,25 @@ export default function RequestDetailPage() {
         const physicalItems = allItems.filter(i => i.item_type !== 'subscription');
         const subscriptionItems = allItems.filter(i => i.item_type === 'subscription');
 
+        const formatBillingCycle = (unit) => {
+          const map = {
+            '1_MONTH': '1 Month (Monthly)',
+            'MONTHLY': '1 Month (Monthly)',
+            '3_MONTHS': '3 Months (Quarterly)',
+            'QUARTERLY': '3 Months (Quarterly)',
+            '6_MONTHS': '6 Months (Semi-Annual)',
+            'SEMI_ANNUAL': '6 Months (Semi-Annual)',
+            '12_MONTHS': '12 Months (1 Year)',
+            'ANNUAL': '12 Months (1 Year)',
+            '24_MONTHS': '24 Months (2 Years)',
+            '36_MONTHS': '36 Months (3 Years)',
+            '48_MONTHS': '48 Months (4 Years)',
+            '60_MONTHS': '60 Months (5 Years)',
+            'ONE_TIME': 'One-Time Permanent License'
+          };
+          return map[unit] || unit;
+        };
+
         return (
           <>
             {physicalItems.length > 0 && (
@@ -285,7 +304,7 @@ export default function RequestDetailPage() {
                         <tr key={item.id || idx} className="hover:bg-indigo-50/20">
                           <td className="px-3 py-2.5 font-bold text-indigo-500">{idx + 1}</td>
                           <td className="px-3 py-2.5 font-semibold text-slate-800">{item.item_description}</td>
-                          <td className="px-3 py-2.5 font-bold text-indigo-700 uppercase">{item.unit}</td>
+                          <td className="px-3 py-2.5 font-bold text-indigo-700 font-mono">{formatBillingCycle(item.unit)}</td>
                           <td className="px-3 py-2.5 text-right font-semibold text-slate-700">{Number(item.quantity).toFixed(0)}</td>
                           <td className="px-3 py-2.5 text-right text-slate-600">${Number(item.estimated_cost).toFixed(2)}</td>
                           <td className="px-3 py-2.5 text-right font-bold text-indigo-800">${Number(item.total_cost).toFixed(2)}</td>

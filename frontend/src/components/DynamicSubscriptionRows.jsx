@@ -11,7 +11,7 @@ export default function DynamicSubscriptionRows({ subscriptions = [], onChange }
   const addSubscriptionRow = () => {
     onChange([
       ...subscriptions,
-      { item_description: '', quantity: 1, unit: 'MONTHLY', estimated_cost: 0, remarks: '', item_type: 'subscription' }
+      { item_description: '', quantity: 1, unit: '12_MONTHS', estimated_cost: 0, remarks: '', item_type: 'subscription' }
     ]);
   };
 
@@ -88,15 +88,19 @@ export default function DynamicSubscriptionRows({ subscriptions = [], onChange }
                     <td className="px-3 py-2">
                       <select
                         required
-                        value={item.unit || 'MONTHLY'}
+                        value={item.unit || '12_MONTHS'}
                         onChange={(e) => handleSubscriptionChange(idx, 'unit', e.target.value)}
-                        className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-1 focus:ring-indigo-600 focus:outline-none font-semibold"
+                        className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-1 focus:ring-indigo-600 focus:outline-none font-semibold text-slate-800"
                       >
-                        <option value="MONTHLY">Monthly</option>
-                        <option value="QUARTERLY">Quarterly</option>
-                        <option value="SEMI_ANNUAL">Semi-Annual</option>
-                        <option value="ANNUAL">Annual</option>
-                        <option value="ONE_TIME">One-Time License</option>
+                        <option value="1_MONTH">1 Month (Monthly)</option>
+                        <option value="3_MONTHS">3 Months (Quarterly)</option>
+                        <option value="6_MONTHS">6 Months (Semi-Annual)</option>
+                        <option value="12_MONTHS">12 Months (1 Year)</option>
+                        <option value="24_MONTHS">24 Months (2 Years)</option>
+                        <option value="36_MONTHS">36 Months (3 Years)</option>
+                        <option value="48_MONTHS">48 Months (4 Years)</option>
+                        <option value="60_MONTHS">60 Months (5 Years)</option>
+                        <option value="ONE_TIME">One-Time Permanent License</option>
                       </select>
                     </td>
                     <td className="px-3 py-2">
