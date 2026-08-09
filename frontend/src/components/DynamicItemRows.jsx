@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Box } from 'lucide-react';
 
 export default function DynamicItemRows({ items = [], onChange, uomOptions = [] }) {
   const handleItemChange = (index, field, value) => {
@@ -11,12 +11,11 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
   const addItemRow = () => {
     onChange([
       ...items,
-      { item_description: '', quantity: 1, unit: 'PCS', estimated_cost: 0, remarks: '' }
+      { item_description: '', quantity: 1, unit: 'PCS', estimated_cost: 0, remarks: '', item_type: 'item' }
     ]);
   };
 
   const removeItemRow = (index) => {
-    if (items.length <= 1) return;
     const updated = items.filter((_, i) => i !== index);
     onChange(updated);
   };
@@ -30,9 +29,12 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-          Request Items Breakdown ({items.length}) <span className="text-rose-500 font-bold">*</span>
-        </h3>
+        <div className="flex items-center gap-2">
+          <Box className="w-4 h-4 text-blue-600" />
+          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+            Request Items Breakdown ({items.length})
+          </h3>
+        </div>
         <button
           type="button"
           onClick={addItemRow}
@@ -47,118 +49,124 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
         <table className="w-full text-left text-xs">
           <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
             <tr>
-              <th className="px-3 py-2 w-10">#</th>
-              <th className="px-3 py-2">Item Description <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2 w-24">Quantity <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2 w-28">Unit <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2 w-32">Est. Cost ($) <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2 w-32">Total ($)</th>
-              <th className="px-3 py-2 w-40">Remarks / Specs <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2 w-12 text-center">Action</th>
+              <th className="px-3 py-2.5 w-10">#</th>
+              <th className="px-3 py-2.5">Item Description <span className="text-rose-500 font-bold">*</span></th>
+              <th className="px-3 py-2.5 w-24">Quantity <span className="text-rose-500 font-bold">*</span></th>
+              <th className="px-3 py-2.5 w-28">Unit <span className="text-rose-500 font-bold">*</span></th>
+              <th className="px-3 py-2.5 w-32">Est. Cost ($) <span className="text-rose-500 font-bold">*</span></th>
+              <th className="px-3 py-2.5 w-32">Total ($)</th>
+              <th className="px-3 py-2.5 w-40">Remarks / Specs <span className="text-rose-500 font-bold">*</span></th>
+              <th className="px-3 py-2.5 w-12 text-center">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
-            {items.map((item, idx) => {
-              const qty = parseFloat(item.quantity) || 0;
-              const cost = parseFloat(item.estimated_cost) || 0;
-              const rowTotal = qty * cost;
+            {items.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="text-center py-4 text-slate-400 italic">
+                  No physical items added. Click "Add Item Row" above if your request includes hardware or physical materials.
+                </td>
+              </tr>
+            ) : (
+              items.map((item, idx) => {
+                const qty = parseFloat(item.quantity) || 0;
+                const cost = parseFloat(item.estimated_cost) || 0;
+                const rowTotal = qty * cost;
 
-              return (
-                <tr key={idx} className="hover:bg-slate-50/50">
-                  <td className="px-3 py-2 text-slate-400 font-bold">{idx + 1}</td>
-                  <td className="px-3 py-2">
-                    <input
-                      type="text"
-                      required
-                      value={item.item_description}
-                      onChange={(e) => handleItemChange(idx, 'item_description', e.target.value)}
-                      placeholder="e.g. Server RAM 64GB / Software License Subscription"
-                      className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none"
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <input
-                      type="number"
-                      min="1"
-                      step="any"
-                      required
-                      value={item.quantity}
-                      onChange={(e) => handleItemChange(idx, 'quantity', e.target.value)}
-                      className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none"
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <select
-                      required
-                      value={item.unit}
-                      onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
-                      className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none"
-                    >
-                      {uomOptions.length > 0 ? (
-                        uomOptions.map((u) => (
-                          <option key={u.code} value={u.code}>{u.label}</option>
-                        ))
-                      ) : (
-                        <>
-                          <option value="PCS">Pieces (PCS)</option>
-                          <option value="BOX">Boxes (BOX)</option>
-                          <option value="SET">Sets (SET)</option>
-                          <option value="LOT">Lots (LOT)</option>
-                          <option value="KG">Kilograms (KG)</option>
-                          <option value="SUBSCRIPTION">Subscription (SUB)</option>
-                          <option value="MONTHLY_SUB">Monthly Subscription</option>
-                          <option value="ANNUAL_SUB">Annual Subscription</option>
-                          <option value="LICENSE">Software License</option>
-                        </>
-                      )}
-                    </select>
-                  </td>
-                  <td className="px-3 py-2">
-                    <input
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      required
-                      value={item.estimated_cost}
-                      onChange={(e) => handleItemChange(idx, 'estimated_cost', e.target.value)}
-                      className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none"
-                    />
-                  </td>
-                  <td className="px-3 py-2 font-semibold text-slate-800">
-                    ${rowTotal.toFixed(2)}
-                  </td>
-                  <td className="px-3 py-2">
-                    <input
-                      type="text"
-                      required
-                      value={item.remarks}
-                      onChange={(e) => handleItemChange(idx, 'remarks', e.target.value)}
-                      placeholder="Specifications / Item note *"
-                      className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none"
-                    />
-                  </td>
-                  <td className="px-3 py-2 text-center">
-                    <button
-                      type="button"
-                      onClick={() => removeItemRow(idx)}
-                      disabled={items.length <= 1}
-                      className="p-1 text-slate-400 hover:text-rose-600 disabled:opacity-30 rounded transition-colors"
-                      title="Remove Row"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+                return (
+                  <tr key={idx} className="hover:bg-slate-50/50">
+                    <td className="px-3 py-2 text-slate-400 font-bold">{idx + 1}</td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        required
+                        value={item.item_description}
+                        onChange={(e) => handleItemChange(idx, 'item_description', e.target.value)}
+                        placeholder="e.g. Server RAM 64GB DDR4"
+                        className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="number"
+                        min="1"
+                        step="any"
+                        required
+                        value={item.quantity}
+                        onChange={(e) => handleItemChange(idx, 'quantity', e.target.value)}
+                        className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <select
+                        required
+                        value={item.unit}
+                        onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
+                        className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none"
+                      >
+                        {uomOptions.length > 0 ? (
+                          uomOptions.map((u) => (
+                            <option key={u.code} value={u.code}>{u.label}</option>
+                          ))
+                        ) : (
+                          <>
+                            <option value="PCS">Pieces (PCS)</option>
+                            <option value="BOX">Boxes (BOX)</option>
+                            <option value="SET">Sets (SET)</option>
+                            <option value="LOT">Lots (LOT)</option>
+                            <option value="KG">Kilograms (KG)</option>
+                            <option value="UNIT">Units (UNIT)</option>
+                            <option value="MTR">Meters (MTR)</option>
+                          </>
+                        )}
+                      </select>
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        required
+                        value={item.estimated_cost}
+                        onChange={(e) => handleItemChange(idx, 'estimated_cost', e.target.value)}
+                        className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none"
+                      />
+                    </td>
+                    <td className="px-3 py-2 font-semibold text-slate-800">
+                      ${rowTotal.toFixed(2)}
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        required
+                        value={item.remarks}
+                        onChange={(e) => handleItemChange(idx, 'remarks', e.target.value)}
+                        placeholder="Specifications / Item note *"
+                        className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none"
+                      />
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <button
+                        type="button"
+                        onClick={() => removeItemRow(idx)}
+                        className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors"
+                        title="Remove Row"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
 
-        {/* Total Summary Footer */}
-        <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs font-bold text-slate-800">
-          <span>GRAND TOTAL ESTIMATED COST:</span>
-          <span className="text-sm text-blue-600">${totalAmount.toFixed(2)}</span>
-        </div>
+        {items.length > 0 && (
+          <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs font-bold text-slate-800">
+            <span>TOTAL PHYSICAL ITEMS ESTIMATED COST:</span>
+            <span className="text-sm text-blue-600">${totalAmount.toFixed(2)}</span>
+          </div>
+        )}
       </div>
     </div>
   );

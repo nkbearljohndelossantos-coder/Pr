@@ -44,6 +44,18 @@ export default function CreateRequestPage() {
     } catch (e) {}
   };
 
+  const getValidItems = () => {
+    return items.filter(
+      (i) => (i.item_description && i.item_description.trim() !== '') || Number(i.estimated_cost) > 0 || (i.remarks && i.remarks.trim() !== '')
+    );
+  };
+
+  const getValidSubscriptions = () => {
+    return subscriptions.filter(
+      (s) => (s.item_description && s.item_description.trim() !== '') || Number(s.estimated_cost) > 0 || (s.remarks && s.remarks.trim() !== '')
+    );
+  };
+
   const validateForm = () => {
     if (!preparedBy.trim()) {
       addToast('Field Required: "Prepared By (Requester Name)" cannot be left blank.', 'error');
@@ -70,39 +82,42 @@ export default function CreateRequestPage() {
       return false;
     }
 
-    if ((!items || items.length === 0) && (!subscriptions || subscriptions.length === 0)) {
-      addToast('At least one item or subscription row is required.', 'error');
+    const validItems = getValidItems();
+    const validSubs = getValidSubscriptions();
+
+    if (validItems.length === 0 && validSubs.length === 0) {
+      addToast('Requisition Requirement: Please add at least ONE Physical Item row OR ONE Subscription row.', 'error');
       return false;
     }
 
-    // Validate physical items
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
+    // Validate physical items if user added physical items
+    for (let i = 0; i < validItems.length; i++) {
+      const item = validItems[i];
       if (!item.item_description || !item.item_description.trim()) {
-        addToast(`Request Item Row #${i + 1}: "Item Description" cannot be left blank.`, 'error');
+        addToast(`Physical Item Row #${i + 1}: "Item Description" cannot be left blank.`, 'error');
         return false;
       }
       if (!item.quantity || Number(item.quantity) <= 0) {
-        addToast(`Request Item Row #${i + 1}: "Quantity" must be a number greater than 0.`, 'error');
+        addToast(`Physical Item Row #${i + 1}: "Quantity" must be a number greater than 0.`, 'error');
         return false;
       }
       if (!item.unit) {
-        addToast(`Request Item Row #${i + 1}: "Unit of Measure" must be selected.`, 'error');
+        addToast(`Physical Item Row #${i + 1}: "Unit of Measure" must be selected.`, 'error');
         return false;
       }
       if (item.estimated_cost === undefined || item.estimated_cost === '' || Number(item.estimated_cost) <= 0) {
-        addToast(`Request Item Row #${i + 1}: "Estimated Cost" must be a valid amount greater than $0.00.`, 'error');
+        addToast(`Physical Item Row #${i + 1}: "Estimated Cost" must be a valid amount greater than $0.00.`, 'error');
         return false;
       }
       if (!item.remarks || !item.remarks.trim()) {
-        addToast(`Request Item Row #${i + 1}: "Remarks / Specs" cannot be left blank.`, 'error');
+        addToast(`Physical Item Row #${i + 1}: "Remarks / Specs" cannot be left blank.`, 'error');
         return false;
       }
     }
 
-    // Validate subscriptions
-    for (let i = 0; i < subscriptions.length; i++) {
-      const sub = subscriptions[i];
+    // Validate subscriptions if user added subscriptions
+    for (let i = 0; i < validSubs.length; i++) {
+      const sub = validSubs[i];
       if (!sub.item_description || !sub.item_description.trim()) {
         addToast(`Subscription Row #${i + 1}: "Subscription / Service Name" cannot be left blank.`, 'error');
         return false;
@@ -133,10 +148,9 @@ export default function CreateRequestPage() {
 
     setSubmitting(true);
     try {
-      // Format items with item_type demarcation
-      const formattedItems = items.map((i) => ({ ...i, item_type: 'item' }));
-      const formattedSubs = subscriptions.map((s) => ({ ...s, item_type: 'subscription' }));
-      const allItemsCombined = [...formattedItems, ...formattedSubs];
+      const validItems = getValidItems().map((i) => ({ ...i, item_type: 'item' }));
+      const validSubs = getValidSubscriptions().map((s) => ({ ...s, item_type: 'subscription' }));
+      const allItemsCombined = [...validItems, ...validSubs];
 
       const formData = new FormData();
       formData.append('prepared_by', preparedBy.trim());
@@ -147,7 +161,6 @@ export default function CreateRequestPage() {
       formData.append('priority', priority);
       formData.append('status', statusType);
       formData.append('items', JSON.stringify(allItemsCombined));
-      formData.append('subscriptions', JSON.stringify(formattedSubs));
 
       files.forEach((file) => {
         formData.append('attachments', file);
@@ -180,7 +193,7 @@ export default function CreateRequestPage() {
             <h1 className="text-xl font-bold text-slate-800">Create New Department Request</h1>
             <p className="text-xs text-slate-500">
               Department: <strong className="text-blue-600">{user?.department_name || user?.department_code || 'General'}</strong>
-              <span className="ml-2 text-rose-500 font-semibold">(All fields strictly required *)</span>
+              <span className="ml-2 text-rose-500 font-semibold">(Mandatory fields marked with *)</span>
             </p>
           </div>
         </div>
@@ -210,7 +223,7 @@ export default function CreateRequestPage() {
       {/* Mandatory Notification Banner */}
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center gap-2.5 text-xs text-amber-800 font-medium">
         <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-        <span>Notice: All form fields marked with an asterisk (<strong className="text-rose-600">*</strong>) are strictly required. Submissions with blank fields will be automatically blocked.</span>
+        <span>Notice: At least 1 Physical Item row OR 1 Subscription row is required. All added rows must have complete non-blank details (<strong className="text-rose-600">*</strong>).</span>
       </div>
 
       {/* Main Request Form */}
