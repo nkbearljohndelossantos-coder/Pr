@@ -103,6 +103,7 @@ app.get('*', (req, res, next) => {
 
   for (const indexPath of possibleIndexPaths) {
     if (fs.existsSync(indexPath)) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       return res.sendFile(indexPath);
     }
   }

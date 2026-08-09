@@ -1,10 +1,29 @@
-# Enterprise ERP Hostinger Apache / LiteSpeed SPA Rewrite Configuration
+# Hostinger Apache / LiteSpeed Web Server Configuration for Enterprise ERP
+<IfModule mod_mime.c>
+  AddType application/javascript .js .mjs
+  AddType text/css .css
+  AddType image/svg+xml .svg
+  AddType application/json .json
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+
+  # Handle static index.html directly
   RewriteRule ^index\.html$ - [L]
+
+  # Do NOT rewrite missing static assets, API calls, or uploads to index.html
+  RewriteCond %{REQUEST_URI} !^/assets/
+  RewriteCond %{REQUEST_URI} !^/api/
+  RewriteCond %{REQUEST_URI} !^/uploads/
+  RewriteCond %{REQUEST_URI} !\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|json)$ [NC]
+
+  # Don't rewrite existing files or directories
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Rewrite all remaining frontend SPA subpaths to index.html
   RewriteRule ^(.*)$ /index.html [L]
 </IfModule>
 
@@ -13,9 +32,16 @@
   AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json image/svg+xml
 </IfModule>
 
-# Security & Cache Control Headers
+# Security & Cache-Control Headers
 <IfModule mod_headers.c>
   Header set X-Content-Type-Options "nosniff"
   Header set X-Frame-Options "SAMEORIGIN"
   Header set X-XSS-Protection "1; mode=block"
+  
+  # Prevent browser HTML caching for index.html so asset hashes are always fresh
+  <FilesMatch "index\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
 </IfModule>
