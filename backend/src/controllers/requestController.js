@@ -8,9 +8,14 @@ const HTTP_STATUS = require('../constants/httpCodes');
 class RequestController {
   async create(req, res, next) {
     try {
-      const { prepared_by, required_date, purpose } = req.body;
-      if (!prepared_by || !required_date || !purpose) {
-        return errorResponse(res, 'Prepared By, Required Date, and Purpose are required fields.', ['ValidationFailed'], HTTP_STATUS.BAD_REQUEST);
+      const { prepared_by, position, required_date, purpose, business_justification } = req.body;
+      if (!prepared_by || !prepared_by.trim() || !position || !position.trim() || !required_date || !purpose || !purpose.trim() || !business_justification || !business_justification.trim()) {
+        return errorResponse(
+          res,
+          'Validation Error: All requisition form fields (Prepared By, Position, Required Date, Purpose, and Business Justification) are strictly required.',
+          ['ValidationFailed'],
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
       const request = await requestService.createRequest(req.user, req.body, req.files || []);

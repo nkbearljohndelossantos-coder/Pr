@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Save, Send, ArrowLeft } from 'lucide-react';
+import { Save, Send, ArrowLeft, AlertCircle } from 'lucide-react';
 import DynamicItemRows from '../components/DynamicItemRows';
 import AttachmentUploader from '../components/AttachmentUploader';
 import { requestApi, systemApi } from '../services/systemApi';
@@ -36,33 +36,81 @@ export default function CreateRequestPage() {
   const fetchUomOptions = async () => {
     try {
       const res = await systemApi.getMasterData('unit_of_measure');
-      if (res.data.success) {
+      if (res.data?.success) {
         setUomOptions(res.data.data);
       }
-    } catch (e) {
-      // fallback
+    } catch (e) {}
+  };
+
+  const validateForm = () => {
+    if (!preparedBy.trim()) {
+      addToast('Field Required: "Prepared By (Requester Name)" cannot be left blank.', 'error');
+      return false;
     }
+    if (!position.trim()) {
+      addToast('Field Required: "Position / Designation" cannot be left blank.', 'error');
+      return false;
+    }
+    if (!requiredDate) {
+      addToast('Field Required: "Required Date" cannot be left blank.', 'error');
+      return false;
+    }
+    if (!priority) {
+      addToast('Field Required: "Priority Level" cannot be left blank.', 'error');
+      return false;
+    }
+    if (!purpose.trim()) {
+      addToast('Field Required: "Purpose of Request" cannot be left blank.', 'error');
+      return false;
+    }
+    if (!businessJustification.trim()) {
+      addToast('Field Required: "Business Justification" cannot be left blank.', 'error');
+      return false;
+    }
+
+    if (!items || items.length === 0) {
+      addToast('At least one item row is required.', 'error');
+      return false;
+    }
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (!item.item_description || !item.item_description.trim()) {
+        addToast(`Item Row #${i + 1}: "Item Description" cannot be left blank.`, 'error');
+        return false;
+      }
+      if (!item.quantity || Number(item.quantity) <= 0) {
+        addToast(`Item Row #${i + 1}: "Quantity" must be a number greater than 0.`, 'error');
+        return false;
+      }
+      if (!item.unit) {
+        addToast(`Item Row #${i + 1}: "Unit of Measure" must be selected.`, 'error');
+        return false;
+      }
+      if (item.estimated_cost === undefined || item.estimated_cost === '' || Number(item.estimated_cost) <= 0) {
+        addToast(`Item Row #${i + 1}: "Estimated Cost" must be a valid amount greater than $0.00.`, 'error');
+        return false;
+      }
+      if (!item.remarks || !item.remarks.trim()) {
+        addToast(`Item Row #${i + 1}: "Remarks / Specifications" cannot be left blank.`, 'error');
+        return false;
+      }
+    }
+
+    return true;
   };
 
   const handleFormSubmit = async (statusType) => {
-    if (!preparedBy || !requiredDate || !purpose) {
-      addToast('Please fill in all required fields (Prepared By, Required Date, Purpose).', 'error');
-      return;
-    }
-
-    if (items.some((i) => !i.item_description.trim())) {
-      addToast('Please provide a description for all request item rows.', 'error');
-      return;
-    }
+    if (!validateForm()) return;
 
     setSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append('prepared_by', preparedBy);
-      formData.append('position', position);
+      formData.append('prepared_by', preparedBy.trim());
+      formData.append('position', position.trim());
       formData.append('required_date', requiredDate);
-      formData.append('purpose', purpose);
-      formData.append('business_justification', businessJustification);
+      formData.append('purpose', purpose.trim());
+      formData.append('business_justification', businessJustification.trim());
       formData.append('priority', priority);
       formData.append('status', statusType);
       formData.append('items', JSON.stringify(items));
@@ -72,7 +120,7 @@ export default function CreateRequestPage() {
       });
 
       const res = await requestApi.create(formData);
-      if (res.data.success) {
+      if (res.data?.success) {
         addToast(`Request ${res.data.data.request_number} created successfully!`, 'success');
         navigate(`/requests/${res.data.data.id}`);
       }
@@ -98,6 +146,7 @@ export default function CreateRequestPage() {
             <h1 className="text-xl font-bold text-slate-800">Create New Department Request</h1>
             <p className="text-xs text-slate-500">
               Department: <strong className="text-blue-600">{user?.department_name || user?.department_code || 'General'}</strong>
+              <span className="ml-2 text-rose-500 font-semibold">(All fields strictly required *)</span>
             </p>
           </div>
         </div>
@@ -122,6 +171,12 @@ export default function CreateRequestPage() {
             <span>{submitting ? 'Submitting...' : 'Submit Request'}</span>
           </button>
         </div>
+      </div>
+
+      {/* Mandatory Notification Banner */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center gap-2.5 text-xs text-amber-800 font-medium">
+        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+        <span>Notice: All form fields marked with an asterisk (<strong className="text-rose-600">*</strong>) are strictly required. Submissions with blank fields will be automatically blocked.</span>
       </div>
 
       {/* Main Request Form */}
@@ -159,7 +214,7 @@ export default function CreateRequestPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Required Date *
+                Required Date <span className="text-rose-500 font-bold">*</span>
               </label>
               <input
                 type="date"
@@ -172,9 +227,10 @@ export default function CreateRequestPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Priority *
+                Priority <span className="text-rose-500 font-bold">*</span>
               </label>
               <select
+                required
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-blue-600 focus:outline-none"
@@ -188,24 +244,25 @@ export default function CreateRequestPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Prepared By *
+                Prepared By <span className="text-rose-500 font-bold">*</span>
               </label>
               <input
                 type="text"
                 required
                 value={preparedBy}
                 onChange={(e) => setPreparedBy(e.target.value)}
-                placeholder="Full name of requester"
+                placeholder="Enter full name of requester"
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-600 focus:outline-none"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Position / Designation
+                Position / Designation <span className="text-rose-500 font-bold">*</span>
               </label>
               <input
                 type="text"
+                required
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
                 placeholder="e.g. Senior System Engineer"
@@ -236,7 +293,7 @@ export default function CreateRequestPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Purpose of Request *
+                Purpose of Request <span className="text-rose-500 font-bold">*</span>
               </label>
               <textarea
                 required
@@ -250,9 +307,10 @@ export default function CreateRequestPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Business Justification
+                Business Justification <span className="text-rose-500 font-bold">*</span>
               </label>
               <textarea
+                required
                 rows={2}
                 value={businessJustification}
                 onChange={(e) => setBusinessJustification(e.target.value)}
