@@ -107,7 +107,7 @@ export default function CreateRequestPage() {
         return false;
       }
       if (item.estimated_cost === undefined || item.estimated_cost === '' || Number(item.estimated_cost) <= 0) {
-        addToast(`Physical Item Row #${i + 1}: "Estimated Cost" must be a valid amount greater than $0.00.`, 'error');
+        addToast(`Physical Item Row #${i + 1}: "Estimated Cost" must be a valid amount greater than ₱0.00.`, 'error');
         return false;
       }
       if (!item.remarks || !item.remarks.trim()) {
@@ -132,7 +132,7 @@ export default function CreateRequestPage() {
         return false;
       }
       if (sub.estimated_cost === undefined || sub.estimated_cost === '' || Number(sub.estimated_cost) <= 0) {
-        addToast(`Subscription Row #${i + 1}: "Unit Rate" must be a valid amount greater than $0.00.`, 'error');
+        addToast(`Subscription Row #${i + 1}: "Unit Rate" must be a valid amount greater than ₱0.00.`, 'error');
         return false;
       }
       if (!sub.remarks || !sub.remarks.trim()) {

@@ -53,8 +53,8 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
               <th className="px-3 py-2.5">Item Description <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2.5 w-24">Quantity <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2.5 w-28">Unit <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2.5 w-32">Est. Cost ($) <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2.5 w-32">Total ($)</th>
+              <th className="px-3 py-2.5 w-32">Est. Cost (₱) <span className="text-rose-500 font-bold">*</span></th>
+              <th className="px-3 py-2.5 w-32">Total (₱)</th>
               <th className="px-3 py-2.5 w-40">Remarks / Specs <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2.5 w-12 text-center">Action</th>
             </tr>
@@ -131,8 +131,8 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
                         className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none"
                       />
                     </td>
-                    <td className="px-3 py-2 font-semibold text-slate-800">
-                      ${rowTotal.toFixed(2)}
+                    <td className="px-3 py-2 font-semibold text-slate-800 font-mono">
+                      ₱{rowTotal.toFixed(2)}
                     </td>
                     <td className="px-3 py-2">
                       <input
@@ -164,7 +164,7 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
         {items.length > 0 && (
           <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs font-bold text-slate-800">
             <span>TOTAL PHYSICAL ITEMS ESTIMATED COST:</span>
-            <span className="text-sm text-blue-600">${totalAmount.toFixed(2)}</span>
+            <span className="text-sm text-blue-600 font-mono">₱{totalAmount.toFixed(2)}</span>
           </div>
         )}
       </div>

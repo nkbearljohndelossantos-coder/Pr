@@ -18,8 +18,8 @@ class PdfService {
 
         // Header Band
         doc.fillColor('#1E293B').rect(40, 40, 515, 60).fill();
-        doc.fillColor('#FFFFFF').fontSize(16).font('Helvetica-Bold').text(env.COMPANY_NAME.toUpperCase(), 55, 55);
-        doc.fontSize(10).font('Helvetica').text('ENTERPRISE DEPARTMENT REQUEST REQUISITION', 55, 75);
+        doc.fillColor('#FFFFFF').fontSize(16).font('Helvetica-Bold').text((env.COMPANY_NAME || 'NKB MANUFACTURING CORPORATION').toUpperCase(), 55, 55);
+        doc.fontSize(10).font('Helvetica').text('PURCHASE REQUISITION SLIP', 55, 75);
         doc.fontSize(9).text(`DOC NO: ${reqData.request_number}  |  REV: 0${reqData.revision_number || 1}`, 360, 65, { align: 'right' });
 
         // Request Information Metadata
@@ -59,24 +59,29 @@ class PdfService {
 
         // Items Table Header
         let y = 265;
-        doc.font('Helvetica-Bold').fontSize(10).text('REQUEST ITEMS LIST', 40, y);
-        y += 15;
-
-        doc.fillColor('#2563EB').rect(40, y, 515, 20).fill();
-        doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(9);
-        doc.text('#', 45, y + 5);
-        doc.text('Description', 70, y + 5);
-        doc.text('Qty', 330, y + 5, { width: 40, align: 'right' });
-        doc.text('Unit', 385, y + 5);
-        doc.text('Est. Cost', 430, y + 5, { width: 55, align: 'right' });
-        doc.text('Total', 495, y + 5, { width: 55, align: 'right' });
-
-        y += 20;
-        doc.fillColor('#000000').font('Helvetica').fontSize(8);
+        const allItems = reqData.items || [];
+        const physicalItems = allItems.filter(i => i.item_type !== 'subscription');
+        const subscriptionItems = allItems.filter(i => i.item_type === 'subscription');
 
         let totalAmount = 0;
-        if (reqData.items && reqData.items.length > 0) {
-          reqData.items.forEach((item, index) => {
+
+        if (physicalItems.length > 0) {
+          doc.font('Helvetica-Bold').fontSize(10).text('REQUEST ITEMS BREAKDOWN', 40, y);
+          y += 15;
+
+          doc.fillColor('#2563EB').rect(40, y, 515, 20).fill();
+          doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(9);
+          doc.text('#', 45, y + 5);
+          doc.text('Item Description', 70, y + 5);
+          doc.text('Qty', 330, y + 5, { width: 40, align: 'right' });
+          doc.text('Unit', 385, y + 5);
+          doc.text('Est. Cost (PHP)', 425, y + 5, { width: 65, align: 'right' });
+          doc.text('Total (PHP)', 495, y + 5, { width: 55, align: 'right' });
+
+          y += 20;
+          doc.fillColor('#000000').font('Helvetica').fontSize(8);
+
+          physicalItems.forEach((item, index) => {
             const rowQty = Number(item.quantity) || 0;
             const rowCost = Number(item.estimated_cost) || 0;
             const rowTotal = Number(item.total_cost) || (rowQty * rowCost);
@@ -91,21 +96,58 @@ class PdfService {
             doc.text(item.item_description || '', 70, y + 4, { width: 250 });
             doc.text(rowQty.toFixed(2), 330, y + 4, { width: 40, align: 'right' });
             doc.text(item.unit || 'PCS', 385, y + 4);
-            doc.text(`$${rowCost.toFixed(2)}`, 430, y + 4, { width: 55, align: 'right' });
-            doc.text(`$${rowTotal.toFixed(2)}`, 495, y + 4, { width: 55, align: 'right' });
+            doc.text(`PHP ${rowCost.toFixed(2)}`, 425, y + 4, { width: 65, align: 'right' });
+            doc.text(`PHP ${rowTotal.toFixed(2)}`, 495, y + 4, { width: 55, align: 'right' });
             y += 18;
           });
-        } else {
-          doc.text('No items specified.', 45, y + 5);
+          y += 10;
+        }
+
+        if (subscriptionItems.length > 0) {
+          doc.font('Helvetica-Bold').fontSize(10).fillColor('#4338CA').text('SUBSCRIPTIONS BREAKDOWN', 40, y);
+          doc.fillColor('#000000');
+          y += 15;
+
+          doc.fillColor('#4338CA').rect(40, y, 515, 20).fill();
+          doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(9);
+          doc.text('#', 45, y + 5);
+          doc.text('Subscription / Service Name', 70, y + 5);
+          doc.text('Cycle', 310, y + 5);
+          doc.text('Seats', 370, y + 5, { width: 35, align: 'right' });
+          doc.text('Rate (PHP)', 415, y + 5, { width: 65, align: 'right' });
+          doc.text('Total (PHP)', 485, y + 5, { width: 65, align: 'right' });
+
           y += 20;
+          doc.fillColor('#000000').font('Helvetica').fontSize(8);
+
+          subscriptionItems.forEach((sub, index) => {
+            const rowQty = Number(sub.quantity) || 0;
+            const rowCost = Number(sub.estimated_cost) || 0;
+            const rowTotal = Number(sub.total_cost) || (rowQty * rowCost);
+            totalAmount += rowTotal;
+
+            if (index % 2 === 1) {
+              doc.fillColor('#EEF2FF').rect(40, y, 515, 18).fill();
+              doc.fillColor('#000000');
+            }
+
+            doc.text(String(index + 1), 45, y + 4);
+            doc.text(sub.item_description || '', 70, y + 4, { width: 235 });
+            doc.text(sub.unit || 'MONTHLY', 310, y + 4, { width: 55 });
+            doc.text(rowQty.toFixed(0), 370, y + 4, { width: 35, align: 'right' });
+            doc.text(`PHP ${rowCost.toFixed(2)}`, 415, y + 4, { width: 65, align: 'right' });
+            doc.text(`PHP ${rowTotal.toFixed(2)}`, 485, y + 4, { width: 65, align: 'right' });
+            y += 18;
+          });
+          y += 10;
         }
 
         // Table Summary Total
         doc.moveTo(40, y).lineTo(555, y).strokeColor('#2563EB').stroke();
-        y += 5;
+        y += 8;
         doc.font('Helvetica-Bold').fontSize(10);
-        doc.text('GRAND TOTAL ESTIMATED COST:', 280, y, { align: 'right', width: 200 });
-        doc.text(`$${totalAmount.toFixed(2)}`, 490, y, { align: 'right', width: 60 });
+        doc.text('COMBINED GRAND TOTAL ESTIMATED COST:', 200, y, { align: 'right', width: 270 });
+        doc.text(`PHP ${totalAmount.toFixed(2)}`, 475, y, { align: 'right', width: 75 });
 
         // Signatures Block
         y += 65;

@@ -143,12 +143,12 @@ export default function RequestListPage() {
       )
     },
     {
-      header: 'Total Cost ($)',
+      header: 'Total Cost (₱)',
       key: 'total_estimated_cost',
       sortable: true,
       render: (row) => (
-        <span className="font-semibold text-slate-800">
-          ${Number(row.total_estimated_cost || 0).toFixed(2)}
+        <span className="font-semibold text-slate-800 font-mono">
+          ₱{Number(row.total_estimated_cost || 0).toFixed(2)}
         </span>
       )
     },

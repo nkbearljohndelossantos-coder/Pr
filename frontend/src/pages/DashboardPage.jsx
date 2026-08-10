@@ -226,7 +226,7 @@ export default function DashboardPage() {
                 <th className="px-4 py-2.5">Required Date</th>
                 <th className="px-4 py-2.5">Priority</th>
                 <th className="px-4 py-2.5">Status</th>
-                <th className="px-4 py-2.5 text-right">Est. Total ($)</th>
+                <th className="px-4 py-2.5 text-right">Est. Total (₱)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -251,8 +251,8 @@ export default function DashboardPage() {
                         {req.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold text-slate-800">
-                      ${Number(req.total_estimated_cost || 0).toFixed(2)}
+                    <td className="px-4 py-3 text-right font-semibold text-slate-800 font-mono">
+                      ₱{Number(req.total_estimated_cost || 0).toFixed(2)}
                     </td>
                   </tr>
                 ))

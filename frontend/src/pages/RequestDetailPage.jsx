@@ -5,11 +5,8 @@ import {
   Printer, 
   CheckCircle2, 
   XCircle, 
-  Clock, 
   Download, 
   ArrowLeft, 
-  Building2,
-  FileCheck,
   CheckCheck,
   ZoomIn
 } from 'lucide-react';
@@ -193,7 +190,7 @@ export default function RequestDetailPage() {
 
           <div>
             <span className="text-slate-400 block font-medium">Total Estimated Cost</span>
-            <span className="font-bold text-emerald-600 text-sm">${Number(request.total_estimated_cost || 0).toFixed(2)}</span>
+            <span className="font-bold text-emerald-600 text-sm font-mono">₱{Number(request.total_estimated_cost || 0).toFixed(2)}</span>
           </div>
         </div>
 
@@ -261,8 +258,8 @@ export default function RequestDetailPage() {
                         <th className="px-3 py-2">Item Description</th>
                         <th className="px-3 py-2 text-right">Quantity</th>
                         <th className="px-3 py-2">Unit</th>
-                        <th className="px-3 py-2 text-right">Est. Cost ($)</th>
-                        <th className="px-3 py-2 text-right">Total ($)</th>
+                        <th className="px-3 py-2 text-right">Est. Cost (₱)</th>
+                        <th className="px-3 py-2 text-right">Total (₱)</th>
                         <th className="px-3 py-2">Remarks / Specs</th>
                       </tr>
                     </thead>
@@ -273,8 +270,8 @@ export default function RequestDetailPage() {
                           <td className="px-3 py-2.5 font-medium text-slate-800">{item.item_description}</td>
                           <td className="px-3 py-2.5 text-right font-semibold text-slate-700">{Number(item.quantity).toFixed(2)}</td>
                           <td className="px-3 py-2.5 font-mono text-slate-500">{item.unit}</td>
-                          <td className="px-3 py-2.5 text-right text-slate-600">${Number(item.estimated_cost).toFixed(2)}</td>
-                          <td className="px-3 py-2.5 text-right font-bold text-slate-800">${Number(item.total_cost).toFixed(2)}</td>
+                          <td className="px-3 py-2.5 text-right font-mono text-slate-600">₱{Number(item.estimated_cost).toFixed(2)}</td>
+                          <td className="px-3 py-2.5 text-right font-mono font-bold text-slate-800">₱{Number(item.total_cost).toFixed(2)}</td>
                           <td className="px-3 py-2.5 text-slate-500">{item.remarks || '-'}</td>
                         </tr>
                       ))}
@@ -297,8 +294,8 @@ export default function RequestDetailPage() {
                         <th className="px-3 py-2">Subscription / Service Name</th>
                         <th className="px-3 py-2">Billing Cycle</th>
                         <th className="px-3 py-2 text-right">Seats / Licenses</th>
-                        <th className="px-3 py-2 text-right">Unit Rate ($)</th>
-                        <th className="px-3 py-2 text-right">Total ($)</th>
+                        <th className="px-3 py-2 text-right">Unit Rate (₱)</th>
+                        <th className="px-3 py-2 text-right">Total (₱)</th>
                         <th className="px-3 py-2">Period / Renewal Notes</th>
                       </tr>
                     </thead>
@@ -309,8 +306,8 @@ export default function RequestDetailPage() {
                           <td className="px-3 py-2.5 font-semibold text-slate-800">{item.item_description}</td>
                           <td className="px-3 py-2.5 font-bold text-indigo-700 font-mono">{formatBillingCycle(item.unit)}</td>
                           <td className="px-3 py-2.5 text-right font-semibold text-slate-700">{Number(item.quantity).toFixed(0)}</td>
-                          <td className="px-3 py-2.5 text-right text-slate-600">${Number(item.estimated_cost).toFixed(2)}</td>
-                          <td className="px-3 py-2.5 text-right font-bold text-indigo-800">${Number(item.total_cost).toFixed(2)}</td>
+                          <td className="px-3 py-2.5 text-right font-mono text-slate-600">₱{Number(item.estimated_cost).toFixed(2)}</td>
+                          <td className="px-3 py-2.5 text-right font-mono font-bold text-indigo-800">₱{Number(item.total_cost).toFixed(2)}</td>
                           <td className="px-3 py-2.5 text-slate-600">{item.remarks || '-'}</td>
                         </tr>
                       ))}
@@ -322,7 +319,7 @@ export default function RequestDetailPage() {
 
             <div className="card-erp p-4 bg-slate-50 flex justify-between items-center text-xs font-bold text-slate-800">
               <span>COMBINED GRAND TOTAL ESTIMATED COST:</span>
-              <span className="text-base text-blue-600">${Number(request.total_estimated_cost || 0).toFixed(2)}</span>
+              <span className="text-base text-blue-600 font-mono">₱{Number(request.total_estimated_cost || 0).toFixed(2)}</span>
             </div>
           </>
         );

@@ -53,8 +53,8 @@ export default function DynamicSubscriptionRows({ subscriptions = [], onChange }
               <th className="px-3 py-2.5">Subscription / Service Name <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2.5 w-32">Billing Cycle <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2.5 w-24">Seats / Qty <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2.5 w-32">Unit Rate ($) <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2.5 w-32">Total ($)</th>
+              <th className="px-3 py-2.5 w-32">Unit Rate (₱) <span className="text-rose-500 font-bold">*</span></th>
+              <th className="px-3 py-2.5 w-32">Total (₱)</th>
               <th className="px-3 py-2.5 w-48">Period / Renewal Notes <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2.5 w-12 text-center">Action</th>
             </tr>
@@ -63,7 +63,7 @@ export default function DynamicSubscriptionRows({ subscriptions = [], onChange }
             {subscriptions.length === 0 ? (
               <tr>
                 <td colSpan={8} className="text-center py-4 text-slate-400 italic">
-                  No subscription items added. Click "Add Subscription Row" above if your request includes SaaS/Software/Cloud services.
+                  No subscriptions added. Click "Add Subscription Row" above if your request includes SaaS/Software/Cloud services.
                 </td>
               </tr>
             ) : (
@@ -111,7 +111,7 @@ export default function DynamicSubscriptionRows({ subscriptions = [], onChange }
                         required
                         value={item.quantity}
                         onChange={(e) => handleSubscriptionChange(idx, 'quantity', e.target.value)}
-                        className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-indigo-600 focus:outline-none"
+                        className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-indigo-600 focus:outline-none font-semibold"
                       />
                     </td>
                     <td className="px-3 py-2">
@@ -125,8 +125,8 @@ export default function DynamicSubscriptionRows({ subscriptions = [], onChange }
                         className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-indigo-600 focus:outline-none"
                       />
                     </td>
-                    <td className="px-3 py-2 font-semibold text-indigo-700">
-                      ${rowTotal.toFixed(2)}
+                    <td className="px-3 py-2 font-semibold text-indigo-900 font-mono">
+                      ₱{rowTotal.toFixed(2)}
                     </td>
                     <td className="px-3 py-2">
                       <input
@@ -156,9 +156,9 @@ export default function DynamicSubscriptionRows({ subscriptions = [], onChange }
         </table>
 
         {subscriptions.length > 0 && (
-          <div className="p-3 bg-indigo-50/50 border-t border-slate-200 flex items-center justify-between text-xs font-bold text-slate-800">
-            <span>TOTAL SUBSCRIPTION ESTIMATED COST:</span>
-            <span className="text-sm text-indigo-700">${totalSubscriptionsAmount.toFixed(2)}</span>
+          <div className="p-3 bg-indigo-50/80 border-t border-indigo-200 flex items-center justify-between text-xs font-bold text-indigo-900">
+            <span>TOTAL SUBSCRIPTIONS ESTIMATED COST:</span>
+            <span className="text-sm text-indigo-700 font-mono">₱{totalSubscriptionsAmount.toFixed(2)}</span>
           </div>
         )}
       </div>
