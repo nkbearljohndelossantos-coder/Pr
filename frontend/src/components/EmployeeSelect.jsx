@@ -1,6 +1,53 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Building2, Search, Check, ChevronDown, RotateCcw } from 'lucide-react';
+import { User, Building2, Search, Check, ChevronDown, RotateCcw, CheckCircle2 } from 'lucide-react';
 import { systemApi } from '../services/systemApi';
+
+const DEPARTMENT_POSITION_MAP = {
+  'CEO': 'Chief Executive Officer',
+  'COO': 'Chief Operating Officer',
+  'EXECUTIVE': 'Executive Director / Manager',
+  'ADMIN': 'Administrative Officer',
+  'SECURITY': 'Security Officer',
+  'PRODUCTION': 'Production Specialist',
+  'MAINTENANCE': 'Maintenance Technician',
+  'ACCOUNTING': 'Accounting Specialist',
+  'COMPOUNDING': 'Compounding Chemist / Operator',
+  'CONSTRUCTION': 'Construction Engineer / Supervisor',
+  'COOP': 'Cooperative Officer',
+  'HR': 'HR Officer',
+  'IT': 'IT Systems Engineer',
+  'LOGISTICS': 'Logistics Coordinator',
+  'PURCHASING': 'Purchasing Specialist',
+  'QA/QC': 'Quality Inspector',
+  'REGULATORY': 'Regulatory Affairs Officer',
+  'SALES': 'Sales Executive',
+  'WAREHOUSE': 'Warehouse / Inventory Officer',
+  'VYUCEUTICAL': 'Pharma Specialist',
+  'PRINTING': 'Printing Press Operator',
+  'SILKSCREEN': 'Silkscreen Technician'
+};
+
+export function getSmartPosition(departmentName) {
+  if (!departmentName) return 'Specialist';
+  const upper = departmentName.trim().toUpperCase();
+  if (DEPARTMENT_POSITION_MAP[upper]) {
+    return DEPARTMENT_POSITION_MAP[upper];
+  }
+  
+  // Partial match fallbacks
+  if (upper.includes('SECURITY')) return 'Security Officer';
+  if (upper.includes('PROD')) return 'Production Specialist';
+  if (upper.includes('MAINT')) return 'Maintenance Technician';
+  if (upper.includes('ACCT') || upper.includes('ACCOUNT')) return 'Accounting Specialist';
+  if (upper.includes('HR')) return 'HR Officer';
+  if (upper.includes('PURCH')) return 'Purchasing Specialist';
+  if (upper.includes('WAREHOUSE')) return 'Warehouse Officer';
+  if (upper.includes('QA') || upper.includes('QC')) return 'Quality Inspector';
+  if (upper.includes('ENG')) return 'Project Engineer';
+  if (upper.includes('PRINT')) return 'Printing Press Operator';
+
+  return `${departmentName} Specialist`;
+}
 
 export default function EmployeeSelect({
   preparedBy,
@@ -15,6 +62,7 @@ export default function EmployeeSelect({
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEmp, setSelectedEmp] = useState(null);
   const wrapperRef = useRef(null);
 
   useEffect(() => {
@@ -45,30 +93,19 @@ export default function EmployeeSelect({
     }
   };
 
-  const getSmartPosition = (departmentName) => {
-    if (!departmentName) return 'Specialist';
-    const dept = departmentName.trim().toUpperCase();
+  const autoMatchEmployee = (typedName) => {
+    if (!typedName || !employees.length) return;
+    const q = typedName.trim().toLowerCase();
+    const matched = employees.find(
+      (e) =>
+        e.name.toLowerCase() === q ||
+        e.name.toLowerCase().includes(q) ||
+        (e.employee_id && e.employee_id.toLowerCase() === q)
+    );
 
-    if (dept === 'CEO') return 'Chief Executive Officer';
-    if (dept === 'COO') return 'Chief Operating Officer';
-
-    const lower = departmentName.trim().toLowerCase();
-    if (lower.includes('security')) return 'Security Officer';
-    if (lower.includes('production')) return 'Production Specialist';
-    if (lower.includes('maintenance')) return 'Maintenance Technician';
-    if (lower.includes('regulatory')) return 'Regulatory Affairs Officer';
-    if (lower.includes('accounting')) return 'Accounting Specialist';
-    if (lower.includes('hr') || lower.includes('human')) return 'HR Officer';
-    if (lower.includes('purchasing')) return 'Purchasing Specialist';
-    if (lower.includes('warehouse') || lower.includes('inventory')) return 'Warehouse Officer';
-    if (lower.includes('qa') || lower.includes('qc')) return 'Quality Inspector';
-    if (lower.includes('engineering')) return 'Project Engineer';
-    if (lower.includes('marketing')) return 'Marketing Officer';
-    if (lower.includes('driver')) return 'Company Driver';
-    if (lower.includes('housekeeping') || lower.includes('utility')) return 'Facilities Staff';
-    if (lower.includes('r&d')) return 'R&D Specialist';
-
-    return 'Specialist';
+    if (matched) {
+      handleSelect(matched, false);
+    }
   };
 
   const filtered = employees.filter((emp) => {
@@ -81,15 +118,16 @@ export default function EmployeeSelect({
     );
   });
 
-  const handleSelect = (emp) => {
+  const handleSelect = (emp, closeMenu = true) => {
+    setSelectedEmp(emp);
     setPreparedBy(emp.name);
 
-    // Auto-fill department
+    // Auto-fill department from API
     if (emp.department && setDepartment) {
       setDepartment(emp.department);
     }
 
-    // Auto-fill smart position title
+    // Auto-fill smart position title based on department from API
     if (setPosition) {
       const posTitle = emp.position || emp.job_title || emp.designation || getSmartPosition(emp.department);
       setPosition(posTitle);
@@ -98,8 +136,11 @@ export default function EmployeeSelect({
     if (onSelectEmployee) {
       onSelectEmployee(emp);
     }
-    setIsOpen(false);
-    setSearchQuery('');
+
+    if (closeMenu) {
+      setIsOpen(false);
+      setSearchQuery('');
+    }
   };
 
   const toggleDropdown = () => {
@@ -109,8 +150,11 @@ export default function EmployeeSelect({
 
   return (
     <div ref={wrapperRef} className="relative">
-      <label className="block text-xs font-semibold text-slate-700 mb-1">
-        Prepared By (Select Employee or Type Name) <span className="text-rose-500 font-bold">*</span>
+      <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+        <span>Prepared By (Select Employee from Canteen API) <span className="text-rose-500 font-bold">*</span></span>
+        {employees.length > 0 && (
+          <span className="text-[10px] text-emerald-600 font-bold">● {employees.length} API Employees Loaded</span>
+        )}
       </label>
 
       <div className="relative">
@@ -119,12 +163,17 @@ export default function EmployeeSelect({
           required
           value={preparedBy}
           onChange={(e) => {
-            setPreparedBy(e.target.value);
+            const val = e.target.value;
+            setPreparedBy(val);
+            autoMatchEmployee(val);
+          }}
+          onBlur={(e) => {
+            autoMatchEmployee(e.target.value);
           }}
           onFocus={() => {
             setIsOpen(true);
           }}
-          placeholder="Search or select employee name..."
+          placeholder="Type or click to select employee name..."
           className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-600 focus:outline-none"
         />
         <User className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
@@ -136,6 +185,16 @@ export default function EmployeeSelect({
           <ChevronDown className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Matched Employee Live Indicator */}
+      {selectedEmp && (
+        <div className="mt-1.5 p-1.5 bg-emerald-50 border border-emerald-200 rounded text-[11px] text-emerald-800 flex items-center gap-1.5">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          <span className="truncate">
+            <strong>Matched:</strong> Department: <span className="font-bold text-blue-700">{selectedEmp.department}</span> | Position: <span className="font-bold text-indigo-700">{getSmartPosition(selectedEmp.department)}</span>
+          </span>
+        </div>
+      )}
 
       {/* Autocomplete Dropdown List */}
       {isOpen && (
@@ -149,7 +208,7 @@ export default function EmployeeSelect({
                 autoFocus
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search name, dept, or ID..."
+                placeholder="Filter by name, department, or ID..."
                 className="w-full bg-transparent text-xs text-slate-800 focus:outline-none"
               />
             </div>
@@ -167,19 +226,22 @@ export default function EmployeeSelect({
           {filtered.length > 0 ? (
             filtered.map((emp) => {
               const isSelected = preparedBy && preparedBy.toLowerCase() === emp.name.toLowerCase();
+              const inferredPos = getSmartPosition(emp.department);
               return (
                 <div
                   key={emp.id || emp.employee_id}
-                  onClick={() => handleSelect(emp)}
+                  onClick={() => handleSelect(emp, true)}
                   className={`p-2.5 cursor-pointer flex items-center justify-between hover:bg-blue-50 transition-colors ${
                     isSelected ? 'bg-blue-50/80 font-semibold' : ''
                   }`}
                 >
                   <div className="truncate">
                     <p className="text-xs text-slate-800 font-medium truncate">{emp.name}</p>
-                    <p className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                    <p className="text-[10px] text-slate-500 flex items-center gap-1.5 mt-0.5">
                       <Building2 className="w-3 h-3 text-slate-400" />
-                      <span className="font-semibold text-blue-600">{emp.department || 'General'}</span>
+                      <span className="font-bold text-blue-700">{emp.department}</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="text-indigo-600 font-medium">{inferredPos}</span>
                       {emp.employee_id && <span className="font-mono text-slate-400">({emp.employee_id})</span>}
                     </p>
                   </div>
