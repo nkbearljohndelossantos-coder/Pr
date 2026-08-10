@@ -88,10 +88,21 @@ class HealthController {
   }
 }
 
+class EmployeeController {
+  async list(req, res, next) {
+    try {
+      const employeeIntegrationService = require('../services/employeeIntegrationService');
+      const employees = await employeeIntegrationService.getEmployees();
+      return successResponse(res, 'Employees retrieved successfully', employees);
+    } catch (err) { next(err); }
+  }
+}
+
 module.exports = {
   notificationController: new NotificationController(),
   auditController: new AuditController(),
   backupController: new BackupController(),
   masterDataController: new MasterDataController(),
-  healthController: new HealthController()
+  healthController: new HealthController(),
+  employeeController: new EmployeeController()
 };

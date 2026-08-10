@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const reportController = require('../controllers/reportController');
-const { notificationController, auditController, backupController, masterDataController, healthController } = require('../controllers/systemControllers');
+const { notificationController, auditController, backupController, masterDataController, healthController, employeeController } = require('../controllers/systemControllers');
 const { authenticateToken } = require('../middlewares/authMiddleware');
 const { isAdmin } = require('../middlewares/rbacMiddleware');
 
@@ -10,6 +10,9 @@ router.get('/health', (req, res) => healthController.check(req, res));
 
 // Protected Routes
 router.use(authenticateToken);
+
+// Employees Integration Endpoint
+router.get('/employees', (req, res, next) => employeeController.list(req, res, next));
 
 // Reports
 router.get('/reports/excel', (req, res, next) => reportController.exportExcel(req, res, next));

@@ -36,5 +36,6 @@ export const systemApi = {
   getMasterData: (category) => api.get('/system/master-data', { params: { category } }),
   addMasterData: (data) => api.post('/system/master-data', data),
   toggleMasterData: (id, is_active) => api.put(`/system/master-data/${id}/toggle`, { is_active }),
+  getEmployees: () => api.get('/system/employees'),
   getModules: () => api.get('/modules')
 };
