@@ -5,8 +5,8 @@ import { systemApi } from '../services/systemApi';
 export default function EmployeeSelect({
   preparedBy,
   setPreparedBy,
-  position,
-  setPosition,
+  department,
+  setDepartment,
   onSelectEmployee
 }) {
   const [employees, setEmployees] = useState([]);
@@ -54,8 +54,8 @@ export default function EmployeeSelect({
 
   const handleSelect = (emp) => {
     setPreparedBy(emp.name);
-    if (!position || position.trim() === '') {
-      setPosition(emp.department ? `${emp.department} Staff` : 'Staff');
+    if (emp.department && setDepartment) {
+      setDepartment(emp.department);
     }
     if (onSelectEmployee) {
       onSelectEmployee(emp);

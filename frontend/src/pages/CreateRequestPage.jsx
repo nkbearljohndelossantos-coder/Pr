@@ -15,6 +15,7 @@ export default function CreateRequestPage() {
   const navigate = useNavigate();
 
   const [preparedBy, setPreparedBy] = useState(user?.full_name || user?.username || '');
+  const [departmentName, setDepartmentName] = useState(user?.department_name || user?.department_code || '');
   const [position, setPosition] = useState('');
   const [requiredDate, setRequiredDate] = useState(() => {
     const d = new Date();
@@ -303,8 +304,22 @@ export default function CreateRequestPage() {
               <EmployeeSelect
                 preparedBy={preparedBy}
                 setPreparedBy={setPreparedBy}
-                position={position}
-                setPosition={setPosition}
+                department={departmentName}
+                setDepartment={setDepartmentName}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Department <span className="text-rose-500 font-bold">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={departmentName}
+                onChange={(e) => setDepartmentName(e.target.value)}
+                placeholder="Department name"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-blue-700 focus:ring-2 focus:ring-blue-600 focus:outline-none"
               />
             </div>
 
@@ -317,20 +332,8 @@ export default function CreateRequestPage() {
                 required
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
-                placeholder="e.g. Senior System Engineer"
+                placeholder="e.g. Staff / Specialist / Manager"
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-600 focus:outline-none"
-              />
-            </div>
-
-            <div className="lg:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Department
-              </label>
-              <input
-                type="text"
-                disabled
-                value={user?.department_name || 'Department Requisition'}
-                className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-600"
               />
             </div>
           </div>
