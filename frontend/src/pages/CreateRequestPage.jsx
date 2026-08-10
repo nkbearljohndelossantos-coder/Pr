@@ -306,6 +306,8 @@ export default function CreateRequestPage() {
                 setPreparedBy={setPreparedBy}
                 department={departmentName}
                 setDepartment={setDepartmentName}
+                position={position}
+                setPosition={setPosition}
               />
             </div>
 
