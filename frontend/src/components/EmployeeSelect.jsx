@@ -2,53 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { User, Building2, Search, Check, ChevronDown, RotateCcw, CheckCircle2 } from 'lucide-react';
 import { systemApi } from '../services/systemApi';
 
-const DEPARTMENT_POSITION_MAP = {
-  'CEO': 'Chief Executive Officer',
-  'COO': 'Chief Operating Officer',
-  'EXECUTIVE': 'Executive Director / Manager',
-  'ADMIN': 'Administrative Officer',
-  'SECURITY': 'Security Officer',
-  'PRODUCTION': 'Production Specialist',
-  'MAINTENANCE': 'Maintenance Technician',
-  'ACCOUNTING': 'Accounting Specialist',
-  'COMPOUNDING': 'Compounding Chemist / Operator',
-  'CONSTRUCTION': 'Construction Engineer / Supervisor',
-  'COOP': 'Cooperative Officer',
-  'HR': 'HR Officer',
-  'IT': 'IT Systems Engineer',
-  'LOGISTICS': 'Logistics Coordinator',
-  'PURCHASING': 'Purchasing Specialist',
-  'QA/QC': 'Quality Inspector',
-  'REGULATORY': 'Regulatory Affairs Officer',
-  'SALES': 'Sales Executive',
-  'WAREHOUSE': 'Warehouse / Inventory Officer',
-  'VYUCEUTICAL': 'Pharma Specialist',
-  'PRINTING': 'Printing Press Operator',
-  'SILKSCREEN': 'Silkscreen Technician'
-};
-
-export function getSmartPosition(departmentName) {
-  if (!departmentName) return 'Specialist';
-  const upper = departmentName.trim().toUpperCase();
-  if (DEPARTMENT_POSITION_MAP[upper]) {
-    return DEPARTMENT_POSITION_MAP[upper];
-  }
-  
-  // Partial match fallbacks
-  if (upper.includes('SECURITY')) return 'Security Officer';
-  if (upper.includes('PROD')) return 'Production Specialist';
-  if (upper.includes('MAINT')) return 'Maintenance Technician';
-  if (upper.includes('ACCT') || upper.includes('ACCOUNT')) return 'Accounting Specialist';
-  if (upper.includes('HR')) return 'HR Officer';
-  if (upper.includes('PURCH')) return 'Purchasing Specialist';
-  if (upper.includes('WAREHOUSE')) return 'Warehouse Officer';
-  if (upper.includes('QA') || upper.includes('QC')) return 'Quality Inspector';
-  if (upper.includes('ENG')) return 'Project Engineer';
-  if (upper.includes('PRINT')) return 'Printing Press Operator';
-
-  return `${departmentName} Specialist`;
-}
-
 export default function EmployeeSelect({
   preparedBy,
   setPreparedBy,
@@ -122,15 +75,14 @@ export default function EmployeeSelect({
     setSelectedEmp(emp);
     setPreparedBy(emp.name);
 
-    // Auto-fill department from API
-    if (emp.department && setDepartment) {
-      setDepartment(emp.department);
+    // Set exact raw department string from API (no modifications)
+    if (setDepartment) {
+      setDepartment(emp.department || '');
     }
 
-    // Auto-fill smart position title based on department from API
+    // Set position ONLY if provided by API, otherwise leave empty for user to type
     if (setPosition) {
-      const posTitle = emp.position || emp.job_title || emp.designation || getSmartPosition(emp.department);
-      setPosition(posTitle);
+      setPosition(emp.position || emp.job_title || emp.designation || '');
     }
 
     if (onSelectEmployee) {
@@ -191,7 +143,7 @@ export default function EmployeeSelect({
         <div className="mt-1.5 p-1.5 bg-emerald-50 border border-emerald-200 rounded text-[11px] text-emerald-800 flex items-center gap-1.5">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           <span className="truncate">
-            <strong>Matched:</strong> Department: <span className="font-bold text-blue-700">{selectedEmp.department}</span> | Position: <span className="font-bold text-indigo-700">{getSmartPosition(selectedEmp.department)}</span>
+            <strong>Matched Employee:</strong> Department: <span className="font-bold text-blue-700">{selectedEmp.department || 'N/A'}</span>
           </span>
         </div>
       )}
@@ -226,7 +178,6 @@ export default function EmployeeSelect({
           {filtered.length > 0 ? (
             filtered.map((emp) => {
               const isSelected = preparedBy && preparedBy.toLowerCase() === emp.name.toLowerCase();
-              const inferredPos = getSmartPosition(emp.department);
               return (
                 <div
                   key={emp.id || emp.employee_id}
@@ -239,9 +190,7 @@ export default function EmployeeSelect({
                     <p className="text-xs text-slate-800 font-medium truncate">{emp.name}</p>
                     <p className="text-[10px] text-slate-500 flex items-center gap-1.5 mt-0.5">
                       <Building2 className="w-3 h-3 text-slate-400" />
-                      <span className="font-bold text-blue-700">{emp.department}</span>
-                      <span className="text-slate-300">•</span>
-                      <span className="text-indigo-600 font-medium">{inferredPos}</span>
+                      <span className="font-bold text-blue-700">{emp.department || 'N/A'}</span>
                       {emp.employee_id && <span className="font-mono text-slate-400">({emp.employee_id})</span>}
                     </p>
                   </div>
