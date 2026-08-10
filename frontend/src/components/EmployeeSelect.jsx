@@ -45,31 +45,6 @@ export default function EmployeeSelect({
     }
   };
 
-  const getSmartPosition = (departmentName) => {
-    if (departmentName === 'CEO') return 'Chief Executive Officer';
-    if (departmentName === 'COO') return 'Chief Operating Officer';
-
-    if (!departmentName) return 'Staff';
-    const dept = departmentName.trim().toLowerCase();
-
-    if (dept.includes('security')) return 'Security Officer';
-    if (dept.includes('production')) return 'Production Specialist';
-    if (dept.includes('maintenance')) return 'Maintenance Technician';
-    if (dept.includes('regulatory')) return 'Regulatory Affairs Specialist';
-    if (dept.includes('accounting')) return 'Accounting Specialist';
-    if (dept.includes('hr') || dept.includes('human')) return 'HR Officer';
-    if (dept.includes('purchasing')) return 'Purchasing Specialist';
-    if (dept.includes('warehouse') || dept.includes('inventory')) return 'Warehouse / Inventory Officer';
-    if (dept.includes('qa') || dept.includes('qc')) return 'Quality Inspector';
-    if (dept.includes('engineering')) return 'Project Engineer';
-    if (dept.includes('marketing')) return 'Marketing Specialist';
-    if (dept.includes('driver')) return 'Company Driver';
-    if (dept.includes('housekeeping') || dept.includes('utility')) return 'Facilities Staff';
-    if (dept.includes('r&d')) return 'R&D Specialist';
-
-    return `${departmentName} Staff`;
-  };
-
   const filtered = employees.filter((emp) => {
     const q = searchQuery.toLowerCase();
     return (
@@ -82,15 +57,17 @@ export default function EmployeeSelect({
   const handleSelect = (emp) => {
     setPreparedBy(emp.name);
 
-    // Auto-fill department
+    // Auto-fill department only
     if (emp.department && setDepartment) {
       setDepartment(emp.department);
     }
 
-    // Auto-fill smart position (if API has position or inferred from department)
+    // Fill position ONLY if real position/job_title is provided in API response
     if (setPosition) {
-      const pos = emp.position || emp.job_title || getSmartPosition(emp.department);
-      setPosition(pos);
+      if (emp.position || emp.job_title || emp.designation) {
+        setPosition(emp.position || emp.job_title || emp.designation);
+      }
+      // Note: We intentionally do NOT set department into position.
     }
 
     if (onSelectEmployee) {
