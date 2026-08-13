@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function KpiCard({ title, value, icon: Icon, color = 'blue', subtext }) {
+export default function KpiCard({ title, value, icon: Icon, color = 'blue', subtext, onClick }) {
   const colorMap = {
     blue: 'border-l-blue-600 text-blue-600 bg-blue-50/50',
     amber: 'border-l-amber-500 text-amber-600 bg-amber-50/50',
@@ -10,7 +10,12 @@ export default function KpiCard({ title, value, icon: Icon, color = 'blue', subt
   };
 
   return (
-    <div className={`card-erp p-5 border-l-4 ${colorMap[color] || colorMap.blue} transition-all duration-150`}>
+    <div
+      onClick={onClick}
+      className={`card-erp p-5 border-l-4 ${colorMap[color] || colorMap.blue} transition-all duration-150 ${
+        onClick ? 'cursor-pointer hover:shadow-md hover:scale-[1.01]' : ''
+      }`}
+    >
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{title}</p>

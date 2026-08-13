@@ -98,6 +98,7 @@ export default function DashboardPage() {
           icon={FileText}
           color="blue"
           subtext="All Requisitions"
+          onClick={() => navigate('/requests')}
         />
         <KpiCard
           title="Pending Approvals"
@@ -105,6 +106,7 @@ export default function DashboardPage() {
           icon={Clock}
           color="amber"
           subtext="Requires Review"
+          onClick={() => navigate('/requests')}
         />
         <KpiCard
           title="Approved"
@@ -112,6 +114,7 @@ export default function DashboardPage() {
           icon={CheckCircle2}
           color="emerald"
           subtext="Authorized Requests"
+          onClick={() => navigate('/requests')}
         />
         <KpiCard
           title="Rejected"
@@ -119,6 +122,7 @@ export default function DashboardPage() {
           icon={XCircle}
           color="rose"
           subtext="Declined Requisitions"
+          onClick={() => navigate('/requests')}
         />
         <KpiCard
           title="Completed"
@@ -126,6 +130,7 @@ export default function DashboardPage() {
           icon={CheckCheck}
           color="purple"
           subtext="Fulfilled Requests"
+          onClick={() => navigate('/requests')}
         />
       </div>
 
