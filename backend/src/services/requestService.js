@@ -3,9 +3,43 @@ const departmentRepository = require('../repositories/departmentRepository');
 const { generateRequestNumber } = require('../utils/requestNumberGenerator');
 
 const parseNum = (val) => {
-  if (val === null || val === undefined) return 0;
+  if (val === null || val === undefined || val === '') return 0;
   if (typeof val === 'number') return isNaN(val) ? 0 : val;
-  const num = parseFloat(String(val).replace(/,/g, '').trim());
+
+  let str = String(val).trim().replace(/[₱$€\s]/g, '');
+  if (!str) return 0;
+
+  const lastCommaIndex = str.lastIndexOf(',');
+  const lastDotIndex = str.lastIndexOf('.');
+
+  if (lastCommaIndex !== -1 && lastDotIndex !== -1) {
+    if (lastCommaIndex > lastDotIndex) {
+      str = str.replace(/\./g, '').replace(',', '.');
+    } else {
+      str = str.replace(/,/g, '');
+    }
+  } else if (lastCommaIndex !== -1) {
+    const partsAfterComma = str.substring(lastCommaIndex + 1);
+    if (partsAfterComma.length === 2 && !str.includes('.')) {
+      str = str.replace(',', '.');
+    } else {
+      str = str.replace(/,/g, '');
+    }
+  } else if (lastDotIndex !== -1) {
+    const parts = str.split('.');
+    if (parts.length > 2) {
+      const decimalPart = parts.pop();
+      str = parts.join('') + '.' + decimalPart;
+    } else if (parts.length === 2) {
+      const integerPart = parts[0];
+      const fractionPart = parts[1];
+      if (integerPart.length >= 1 && integerPart.length <= 3 && fractionPart.length === 3) {
+        str = integerPart + fractionPart;
+      }
+    }
+  }
+
+  const num = parseFloat(str);
   return isNaN(num) ? 0 : num;
 };
 
