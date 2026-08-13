@@ -209,20 +209,24 @@ loadStore();
 
 // Hostinger / MySQL Connection Pool Setup
 let pool = null;
-if (env.DB_TYPE === 'mysql' || process.env.DB_USER || process.env.DB_HOST) {
+const mysqlHost = (env.DB_HOST === 'localhost' || process.env.DB_HOST === 'localhost') ? '127.0.0.1' : (env.DB_HOST || process.env.DB_HOST || '127.0.0.1');
+
+if (env.DB_TYPE === 'mysql' || process.env.DB_TYPE === 'mysql' || process.env.DB_USER || process.env.DB_HOST) {
   try {
     const mysql = require('mysql2/promise');
     pool = mysql.createPool({
-      host: env.DB_HOST || '127.0.0.1',
-      port: env.DB_PORT || 3306,
-      user: env.DB_USER || 'root',
-      password: env.DB_PASS || '',
-      database: env.DB_NAME || 'u335953510_pr_data',
+      host: mysqlHost,
+      port: Number(env.DB_PORT || process.env.DB_PORT) || 3306,
+      user: env.DB_USER || process.env.DB_USER || 'root',
+      password: env.DB_PASS || process.env.DB_PASS || '',
+      database: env.DB_NAME || process.env.DB_NAME || 'u335953510_pr_data',
       waitForConnections: true,
       connectionLimit: 10,
-      queueLimit: 0
+      queueLimit: 0,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 10000
     });
-    logger.info(`Hostinger MySQL Connection Pool Initialized for Database: ${env.DB_NAME}`);
+    logger.info(`Hostinger MySQL Connection Pool Initialized for Database: ${env.DB_NAME || process.env.DB_NAME || 'u335953510_pr_data'} at ${mysqlHost}:${env.DB_PORT || 3306}`);
   } catch (err) {
     logger.warn('MySQL pool initialization skipped, falling back to JSON Store engine:', err.message);
   }
