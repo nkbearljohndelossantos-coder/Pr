@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   FileText, 
   Printer, 
@@ -23,6 +23,7 @@ import { formatCurrency, formatQuantity } from '../utils/numberFormat';
 export default function RequestDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { addToast } = useNotification();
 
@@ -35,6 +36,18 @@ export default function RequestDetailPage() {
   useEffect(() => {
     fetchRequestDetails();
   }, [id]);
+
+  useEffect(() => {
+    if (request) {
+      const searchParams = new URLSearchParams(location.search);
+      const actionParam = searchParams.get('action');
+      if (actionParam === 'approve' && request.status !== 'Approved') {
+        setActionModal({ open: true, targetStatus: 'Approved' });
+      } else if (actionParam === 'decline' && request.status !== 'Rejected') {
+        setActionModal({ open: true, targetStatus: 'Rejected' });
+      }
+    }
+  }, [request, location.search]);
 
   const fetchRequestDetails = async () => {
     setLoading(true);

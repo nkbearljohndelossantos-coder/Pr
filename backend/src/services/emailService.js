@@ -12,7 +12,6 @@ class EmailService {
   }
 
   async initTransporter() {
-    // Initial attempt from env
     const smtpHost = process.env.SMTP_HOST || env.SMTP_HOST;
     const smtpPort = Number(process.env.SMTP_PORT || env.SMTP_PORT || 587);
     const smtpUser = process.env.SMTP_USER || env.SMTP_USER;
@@ -33,7 +32,6 @@ class EmailService {
       }
     }
 
-    // Try loading saved settings from DB
     setTimeout(() => {
       this.loadSavedSettings().catch(() => {});
     }, 1000);
@@ -95,7 +93,7 @@ class EmailService {
         success: false,
         simulated: true,
         recipient: toEmail,
-        error: 'SMTP credentials (Host, User, Password) are not configured. Please fill in the SMTP form fields above and save settings.'
+        error: 'SMTP credentials (Host, User, Password) are missing or incomplete in System Settings.'
       };
     }
 
@@ -142,7 +140,7 @@ class EmailService {
       logger.error(`SMTP Test Email Error to ${toEmail}: ${err.message}`);
       let userFriendlyError = err.message;
       if (err.message.includes('535') || err.message.includes('Username and Password not accepted') || err.message.includes('Invalid login')) {
-        userFriendlyError = 'Gmail Authentication Failed (535 Error). Please verify your 16-character Gmail App Password (not your normal Gmail login password).';
+        userFriendlyError = 'Gmail Authentication Failed (535 Error). Please verify your 16-character Gmail App Password.';
       } else if (err.message.includes('ETIMEDOUT') || err.message.includes('ECONNREFUSED')) {
         userFriendlyError = `Connection timeout to mail server. Please verify SMTP Host and Port (587 or 465).`;
       }
@@ -164,22 +162,33 @@ class EmailService {
 
     const approverEmail = this.customApproverEmail || process.env.APPROVER_EMAIL || env.APPROVER_EMAIL || 'boss@company.com';
     const siteUrl = process.env.SITE_URL || 'https://pr.nkbmanufacturing.com';
-    const requestUrl = `${siteUrl}/requests/${requestData.id}`;
+    
+    const approveUrl = `${siteUrl}/requests/${requestData.id}?action=approve`;
+    const declineUrl = `${siteUrl}/requests/${requestData.id}?action=decline`;
 
     const formattedCost = new Intl.NumberFormat('en-PH', {
       style: 'currency',
       currency: 'PHP'
     }).format(requestData.total_estimated_cost || 0);
 
-    const itemsRowsHtml = (requestData.items || []).map((item, idx) => `
-      <tr style="border-bottom: 1px solid #e2e8f0;">
-        <td style="padding: 10px; font-size: 13px; color: #1e293b;">${idx + 1}. ${item.item_description}</td>
-        <td style="padding: 10px; font-size: 13px; color: #475569; text-align: center;">${item.quantity} ${item.unit || ''}</td>
-        <td style="padding: 10px; font-size: 13px; color: #1e293b; text-align: right; font-weight: bold;">₱${Number(item.total_cost || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-      </tr>
+    const positionTitle = requestData.position || requestData.purpose || 'Specialist Role';
+    const deptName = requestData.department_name || 'Department';
+    const preparedBy = requestData.prepared_by || 'Department Staff';
+    const position = requestData.position || 'Staff Specialist';
+    const requiredDate = requestData.required_date || 'ASAP';
+    const location = 'Main Factory / Corporate Headquarters';
+    const reportsTo = 'Department Manager / Executive Approver';
+    const justification = requestData.business_justification || requestData.purpose || 'Necessary to support our ongoing projects and maintain operational productivity.';
+    const reqNumber = requestData.request_number;
+
+    const itemsListHtml = (requestData.items || []).map((item, idx) => `
+      <li style="margin-bottom: 8px; font-size: 13px; color: #1e293b;">
+        <strong>${idx + 1}. ${item.item_description}</strong> — Qty: ${item.quantity} ${item.unit || ''} (₱${Number(item.total_cost || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })})
+        ${item.remarks ? `<br><span style="font-size: 12px; color: #64748b;">Remarks: ${item.remarks}</span>` : ''}
+      </li>
     `).join('');
 
-    const subject = `[ACTION REQUIRED] Purchase Requisition #${requestData.request_number} Needs Your Approval (${formattedCost})`;
+    const subject = `Requisition Approval Request for ${positionTitle} (${reqNumber})`;
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -188,20 +197,20 @@ class EmailService {
         <meta charset="utf-8">
         <style>
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; }
-          .card { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+          .card { max-width: 650px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
           .header { background: #0f172a; padding: 24px; text-align: center; color: #ffffff; }
           .header h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #38bdf8; }
           .header p { margin: 4px 0 0 0; font-size: 12px; color: #94a3b8; }
-          .content { padding: 24px; color: #334155; }
-          .alert-badge { display: inline-block; background: #fef3c7; border: 1px solid #fde68a; color: #92400e; font-size: 11px; font-weight: bold; padding: 4px 10px; margin-bottom: 16px; border-radius: 20px; }
-          .details-table { width: 100%; border-collapse: collapse; margin: 16px 0; background: #f8fafc; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; }
-          .details-table td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid #e2e8f0; }
-          .details-table td.label { font-weight: 600; color: #64748b; width: 35%; }
-          .details-table td.value { font-weight: 700; color: #0f172a; }
-          .items-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-          .items-table th { background: #f1f5f9; padding: 8px 10px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; text-align: left; }
-          .btn-container { text-align: center; margin: 28px 0 16px 0; }
-          .btn { background-color: #2563eb; color: #ffffff !important; padding: 14px 28px; font-size: 14px; font-weight: bold; text-decoration: none; border-radius: 8px; display: inline-block; box-shadow: 0 2px 4px rgba(37,99,235,0.2); }
+          .content { padding: 28px; color: #334155; line-height: 1.6; font-size: 14px; }
+          .badge { display: inline-block; background: #fef3c7; border: 1px solid #fde68a; color: #92400e; font-size: 11px; font-weight: bold; padding: 4px 12px; margin-bottom: 18px; border-radius: 20px; text-transform: uppercase; }
+          .overview-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0; }
+          .overview-table { width: 100%; border-collapse: collapse; }
+          .overview-table td { padding: 6px 8px; font-size: 13px; }
+          .overview-table td.label { font-weight: 600; color: #64748b; width: 30%; }
+          .overview-table td.val { font-weight: 700; color: #0f172a; }
+          .action-buttons { text-align: center; margin: 32px 0 24px 0; padding: 20px 0; border-top: 1px dashed #cbd5e1; border-bottom: 1px dashed #cbd5e1; }
+          .btn-approve { background-color: #16a34a; color: #ffffff !important; padding: 14px 28px; font-size: 14px; font-weight: bold; text-decoration: none; border-radius: 8px; display: inline-block; margin-right: 12px; box-shadow: 0 4px 6px rgba(22, 163, 74, 0.25); }
+          .btn-decline { background-color: #dc2626; color: #ffffff !important; padding: 14px 28px; font-size: 14px; font-weight: bold; text-decoration: none; border-radius: 8px; display: inline-block; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.25); }
           .footer { background: #f1f5f9; padding: 16px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; }
         </style>
       </head>
@@ -209,68 +218,92 @@ class EmailService {
         <div class="card">
           <div class="header">
             <h1>NKB Manufacturing</h1>
-            <p>Enterprise Purchase Requisition & Approval System</p>
+            <p>Enterprise Purchase Requisition System</p>
           </div>
-          
+
           <div class="content">
-            <div class="alert-badge">🔔 ACTION REQUIRED • APPROVAL PENDING</div>
-            
-            <h2 style="margin: 0 0 8px 0; font-size: 16px; color: #0f172a;">New Requisition Submitted for Approval</h2>
-            <p style="font-size: 13px; line-height: 1.5; color: #475569; margin-top: 0;">
-              A new purchase requisition request has been created and requires your review and approval. You can review the details below and approve or reject it directly from the link below:
+            <div class="badge">🔔 Action Required • Pending Executive Approval</div>
+
+            <p style="margin-top: 0;">Hi Executive Approver,</p>
+
+            <p>
+              I hope this message finds you well. I am writing to request approval for a new requisition for the <strong>${positionTitle}</strong> role / request within our <strong>${deptName}</strong>.
             </p>
 
-            <table class="details-table">
-              <tr>
-                <td class="label">Request Number:</td>
-                <td class="value">${requestData.request_number}</td>
-              </tr>
-              <tr>
-                <td class="label">Department:</td>
-                <td class="value">${requestData.department_name || 'Department'}</td>
-              </tr>
-              <tr>
-                <td class="label">Prepared By:</td>
-                <td class="value">${requestData.prepared_by || 'Staff'} (${requestData.position || 'Specialist'})</td>
-              </tr>
-              <tr>
-                <td class="label">Required Date:</td>
-                <td class="value">${requestData.required_date || 'N/A'}</td>
-              </tr>
-              <tr>
-                <td class="label">Priority:</td>
-                <td class="value" style="color: ${requestData.priority === 'Urgent' ? '#dc2626' : '#2563eb'};">${requestData.priority || 'Normal'}</td>
-              </tr>
-              <tr>
-                <td class="label">Purpose:</td>
-                <td class="value" style="font-weight: normal; color: #334155;">${requestData.purpose || 'N/A'}</td>
-              </tr>
-              <tr>
-                <td class="label">Total Amount:</td>
-                <td class="value" style="font-size: 16px; color: #059669;">${formattedCost}</td>
-              </tr>
-            </table>
-
-            <h3 style="font-size: 13px; text-transform: uppercase; color: #475569; margin: 20px 0 8px 0;">Item & Subscription Summary</h3>
-            <table class="items-table">
-              <thead>
+            <div class="overview-box">
+              <h4 style="margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase; color: #0f172a; letter-spacing: 0.5px;">Role & Requisition Overview:</h4>
+              <table class="overview-table">
                 <tr>
-                  <th>Description</th>
-                  <th style="text-align: center;">Qty</th>
-                  <th style="text-align: right;">Total (₱)</th>
+                  <td class="label">Requisition No:</td>
+                  <td class="val" style="color: #2563eb;">${reqNumber}</td>
                 </tr>
-              </thead>
-              <tbody>
-                ${itemsRowsHtml}
-              </tbody>
-            </table>
-
-            <div class="btn-container">
-              <a href="${requestUrl}" class="btn" target="_blank">View & Approve Request #${requestData.request_number}</a>
+                <tr>
+                  <td class="label">Position:</td>
+                  <td class="val">${positionTitle}</td>
+                </tr>
+                <tr>
+                  <td class="label">Department:</td>
+                  <td class="val">${deptName}</td>
+                </tr>
+                <tr>
+                  <td class="label">Location:</td>
+                  <td class="val">${location}</td>
+                </tr>
+                <tr>
+                  <td class="label">Reports to:</td>
+                  <td class="val">${reportsTo}</td>
+                </tr>
+                <tr>
+                  <td class="label">Total Amount:</td>
+                  <td class="val" style="color: #059669; font-size: 15px;">${formattedCost}</td>
+                </tr>
+              </table>
             </div>
 
-            <p style="font-size: 11px; color: #94a3b8; text-align: center; margin-top: 16px;">
-              You received this notification because you are designated as the Executive Approver for Purchase Requisitions.
+            <h4 style="margin: 20px 0 8px 0; font-size: 14px; color: #0f172a;">Justification:</h4>
+            <p style="margin-top: 0; color: #475569;">
+              The <strong>${positionTitle}</strong> requisition is necessary to support our ongoing projects and initiatives. This role / request will include:
+            </p>
+            <ul style="padding-left: 20px; margin: 10px 0;">
+              ${itemsListHtml || '<li style="font-size: 13px;">Requisition fulfillment</li>'}
+            </ul>
+
+            <h4 style="margin: 20px 0 8px 0; font-size: 14px; color: #0f172a;">Impact:</h4>
+            <p style="margin-top: 0; color: #475569;">
+              Filling this role / request will help us:
+            </p>
+            <ul style="padding-left: 20px; margin: 10px 0; font-size: 13px; color: #334155;">
+              <li>${justification}</li>
+              <li>Maintain high department productivity and meet project deadlines.</li>
+              <li>Support operational growth and team capacity across projects.</li>
+            </ul>
+
+            <h4 style="margin: 20px 0 8px 0; font-size: 14px; color: #0f172a;">Urgency:</h4>
+            <p style="margin-top: 0; color: #475569;">
+              Given our current timeline and workload, we aim to have this position / request filled by <strong>${requiredDate}</strong>. This aligns with our hiring and procurement plan to meet project deadlines and maintain team productivity.
+            </p>
+
+            <p style="margin-top: 24px;">
+              I am happy to discuss this further if you have any questions or need additional details.
+            </p>
+
+            <p style="margin-bottom: 24px;">Thank you for considering this request.</p>
+
+            <!-- INTERACTIVE APPROVE OR DECLINE BUTTONS -->
+            <div class="action-buttons">
+              <a href="${approveUrl}" class="btn-approve" target="_blank">
+                ✅ Approve Requisition
+              </a>
+              <a href="${declineUrl}" class="btn-decline" target="_blank">
+                ❌ Decline Requisition
+              </a>
+            </div>
+
+            <p style="margin-top: 24px; font-size: 13px;">
+              Best regards,<br><br>
+              <strong>${preparedBy}</strong><br>
+              <span style="color: #64748b;">${position}</span><br>
+              <span style="color: #64748b; font-size: 12px;">${deptName}</span>
             </p>
           </div>
 
@@ -300,7 +333,7 @@ class EmailService {
       }
     } else {
       logger.info(`[SIMULATED EMAIL NOTIFICATION] To: ${approverEmail} | Subject: ${subject}`);
-      logger.info(`[SIMULATED EMAIL CONTENT] Direct Approval Link: ${requestUrl}`);
+      logger.info(`[SIMULATED EMAIL CONTENT] Direct Approve Link: ${approveUrl} | Direct Decline Link: ${declineUrl}`);
       return { success: true, simulated: true };
     }
   }
