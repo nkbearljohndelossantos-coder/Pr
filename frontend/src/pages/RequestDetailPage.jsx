@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   FileText, 
   Printer, 
@@ -23,7 +23,7 @@ import { formatCurrency, formatQuantity } from '../utils/numberFormat';
 export default function RequestDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { addToast } = useNotification();
 
@@ -33,21 +33,21 @@ export default function RequestDetailPage() {
   const [actionModal, setActionModal] = useState({ open: false, targetStatus: '' });
   const [previewFile, setPreviewFile] = useState(null);
 
+  const actionParam = searchParams.get('action');
+
   useEffect(() => {
     fetchRequestDetails();
   }, [id]);
 
   useEffect(() => {
-    if (request) {
-      const searchParams = new URLSearchParams(location.search);
-      const actionParam = searchParams.get('action');
+    if (request && actionParam) {
       if (actionParam === 'approve' && request.status !== 'Approved') {
         setActionModal({ open: true, targetStatus: 'Approved' });
       } else if (actionParam === 'decline' && request.status !== 'Rejected') {
         setActionModal({ open: true, targetStatus: 'Rejected' });
       }
     }
-  }, [request, location.search]);
+  }, [request, actionParam]);
 
   const fetchRequestDetails = async () => {
     setLoading(true);

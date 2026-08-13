@@ -93,7 +93,7 @@ class EmailService {
         success: false,
         simulated: true,
         recipient: toEmail,
-        error: 'SMTP credentials (Host, User, Password) are missing or incomplete in System Settings.'
+        error: 'SMTP credentials (Host, User, Password) are not configured. Please fill in the SMTP form fields and save settings.'
       };
     }
 
@@ -140,7 +140,7 @@ class EmailService {
       logger.error(`SMTP Test Email Error to ${toEmail}: ${err.message}`);
       let userFriendlyError = err.message;
       if (err.message.includes('535') || err.message.includes('Username and Password not accepted') || err.message.includes('Invalid login')) {
-        userFriendlyError = 'Gmail Authentication Failed (535 Error). Please verify your 16-character Gmail App Password.';
+        userFriendlyError = 'Gmail Authentication Failed (535 Error). Please verify your 16-character Gmail App Password (not your normal Gmail login password).';
       } else if (err.message.includes('ETIMEDOUT') || err.message.includes('ECONNREFUSED')) {
         userFriendlyError = `Connection timeout to mail server. Please verify SMTP Host and Port (587 or 465).`;
       }
@@ -162,33 +162,34 @@ class EmailService {
 
     const approverEmail = this.customApproverEmail || process.env.APPROVER_EMAIL || env.APPROVER_EMAIL || 'boss@company.com';
     const siteUrl = process.env.SITE_URL || 'https://pr.nkbmanufacturing.com';
-    
+
     const approveUrl = `${siteUrl}/requests/${requestData.id}?action=approve`;
     const declineUrl = `${siteUrl}/requests/${requestData.id}?action=decline`;
+    const viewUrl = `${siteUrl}/requests/${requestData.id}`;
 
     const formattedCost = new Intl.NumberFormat('en-PH', {
       style: 'currency',
       currency: 'PHP'
     }).format(requestData.total_estimated_cost || 0);
 
-    const positionTitle = requestData.position || requestData.purpose || 'Specialist Role';
-    const deptName = requestData.department_name || 'Department';
-    const preparedBy = requestData.prepared_by || 'Department Staff';
-    const position = requestData.position || 'Staff Specialist';
-    const requiredDate = requestData.required_date || 'ASAP';
-    const location = 'Main Factory / Corporate Headquarters';
-    const reportsTo = 'Department Manager / Executive Approver';
-    const justification = requestData.business_justification || requestData.purpose || 'Necessary to support our ongoing projects and maintain operational productivity.';
-    const reqNumber = requestData.request_number;
+    const positionTitle = requestData.position || 'Department Specialist';
+    const departmentName = requestData.department_name || 'Department';
+    const preparedBy = requestData.prepared_by || 'Staff Member';
+    const location = requestData.location || 'NKB Main Plant / Site';
+    const managerName = requestData.manager_name || 'Department Head';
+    const purpose = requestData.purpose || 'For Operational Use & Department Requirements';
+    const businessJustification = requestData.business_justification || requestData.purpose || 'Required for ongoing projects and operational productivity.';
+    const requiredDate = requestData.required_date || new Date().toISOString().split('T')[0];
 
-    const itemsListHtml = (requestData.items || []).map((item, idx) => `
-      <li style="margin-bottom: 8px; font-size: 13px; color: #1e293b;">
-        <strong>${idx + 1}. ${item.item_description}</strong> — Qty: ${item.quantity} ${item.unit || ''} (₱${Number(item.total_cost || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })})
-        ${item.remarks ? `<br><span style="font-size: 12px; color: #64748b;">Remarks: ${item.remarks}</span>` : ''}
-      </li>
+    const itemsRowsHtml = (requestData.items || []).map((item, idx) => `
+      <tr style="border-bottom: 1px solid #e2e8f0;">
+        <td style="padding: 10px; font-size: 13px; color: #1e293b;">${idx + 1}. ${item.item_description}</td>
+        <td style="padding: 10px; font-size: 13px; color: #475569; text-align: center;">${item.quantity} ${item.unit || ''}</td>
+        <td style="padding: 10px; font-size: 13px; color: #1e293b; text-align: right; font-weight: bold;">₱${Number(item.total_cost || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      </tr>
     `).join('');
 
-    const subject = `Requisition Approval Request for ${positionTitle} (${reqNumber})`;
+    const subject = `Requisition Approval Request for ${positionTitle} - #${requestData.request_number}`;
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -196,21 +197,22 @@ class EmailService {
       <head>
         <meta charset="utf-8">
         <style>
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; }
-          .card { max-width: 650px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #334155; }
+          .card { max-width: 650px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #cbd5e1; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
           .header { background: #0f172a; padding: 24px; text-align: center; color: #ffffff; }
           .header h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #38bdf8; }
           .header p { margin: 4px 0 0 0; font-size: 12px; color: #94a3b8; }
-          .content { padding: 28px; color: #334155; line-height: 1.6; font-size: 14px; }
-          .badge { display: inline-block; background: #fef3c7; border: 1px solid #fde68a; color: #92400e; font-size: 11px; font-weight: bold; padding: 4px 12px; margin-bottom: 18px; border-radius: 20px; text-transform: uppercase; }
-          .overview-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0; }
-          .overview-table { width: 100%; border-collapse: collapse; }
-          .overview-table td { padding: 6px 8px; font-size: 13px; }
+          .content { padding: 28px; line-height: 1.6; font-size: 14px; color: #334155; }
+          .section-title { font-weight: 700; font-size: 14px; color: #0f172a; margin-top: 20px; margin-bottom: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; }
+          .overview-table { width: 100%; border-collapse: collapse; margin: 12px 0; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+          .overview-table td { padding: 8px 12px; font-size: 13px; border-bottom: 1px solid #e2e8f0; }
           .overview-table td.label { font-weight: 600; color: #64748b; width: 30%; }
-          .overview-table td.val { font-weight: 700; color: #0f172a; }
-          .action-buttons { text-align: center; margin: 32px 0 24px 0; padding: 20px 0; border-top: 1px dashed #cbd5e1; border-bottom: 1px dashed #cbd5e1; }
-          .btn-approve { background-color: #16a34a; color: #ffffff !important; padding: 14px 28px; font-size: 14px; font-weight: bold; text-decoration: none; border-radius: 8px; display: inline-block; margin-right: 12px; box-shadow: 0 4px 6px rgba(22, 163, 74, 0.25); }
-          .btn-decline { background-color: #dc2626; color: #ffffff !important; padding: 14px 28px; font-size: 14px; font-weight: bold; text-decoration: none; border-radius: 8px; display: inline-block; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.25); }
+          .overview-table td.value { font-weight: 700; color: #0f172a; }
+          .items-table { width: 100%; border-collapse: collapse; margin: 12px 0; border: 1px solid #e2e8f0; }
+          .items-table th { background: #f1f5f9; padding: 8px 10px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; text-align: left; }
+          .btn-container { text-align: center; margin: 28px 0 16px 0; padding-top: 20px; border-top: 2px dashed #cbd5e1; }
+          .btn-approve { background-color: #059669; color: #ffffff !important; padding: 14px 28px; font-size: 14px; font-weight: bold; text-decoration: none; border-radius: 8px; display: inline-block; box-shadow: 0 4px 8px rgba(5,150,105,0.25); margin: 6px; }
+          .btn-decline { background-color: #dc2626; color: #ffffff !important; padding: 14px 28px; font-size: 14px; font-weight: bold; text-decoration: none; border-radius: 8px; display: inline-block; box-shadow: 0 4px 8px rgba(220,38,38,0.25); margin: 6px; }
           .footer { background: #f1f5f9; padding: 16px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; }
         </style>
       </head>
@@ -220,91 +222,100 @@ class EmailService {
             <h1>NKB Manufacturing</h1>
             <p>Enterprise Purchase Requisition System</p>
           </div>
-
+          
           <div class="content">
-            <div class="badge">🔔 Action Required • Pending Executive Approval</div>
-
             <p style="margin-top: 0;">Hi Executive Approver,</p>
 
             <p>
-              I hope this message finds you well. I am writing to request approval for a new requisition for the <strong>${positionTitle}</strong> role / request within our <strong>${deptName}</strong>.
+              I hope this message finds you well. I am writing to request approval for a new requisition for the <strong>${positionTitle}</strong> role within our <strong>${departmentName}</strong>.
             </p>
 
-            <div class="overview-box">
-              <h4 style="margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase; color: #0f172a; letter-spacing: 0.5px;">Role & Requisition Overview:</h4>
-              <table class="overview-table">
-                <tr>
-                  <td class="label">Requisition No:</td>
-                  <td class="val" style="color: #2563eb;">${reqNumber}</td>
-                </tr>
-                <tr>
-                  <td class="label">Position:</td>
-                  <td class="val">${positionTitle}</td>
-                </tr>
-                <tr>
-                  <td class="label">Department:</td>
-                  <td class="val">${deptName}</td>
-                </tr>
-                <tr>
-                  <td class="label">Location:</td>
-                  <td class="val">${location}</td>
-                </tr>
-                <tr>
-                  <td class="label">Reports to:</td>
-                  <td class="val">${reportsTo}</td>
-                </tr>
-                <tr>
-                  <td class="label">Total Amount:</td>
-                  <td class="val" style="color: #059669; font-size: 15px;">${formattedCost}</td>
-                </tr>
-              </table>
-            </div>
+            <div class="section-title">Role Overview:</div>
+            <table class="overview-table">
+              <tr>
+                <td class="label">Position:</td>
+                <td class="value">${positionTitle}</td>
+              </tr>
+              <tr>
+                <td class="label">Department:</td>
+                <td class="value">${departmentName}</td>
+              </tr>
+              <tr>
+                <td class="label">Location:</td>
+                <td class="value">${location}</td>
+              </tr>
+              <tr>
+                <td class="label">Reports to:</td>
+                <td class="value">${managerName}</td>
+              </tr>
+              <tr>
+                <td class="label">Total Amount:</td>
+                <td class="value" style="color: #059669; font-size: 15px;">${formattedCost}</td>
+              </tr>
+            </table>
 
-            <h4 style="margin: 20px 0 8px 0; font-size: 14px; color: #0f172a;">Justification:</h4>
-            <p style="margin-top: 0; color: #475569;">
-              The <strong>${positionTitle}</strong> requisition is necessary to support our ongoing projects and initiatives. This role / request will include:
-            </p>
-            <ul style="padding-left: 20px; margin: 10px 0;">
-              ${itemsListHtml || '<li style="font-size: 13px;">Requisition fulfillment</li>'}
-            </ul>
-
-            <h4 style="margin: 20px 0 8px 0; font-size: 14px; color: #0f172a;">Impact:</h4>
-            <p style="margin-top: 0; color: #475569;">
-              Filling this role / request will help us:
-            </p>
-            <ul style="padding-left: 20px; margin: 10px 0; font-size: 13px; color: #334155;">
-              <li>${justification}</li>
-              <li>Maintain high department productivity and meet project deadlines.</li>
-              <li>Support operational growth and team capacity across projects.</li>
-            </ul>
-
-            <h4 style="margin: 20px 0 8px 0; font-size: 14px; color: #0f172a;">Urgency:</h4>
-            <p style="margin-top: 0; color: #475569;">
-              Given our current timeline and workload, we aim to have this position / request filled by <strong>${requiredDate}</strong>. This aligns with our hiring and procurement plan to meet project deadlines and maintain team productivity.
+            <div class="section-title">Business Justification:</div>
+            <p style="background: #f8fafc; padding: 12px; border-radius: 6px; border-left: 4px solid #2563eb; margin: 8px 0; font-size: 13px;">
+              ${businessJustification}
             </p>
 
-            <p style="margin-top: 24px;">
+            <div class="section-title">Purpose of Request:</div>
+            <p style="background: #f8fafc; padding: 12px; border-radius: 6px; border-left: 4px solid #0f172a; margin: 8px 0; font-size: 13px;">
+              ${purpose}
+            </p>
+
+            <div class="section-title">Requested Items & Subscription Summary:</div>
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th style="text-align: center;">Qty</th>
+                  <th style="text-align: right;">Total (₱)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsRowsHtml}
+              </tbody>
+            </table>
+
+            <p style="margin-top: 20px;">
+              <strong>Urgency:</strong> Given our current timeline and workload, we aim to have this position filled by <strong>${requiredDate}</strong>. This aligns with our hiring plan to meet project deadlines and maintain team productivity.
+            </p>
+
+            <p>
               I am happy to discuss this further if you have any questions or need additional details.
             </p>
 
-            <p style="margin-bottom: 24px;">Thank you for considering this request.</p>
-
-            <!-- INTERACTIVE APPROVE OR DECLINE BUTTONS -->
-            <div class="action-buttons">
-              <a href="${approveUrl}" class="btn-approve" target="_blank">
-                ✅ Approve Requisition
-              </a>
-              <a href="${declineUrl}" class="btn-decline" target="_blank">
-                ❌ Decline Requisition
-              </a>
-            </div>
-
-            <p style="margin-top: 24px; font-size: 13px;">
-              Best regards,<br><br>
-              <strong>${preparedBy}</strong><br>
-              <span style="color: #64748b;">${position}</span><br>
-              <span style="color: #64748b; font-size: 12px;">${deptName}</span>
+            <p>
+              Thank you for considering this request.
             </p>
+
+            <p style="margin-top: 24px; margin-bottom: 0;">
+              Best regards,<br/>
+              <strong style="color: #0f172a; font-size: 15px;">${preparedBy}</strong><br/>
+              <span style="color: #64748b; font-size: 13px;">${positionTitle}</span>
+            </p>
+
+            <!-- INTERACTIVE APPROVE & DECLINE BUTTONS SECTION -->
+            <div class="btn-container">
+              <p style="font-size: 12px; font-weight: bold; color: #475569; margin-top: 0; margin-bottom: 12px; uppercase; tracking-wider;">
+                ⚡ CLICK AN ACTION BELOW TO RESPOND DIRECTLY:
+              </p>
+              
+              <a href="${approveUrl}" class="btn-approve" target="_blank">
+                ✅ APPROVE REQUISITION
+              </a>
+
+              <a href="${declineUrl}" class="btn-decline" target="_blank">
+                ❌ DECLINE REQUISITION
+              </a>
+
+              <div style="margin-top: 14px;">
+                <a href="${viewUrl}" style="font-size: 12px; color: #2563eb; font-weight: 600; text-decoration: underline;" target="_blank">
+                  View Full Requisition Details & Attachments
+                </a>
+              </div>
+            </div>
           </div>
 
           <div class="footer">
