@@ -487,7 +487,7 @@ const db = {
         file_path: params[3],
         file_type: params[4],
         file_size: params[5],
-        uploaded_at: new Date().toISOString(),
+        uploaded_at: params[6] || new Date().toISOString(),
         is_deleted: 0
       };
       store.attachments.push(att);
@@ -535,7 +535,7 @@ const db = {
       return [items];
     }
 
-    if (upper.includes('FROM ATTACHMENTS WHERE REQUEST_ID = ?')) {
+    if (upper.includes('SELECT') && upper.includes('FROM ATTACHMENTS')) {
       const atts = store.attachments.filter(a => a.request_id === Number(params[0]) && !a.is_deleted);
       return [atts];
     }

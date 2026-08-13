@@ -57,11 +57,20 @@ class RequestRepository {
 
   async addAttachment(att) {
     const { request_id, original_name, filename, file_path, file_type, file_size } = att;
-    await db.query(
-      `INSERT INTO attachments (request_id, original_name, filename, file_path, file_type, file_size)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [request_id, original_name, filename, file_path, file_type, file_size]
-    );
+    const uploadedAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    try {
+      await db.query(
+        `INSERT INTO attachments (request_id, original_name, filename, file_path, file_type, file_size, uploaded_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [request_id, original_name, filename, file_path, file_type, file_size, uploadedAt]
+      );
+    } catch (err) {
+      await db.query(
+        `INSERT INTO attachments (request_id, original_name, filename, file_path, file_type, file_size)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [request_id, original_name, filename, file_path, file_type, file_size]
+      );
+    }
   }
 
   async findById(id) {
