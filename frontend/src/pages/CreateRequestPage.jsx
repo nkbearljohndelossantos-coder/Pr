@@ -80,11 +80,6 @@ export default function CreateRequestPage() {
       addToast('Field Required: "Purpose of Request" cannot be left blank.', 'error');
       return false;
     }
-    if (!businessJustification.trim()) {
-      addToast('Field Required: "Business Justification" cannot be left blank.', 'error');
-      return false;
-    }
-
     const validItems = getValidItems();
     const validSubs = getValidSubscriptions();
 
@@ -112,10 +107,6 @@ export default function CreateRequestPage() {
         addToast(`Physical Item Row #${i + 1}: "Estimated Cost" must be a valid amount greater than ₱0.00.`, 'error');
         return false;
       }
-      if (!item.remarks || !item.remarks.trim()) {
-        addToast(`Physical Item Row #${i + 1}: "Remarks / Specs" cannot be left blank.`, 'error');
-        return false;
-      }
     }
 
     // Validate subscriptions if user added subscriptions
@@ -135,10 +126,6 @@ export default function CreateRequestPage() {
       }
       if (parseNum(sub.estimated_cost) <= 0) {
         addToast(`Subscription Row #${i + 1}: "Unit Rate" must be a valid amount greater than ₱0.00.`, 'error');
-        return false;
-      }
-      if (!sub.remarks || !sub.remarks.trim()) {
-        addToast(`Subscription Row #${i + 1}: "Period / Renewal Notes" cannot be left blank.`, 'error');
         return false;
       }
     }

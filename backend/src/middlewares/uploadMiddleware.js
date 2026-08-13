@@ -41,11 +41,18 @@ const fileFilter = (req, file, cb) => {
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'image/jpeg',
+    'image/jpg',
+    'image/pjpeg',
     'image/png',
-    'image/webp'
+    'image/webp',
+    'image/gif',
+    'application/octet-stream'
   ];
 
-  if (allowedMimeTypes.includes(file.mimetype)) {
+  const ext = path.extname(file.originalname || '').toLowerCase();
+  const allowedExts = ['.pdf', '.xlsx', '.xls', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.webp', '.gif', '.csv'];
+
+  if (allowedMimeTypes.includes(file.mimetype) || allowedExts.includes(ext)) {
     cb(null, true);
   } else {
     cb(new Error(`File type '${file.mimetype}' is not allowed. Supported formats: PDF, Excel, Word, Images.`), false);
