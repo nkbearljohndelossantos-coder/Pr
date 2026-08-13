@@ -38,6 +38,7 @@ export default function App() {
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/requests" element={<ProtectedRoute><RequestListPage /></ProtectedRoute>} />
             <Route path="/requests/new" element={<ProtectedRoute><CreateRequestPage /></ProtectedRoute>} />
+            <Route path="/requests/:id/edit" element={<ProtectedRoute><CreateRequestPage /></ProtectedRoute>} />
             <Route path="/requests/:id" element={<ProtectedRoute><RequestDetailPage /></ProtectedRoute>} />
             <Route path="/departments" element={<ProtectedRoute><DepartmentManagementPage /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute><UserManagementPage /></ProtectedRoute>} />

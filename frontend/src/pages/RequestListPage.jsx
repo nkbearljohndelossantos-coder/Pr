@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { FileText, Plus, Download, Eye, Filter } from 'lucide-react';
+import { FileText, Plus, Download, Eye, Filter, Pencil } from 'lucide-react';
 import DataTable from '../components/DataTable';
 import { requestApi, reportApi, departmentApi } from '../services/systemApi';
 import { STATUS_COLORS } from '../constants/status';
@@ -157,13 +157,25 @@ export default function RequestListPage() {
       header: 'Actions',
       key: 'actions',
       render: (row) => (
-        <button
-          onClick={() => navigate(`/requests/${row.id}`)}
-          className="p-1.5 bg-slate-100 hover:bg-blue-600 hover:text-white rounded-md text-slate-600 transition-colors"
-          title="View Request Details"
-        >
-          <Eye className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => navigate(`/requests/${row.id}`)}
+            className="p-1.5 bg-slate-100 hover:bg-blue-600 hover:text-white rounded-md text-slate-600 transition-colors"
+            title="View Request Details"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+
+          {row.status !== 'Approved' && (
+            <button
+              onClick={() => navigate(`/requests/${row.id}/edit`)}
+              className="p-1.5 bg-amber-50 hover:bg-amber-600 hover:text-white text-amber-700 rounded-md transition-colors"
+              title="Edit Requisition Request"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       )
     }
   ];

@@ -151,6 +151,42 @@ class RequestRepository {
     return rows[0].count;
   }
 
+  async updateRequest(id, data) {
+    const {
+      prepared_by,
+      position,
+      required_date,
+      purpose,
+      business_justification,
+      priority,
+      total_estimated_cost,
+      revision_number,
+      updated_at
+    } = data;
+
+    await db.query(
+      `UPDATE requests 
+       SET prepared_by = ?, position = ?, required_date = ?, purpose = ?, business_justification = ?, priority = ?, total_estimated_cost = ?, revision_number = ?, updated_at = ?
+       WHERE id = ? AND is_deleted = 0`,
+      [
+        prepared_by,
+        position || '',
+        required_date,
+        purpose,
+        business_justification || '',
+        priority || 'Normal',
+        total_estimated_cost || 0.00,
+        revision_number || 1,
+        updated_at || new Date().toISOString(),
+        id
+      ]
+    );
+  }
+
+  async deleteItemsByRequestId(requestId) {
+    await db.query(`DELETE FROM request_items WHERE request_id = ?`, [requestId]);
+  }
+
   async updateStatus(id, status, remarks, updated_by) {
     await db.query(
       `UPDATE requests SET status = ?, remarks = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,

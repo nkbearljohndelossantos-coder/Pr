@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Save, Send, ArrowLeft, AlertCircle } from 'lucide-react';
 import DynamicItemRows from '../components/DynamicItemRows';
 import DynamicSubscriptionRows from '../components/DynamicSubscriptionRows';
@@ -14,6 +14,8 @@ export default function CreateRequestPage() {
   const { user } = useAuth();
   const { addToast } = useNotification();
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = Boolean(id);
 
   const [preparedBy, setPreparedBy] = useState(user?.full_name || user?.username || '');
   const [departmentName, setDepartmentName] = useState(user?.department_name || user?.department_code || '');
@@ -31,12 +33,54 @@ export default function CreateRequestPage() {
   ]);
   const [subscriptions, setSubscriptions] = useState([]);
   const [files, setFiles] = useState([]);
+  const [existingAttachments, setExistingAttachments] = useState([]);
   const [uomOptions, setUomOptions] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchUomOptions();
-  }, []);
+    if (id) {
+      fetchExistingRequest(id);
+    }
+  }, [id]);
+
+  const fetchExistingRequest = async (reqId) => {
+    try {
+      const res = await requestApi.getById(reqId);
+      if (res.data?.success) {
+        const data = res.data.data;
+        if (data.status === 'Approved') {
+          addToast('Cannot edit a request that has already been approved.', 'error');
+          navigate(`/requests/${reqId}`);
+          return;
+        }
+
+        setPreparedBy(data.prepared_by || '');
+        setDepartmentName(data.department_name || '');
+        setPosition(data.position || '');
+        setRequiredDate(data.required_date ? data.required_date.split('T')[0] : '');
+        setPurpose(data.purpose || '');
+        setBusinessJustification(data.business_justification || '');
+        setPriority(data.priority || 'Normal');
+
+        const physItems = (data.items || []).filter((i) => i.item_type !== 'subscription');
+        const subItems = (data.items || []).filter((i) => i.item_type === 'subscription');
+
+        if (physItems.length > 0) {
+          setItems(physItems);
+        }
+        if (subItems.length > 0) {
+          setSubscriptions(subItems);
+        }
+        if (data.attachments) {
+          setExistingAttachments(data.attachments);
+        }
+      }
+    } catch (err) {
+      addToast('Failed to load request details for editing.', 'error');
+      navigate('/requests');
+    }
+  };
 
   const fetchUomOptions = async () => {
     try {
@@ -156,13 +200,21 @@ export default function CreateRequestPage() {
         formData.append('attachments', file);
       });
 
-      const res = await requestApi.create(formData);
-      if (res.data?.success) {
-        addToast(`Request ${res.data.data.request_number} created successfully!`, 'success');
-        navigate(`/requests/${res.data.data.id}`);
+      if (isEditMode) {
+        const res = await requestApi.update(id, formData);
+        if (res.data?.success) {
+          addToast(`Request ${res.data.data.request_number} updated successfully!`, 'success');
+          navigate(`/requests/${id}`);
+        }
+      } else {
+        const res = await requestApi.create(formData);
+        if (res.data?.success) {
+          addToast(`Request ${res.data.data.request_number} created successfully!`, 'success');
+          navigate(`/requests/${res.data.data.id}`);
+        }
       }
     } catch (err) {
-      addToast(err.response?.data?.message || 'Failed to create request.', 'error');
+      addToast(err.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} request.`, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -180,9 +232,11 @@ export default function CreateRequestPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-slate-800">Create New Department Request</h1>
+            <h1 className="text-xl font-bold text-slate-800">
+              {isEditMode ? 'Edit Department Requisition Request' : 'Create New Department Request'}
+            </h1>
             <p className="text-xs text-slate-500">
-              Department: <strong className="text-blue-600">{user?.department_name || user?.department_code || 'General'}</strong>
+              Department: <strong className="text-blue-600">{departmentName || user?.department_name || user?.department_code || 'General'}</strong>
               <span className="ml-2 text-rose-500 font-semibold">(Mandatory fields marked with *)</span>
             </p>
           </div>

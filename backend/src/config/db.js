@@ -530,7 +530,7 @@ const db = {
       return [enriched];
     }
 
-    if (upper.includes('FROM REQUEST_ITEMS WHERE REQUEST_ID = ?')) {
+    if (upper.includes('SELECT') && upper.includes('FROM REQUEST_ITEMS')) {
       const items = store.request_items.filter(i => i.request_id === Number(params[0]) && !i.is_deleted);
       return [items];
     }
@@ -538,6 +538,30 @@ const db = {
     if (upper.includes('FROM ATTACHMENTS WHERE REQUEST_ID = ?')) {
       const atts = store.attachments.filter(a => a.request_id === Number(params[0]) && !a.is_deleted);
       return [atts];
+    }
+
+    if (upper.includes('UPDATE REQUESTS SET PREPARED_BY = ?')) {
+      const req = store.requests.find(r => r.id === Number(params[9]));
+      if (req) {
+        req.prepared_by = params[0];
+        req.position = params[1];
+        req.required_date = params[2];
+        req.purpose = params[3];
+        req.business_justification = params[4];
+        req.priority = params[5];
+        req.total_estimated_cost = params[6];
+        req.revision_number = params[7];
+        req.updated_at = params[8];
+        saveStore();
+      }
+      return [{ affectedRows: 1 }];
+    }
+
+    if (upper.includes('DELETE FROM REQUEST_ITEMS')) {
+      const reqId = Number(params[0]);
+      store.request_items = store.request_items.filter(i => Number(i.request_id) !== reqId);
+      saveStore();
+      return [{ affectedRows: 1 }];
     }
 
     if (upper.includes('UPDATE REQUESTS SET STATUS = ?')) {

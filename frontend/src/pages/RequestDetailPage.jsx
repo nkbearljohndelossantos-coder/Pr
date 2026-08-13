@@ -8,7 +8,8 @@ import {
   Download, 
   ArrowLeft, 
   CheckCheck,
-  ZoomIn
+  ZoomIn,
+  Pencil
 } from 'lucide-react';
 import RequestStatusStepper from '../components/RequestStatusStepper';
 import ConfirmModal from '../components/ConfirmModal';
@@ -120,6 +121,16 @@ export default function RequestDetailPage() {
 
         <div className="flex items-center gap-2">
           {/* Print PDF Button */}
+          {request.status !== 'Approved' && (
+            <button
+              onClick={() => navigate(`/requests/${id}/edit`)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold shadow-2xs transition-colors"
+            >
+              <Pencil className="w-4 h-4" />
+              <span>Edit Request</span>
+            </button>
+          )}
+
           <button
             onClick={handlePrintPdf}
             className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-50 shadow-2xs"

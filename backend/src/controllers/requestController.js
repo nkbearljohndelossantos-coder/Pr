@@ -61,6 +61,23 @@ class RequestController {
     }
   }
 
+  async update(req, res, next) {
+    try {
+      const updated = await requestService.updateRequest(req.params.id, req.user, req.body, req.files || []);
+
+      await notificationService.notify({
+        departmentId: updated.department_id,
+        title: 'Request Updated',
+        message: `Request ${updated.request_number} was updated by ${req.user.full_name || req.user.username}.`,
+        type: 'info'
+      });
+
+      return successResponse(res, 'Request updated successfully', updated);
+    } catch (err) {
+      return errorResponse(res, err.message, ['RequestUpdateError'], HTTP_STATUS.BAD_REQUEST);
+    }
+  }
+
   async updateStatus(req, res, next) {
     try {
       const { status, remarks } = req.body;

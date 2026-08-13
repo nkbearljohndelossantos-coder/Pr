@@ -9,6 +9,7 @@ export const requestApi = {
   create: (formData) => api.post('/requests', formData),
   list: (params) => api.get('/requests', { params }),
   getById: (id) => api.get(`/requests/${id}`),
+  update: (id, formData) => api.put(`/requests/${id}`, formData),
   updateStatus: (id, data) => api.put(`/requests/${id}/status`, data),
   getDashboard: () => api.get('/requests/dashboard')
 };
