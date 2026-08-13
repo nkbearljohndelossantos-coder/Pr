@@ -44,5 +44,11 @@ module.exports = {
   UPLOAD_DIR: process.env.UPLOAD_DIR || defaultUploadDir,
   BACKUP_DIR: process.env.BACKUP_DIR || defaultBackupDir,
   COMPANY_NAME: process.env.COMPANY_NAME || 'NKB Manufacturing',
-  COMPANY_CODE: process.env.COMPANY_CODE || 'NKB'
+  COMPANY_CODE: process.env.COMPANY_CODE || 'NKB',
+  SMTP_HOST: process.env.SMTP_HOST || '',
+  SMTP_PORT: process.env.SMTP_PORT || 587,
+  SMTP_USER: process.env.SMTP_USER || '',
+  SMTP_PASS: process.env.SMTP_PASS || '',
+  SMTP_FROM: process.env.SMTP_FROM || '',
+  APPROVER_EMAIL: process.env.APPROVER_EMAIL || 'boss@company.com'
 };

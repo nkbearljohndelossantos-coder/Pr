@@ -1,6 +1,7 @@
 const requestRepository = require('../repositories/requestRepository');
 const departmentRepository = require('../repositories/departmentRepository');
 const { generateRequestNumber } = require('../utils/requestNumberGenerator');
+const emailService = require('./emailService');
 
 const parseNum = (val) => {
   if (val === null || val === undefined || val === '') return 0;
@@ -115,7 +116,13 @@ class RequestService {
       }
     }
 
-    return await requestRepository.findById(requestId);
+    const createdReq = await requestRepository.findById(requestId);
+    if (createdReq && createdReq.status === 'Submitted') {
+      emailService.sendApprovalNotification(createdReq).catch((err) => {
+        logger.error('Failed to trigger background approval email notification:', err.message);
+      });
+    }
+    return createdReq;
   }
 
   async updateRequest(id, user, data, files) {
@@ -187,7 +194,13 @@ class RequestService {
       }
     }
 
-    return await requestRepository.findById(id);
+    const updatedReq = await requestRepository.findById(id);
+    if (updatedReq && updatedReq.status === 'Submitted') {
+      emailService.sendApprovalNotification(updatedReq).catch((err) => {
+        logger.error('Failed to trigger background approval email notification:', err.message);
+      });
+    }
+    return updatedReq;
   }
 
   async getRequestById(id, user) {
