@@ -72,7 +72,24 @@ export default function RequestDetailPage() {
   }
 
   if (!request) {
-    return <div className="p-8 text-center text-xs text-rose-600 font-bold">Request not found.</div>;
+    return (
+      <div className="p-12 text-center max-w-md mx-auto space-y-4">
+        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
+          <FileText className="w-8 h-8" />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800">Requisition Not Found</h2>
+        <p className="text-xs text-slate-500">
+          The requested requisition form (ID: #{id}) could not be found or has been removed.
+        </p>
+        <button
+          onClick={() => navigate('/requests')}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition-colors inline-flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Return to Requisitions List</span>
+        </button>
+      </div>
+    );
   }
 
   const canApproveOrReject = user?.role === 'admin' || user?.role === 'executive';

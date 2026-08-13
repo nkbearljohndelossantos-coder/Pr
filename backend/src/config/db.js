@@ -85,8 +85,55 @@ const initData = () => {
   logger.info('Enterprise Database Engine Initialized & Seeded Cleanly.');
 };
 
-// Always re-seed/ensure store exists
-initData();
+const loadStore = () => {
+  if (fs.existsSync(dbFile)) {
+    try {
+      const data = fs.readFileSync(dbFile, 'utf-8');
+      const parsed = JSON.parse(data);
+      store = {
+        departments: parsed.departments || [],
+        users: parsed.users || [],
+        requests: parsed.requests || [],
+        request_items: parsed.request_items || [],
+        attachments: parsed.attachments || [],
+        master_dropdowns: parsed.master_dropdowns || [],
+        notifications: parsed.notifications || [],
+        audit_logs: parsed.audit_logs || [],
+        backups: parsed.backups || []
+      };
+
+      if (!store.departments || store.departments.length === 0) {
+        store.departments = [
+          { id: 1, code: 'IT', name: 'Information Technology Department', username: 'it_dept', password_hash: deptHash, seq_counter: 0, is_active: 1, is_deleted: 0 },
+          { id: 2, code: 'HR', name: 'Human Resources Department', username: 'hr_dept', password_hash: deptHash, seq_counter: 0, is_active: 1, is_deleted: 0 },
+          { id: 3, code: 'ACCT', name: 'Accounting Department', username: 'acct_dept', password_hash: deptHash, seq_counter: 0, is_active: 1, is_deleted: 0 },
+          { id: 4, code: 'PURCH', name: 'Purchasing Department', username: 'purch_dept', password_hash: deptHash, seq_counter: 0, is_active: 1, is_deleted: 0 },
+          { id: 5, code: 'PROD', name: 'Production Department', username: 'prod_dept', password_hash: deptHash, seq_counter: 0, is_active: 1, is_deleted: 0 },
+          { id: 6, code: 'WH', name: 'Warehouse Department', username: 'wh_dept', password_hash: deptHash, seq_counter: 0, is_active: 1, is_deleted: 0 },
+          { id: 7, code: 'QA', name: 'Quality Assurance Department', username: 'qa_dept', password_hash: deptHash, seq_counter: 0, is_active: 1, is_deleted: 0 }
+        ];
+      }
+
+      if (!store.users || store.users.length === 0) {
+        store.users = [
+          { id: 1, username: 'admin', password_hash: adminHash, role: 'admin', department_id: null, full_name: 'System Administrator (IT)', email: 'admin@company.com', is_active: 1, is_deleted: 0 },
+          { id: 2, username: 'boss', password_hash: bossHash, role: 'executive', department_id: null, full_name: 'Executive Administrator', email: 'boss@company.com', is_active: 1, is_deleted: 0 },
+          { id: 3, username: 'it_dept', password_hash: deptHash, role: 'department', department_id: 1, full_name: 'Information Technology Dept', email: 'it@company.com', is_active: 1, is_deleted: 0 }
+        ];
+      }
+
+      logger.info(`Enterprise Database Engine Loaded Successfully (${store.requests.length} requests persisted).`);
+      return;
+    } catch (e) {
+      logger.error('Failed to load existing database store file, re-seeding:', e);
+    }
+  }
+
+  initData();
+};
+
+// Load existing store from disk or seed cleanly
+loadStore();
 
 // Hostinger / MySQL Connection Pool Setup
 let pool = null;
