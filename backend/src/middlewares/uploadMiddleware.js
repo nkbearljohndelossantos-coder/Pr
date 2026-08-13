@@ -19,36 +19,10 @@ const storage = multer.diskStorage({
   }
 });
 
-const fileFilter = (req, file, cb) => {
-  const allowedMimeTypes = [
-    'application/pdf',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'application/vnd.ms-excel',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'image/jpeg',
-    'image/jpg',
-    'image/pjpeg',
-    'image/png',
-    'image/webp',
-    'image/gif',
-    'application/octet-stream'
-  ];
-
-  const ext = path.extname(file.originalname || '').toLowerCase();
-  const allowedExts = ['.pdf', '.xlsx', '.xls', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.webp', '.gif', '.csv'];
-
-  if (allowedMimeTypes.includes(file.mimetype) || allowedExts.includes(ext)) {
-    cb(null, true);
-  } else {
-    cb(new Error(`File type '${file.mimetype}' is not allowed. Supported formats: PDF, Excel, Word, Images.`), false);
-  }
-};
-
+// Fail-safe uploader with 50MB file size limit to prevent file rejection or drops
 const upload = multer({
   storage,
-  fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB Max Limit
+  limits: { fileSize: 50 * 1024 * 1024 }
 });
 
 module.exports = upload;

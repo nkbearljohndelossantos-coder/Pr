@@ -84,7 +84,7 @@ export default function AttachmentUploader({ files = [], onFilesChange }) {
         <input
           type="file"
           multiple
-          accept=".pdf,.xlsx,.xls,.doc,.docx,.png,.jpg,.jpeg,.webp"
+          accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.csv,.zip,.rar"
           onChange={handleFileSelect}
           className="hidden"
           id="file-upload-input"
@@ -97,7 +97,7 @@ export default function AttachmentUploader({ files = [], onFilesChange }) {
             Click to upload or drag & drop files here
           </span>
           <span className="text-[11px] text-slate-500 max-w-sm">
-            Supported Formats: Quotations, Specs, Invoices, PDF, Excel, Word, PNG, JPG (Max 10 MB per file).
+            Supported Formats: Photos, Quotations, Specs, Invoices, PDF, Excel, Word, PNG, JPG (Max 50 MB per file).
           </span>
         </label>
       </div>
