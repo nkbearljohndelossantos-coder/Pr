@@ -204,10 +204,22 @@ class EmailService {
       }
     }
 
-    const itemsRowsHtml = (requestData.items || []).map((item, idx) => `
+    const physicalItems = (requestData.items || []).filter(i => i.item_type !== 'subscription');
+    const subscriptionItems = (requestData.items || []).filter(i => i.item_type === 'subscription');
+
+    const physItemsRowsHtml = physicalItems.map((item, idx) => `
       <tr style="border-bottom: 1px solid #e2e8f0;">
         <td style="padding: 10px; font-size: 13px; color: #1e293b;">${idx + 1}. ${item.item_description}</td>
-        <td style="padding: 10px; font-size: 13px; color: #475569; text-align: center;">${item.quantity} ${item.unit || ''}</td>
+        <td style="padding: 10px; font-size: 13px; color: #475569; text-align: center;">${item.quantity} ${item.unit || 'PCS'}</td>
+        <td style="padding: 10px; font-size: 13px; color: #1e293b; text-align: right; font-weight: bold;">₱${Number(item.total_cost || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      </tr>
+    `).join('');
+
+    const subItemsRowsHtml = subscriptionItems.map((item, idx) => `
+      <tr style="border-bottom: 1px solid #e2e8f0;">
+        <td style="padding: 10px; font-size: 13px; color: #1e293b;">${idx + 1}. <strong>${item.item_description}</strong></td>
+        <td style="padding: 10px; font-size: 13px; color: #4f46e5; font-weight: bold; text-align: center;">${item.unit || 'MONTHLY'}</td>
+        <td style="padding: 10px; font-size: 13px; color: #475569; text-align: center;">${item.quantity} Seats / Qty</td>
         <td style="padding: 10px; font-size: 13px; color: #1e293b; text-align: right; font-weight: bold;">₱${Number(item.total_cost || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
       </tr>
     `).join('');
@@ -300,19 +312,40 @@ class EmailService {
               ${purpose}
             </p>
 
-            <div class="section-title">Requested Items & Subscription Summary:</div>
-            <table class="items-table">
-              <thead>
-                <tr>
-                  <th>Description</th>
-                  <th style="text-align: center;">Qty</th>
-                  <th style="text-align: right;">Total (₱)</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${itemsRowsHtml}
-              </tbody>
-            </table>
+            ${physicalItems.length > 0 ? `
+              <div class="section-title">Physical Requisition Items Breakdown (${physicalItems.length}):</div>
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th>Item Description</th>
+                    <th style="text-align: center;">Qty & Unit</th>
+                    <th style="text-align: right;">Total Amount (₱)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${physItemsRowsHtml}
+                </tbody>
+              </table>
+            ` : ''}
+
+            ${subscriptionItems.length > 0 ? `
+              <div class="section-title" style="color: #4f46e5; border-bottom-color: #c7d2fe;">
+                🛡️ Subscriptions & Cloud Services Breakdown (${subscriptionItems.length}):
+              </div>
+              <table class="items-table">
+                <thead>
+                  <tr style="background: #e0e7ff; color: #3730a3;">
+                    <th>Subscription / Service Name</th>
+                    <th style="text-align: center;">Billing Cycle</th>
+                    <th style="text-align: center;">Seats / Qty</th>
+                    <th style="text-align: right;">Total Amount (₱)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${subItemsRowsHtml}
+                </tbody>
+              </table>
+            ` : ''}
 
             ${attachmentsListHtml}
 
@@ -336,7 +369,7 @@ class EmailService {
 
             <!-- INTERACTIVE APPROVE & DECLINE BUTTONS SECTION -->
             <div class="btn-container">
-              <p style="font-size: 12px; font-weight: bold; color: #475569; margin-top: 0; margin-bottom: 12px; uppercase; tracking-wider;">
+              <p style="font-size: 12px; font-weight: bold; color: #475569; margin-top: 0; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
                 ⚡ CLICK AN ACTION BELOW TO RESPOND DIRECTLY:
               </p>
               

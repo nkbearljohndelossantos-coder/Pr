@@ -66,12 +66,12 @@ export default function CreateRequestPage() {
         const physItems = (data.items || []).filter((i) => i.item_type !== 'subscription');
         const subItems = (data.items || []).filter((i) => i.item_type === 'subscription');
 
-        if (physItems.length > 0) {
-          setItems(physItems);
-        }
-        if (subItems.length > 0) {
-          setSubscriptions(subItems);
-        }
+        setItems(physItems.length > 0 ? physItems : [
+          { item_description: '', quantity: 1, unit: 'PCS', estimated_cost: 0, remarks: '', item_type: 'item' }
+        ]);
+
+        setSubscriptions(subItems.length > 0 ? subItems : []);
+
         if (data.attachments) {
           setExistingAttachments(data.attachments);
         }
