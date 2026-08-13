@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { UploadCloud, File, X, CheckCircle2, Info, ZoomIn } from 'lucide-react';
+import { UploadCloud, File as FileIcon, X, CheckCircle2, Info, ZoomIn } from 'lucide-react';
+import FilePreviewModal from './FilePreviewModal';
 
 const getFileName = (file) => {
   if (!file) return 'Attachment';
@@ -16,6 +17,19 @@ const isImage = (file) => {
   const name = getFileName(file);
   const type = file.type || file.file_type || '';
   return type.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(name);
+};
+
+const getFilePreviewUrl = (file) => {
+  if (!file) return null;
+  if (file.filename) return `/uploads/${file.filename}`;
+  if (typeof window !== 'undefined' && window.URL && typeof window.URL.createObjectURL === 'function') {
+    try {
+      return URL.createObjectURL(file);
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
 };
 
 export default function AttachmentUploader({ files = [], onFilesChange }) {
@@ -95,9 +109,7 @@ export default function AttachmentUploader({ files = [], onFilesChange }) {
             const hasImage = isImage(file);
             const fileName = getFileName(file);
             const fileExt = getFileExt(file);
-            const previewUrl = hasImage
-              ? (file instanceof File ? URL.createObjectURL(file) : `/uploads/${file.filename}`)
-              : null;
+            const previewUrl = hasImage ? getFilePreviewUrl(file) : null;
             const fileSizeKB = file.size || file.file_size ? `${(((file.size || file.file_size) / 1024)).toFixed(1)} KB` : '';
 
             return (
@@ -118,7 +130,7 @@ export default function AttachmentUploader({ files = [], onFilesChange }) {
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-1.5 p-2 text-slate-500">
-                      <File className="w-8 h-8 text-indigo-500" />
+                      <FileIcon className="w-8 h-8 text-indigo-500" />
                       <span className="text-[10px] font-bold uppercase text-slate-600 bg-slate-200 px-1.5 py-0.5 rounded">
                         {fileExt}
                       </span>
@@ -155,6 +167,15 @@ export default function AttachmentUploader({ files = [], onFilesChange }) {
             );
           })}
         </div>
+      )}
+
+      {/* Lightbox / Preview Modal */}
+      {previewFile && (
+        <FilePreviewModal
+          isOpen={Boolean(previewFile)}
+          file={previewFile}
+          onClose={() => setPreviewFile(null)}
+        />
       )}
     </div>
   );

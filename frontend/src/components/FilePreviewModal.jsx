@@ -22,9 +22,18 @@ export default function FilePreviewModal({ isOpen, file, onClose }) {
     fileType.startsWith('image/') ||
     /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(fileName);
 
-  const previewUrl =
-    file.previewUrl ||
-    (file.filename ? `/uploads/${file.filename}` : file instanceof File ? URL.createObjectURL(file) : '');
+  let previewUrl = file.previewUrl || '';
+  if (!previewUrl) {
+    if (file.filename) {
+      previewUrl = `/uploads/${file.filename}`;
+    } else if (typeof window !== 'undefined' && window.URL && typeof window.URL.createObjectURL === 'function') {
+      try {
+        previewUrl = URL.createObjectURL(file);
+      } catch (e) {
+        previewUrl = '';
+      }
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fadeIn">
