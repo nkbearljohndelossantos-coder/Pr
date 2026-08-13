@@ -1,19 +1,21 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  baseURL: '/api'
 });
 
-// Attach JWT bearer token from localStorage
+// Attach JWT bearer token from localStorage and handle FormData boundaries cleanly
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('erp_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

@@ -197,7 +197,7 @@ export default function CreateRequestPage() {
       formData.append('items', JSON.stringify(allItemsCombined));
 
       files.forEach((file) => {
-        if (file && (file instanceof Blob || file instanceof File || (typeof file === 'object' && file.name && file.size && file.type !== undefined))) {
+        if (file) {
           formData.append('attachments', file);
         }
       });
