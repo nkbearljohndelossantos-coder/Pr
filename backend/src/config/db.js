@@ -365,51 +365,92 @@ const ensureMysqlTablesExist = async () => {
   }
 };
 
-// Auto Sync JSON Store to Hostinger MySQL if MySQL tables are empty
+const toMysqlDatetime = (dt) => {
+  if (!dt) return new Date().toISOString().slice(0, 19).replace('T', ' ');
+  try {
+    const d = new Date(dt);
+    if (isNaN(d.getTime())) return new Date().toISOString().slice(0, 19).replace('T', ' ');
+    return d.toISOString().slice(0, 19).replace('T', ' ');
+  } catch (e) {
+    return new Date().toISOString().slice(0, 19).replace('T', ' ');
+  }
+};
+
+// Auto Sync JSON Store to Hostinger MySQL
 const syncJsonToMysql = async () => {
   if (!pool) return;
   await ensureMysqlTablesExist();
   try {
-    const [reqRows] = await pool.query('SELECT COUNT(*) as cnt FROM requests');
-    if (reqRows && reqRows[0] && reqRows[0].cnt === 0 && store.requests.length > 0) {
-      logger.info(`Migrating ${store.requests.length} requests from JSON store into Hostinger MySQL tables...`);
-      for (const r of store.requests) {
-        if (!r || r.is_deleted) continue;
-        await pool.query(
-          `INSERT IGNORE INTO requests 
-           (id, request_number, department_id, prepared_by, position, required_date, purpose, business_justification, priority, status, total_estimated_cost, created_by, revision_number, remarks, created_at, updated_at, is_deleted)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [r.id, r.request_number, r.department_id, r.prepared_by, r.position || '', r.required_date, r.purpose, r.business_justification || '', r.priority || 'Normal', r.status || 'Submitted', r.total_estimated_cost || 0, r.created_by || 1, r.revision_number || 1, r.remarks || '', r.created_at, r.updated_at, 0]
-        );
-      }
-      for (const item of store.request_items) {
-        if (!item || item.is_deleted) continue;
-        try {
-          await pool.query(
-            `INSERT IGNORE INTO request_items (id, request_id, item_description, quantity, unit, estimated_cost, total_cost, remarks, item_type, is_deleted)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [item.id, item.request_id, item.item_description, item.quantity, item.unit, item.estimated_cost, item.total_cost, item.remarks || '', item.item_type || 'subscription', 0]
-          );
-        } catch (e) {
-          await pool.query(
-            `INSERT IGNORE INTO request_items (id, request_id, item_description, quantity, unit, estimated_cost, total_cost, remarks, is_deleted)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [item.id, item.request_id, item.item_description, item.quantity, item.unit, item.estimated_cost, item.total_cost, item.remarks || '', 0]
-          );
-        }
-      }
-      for (const att of store.attachments) {
-        if (!att || att.is_deleted) continue;
-        await pool.query(
-          `INSERT IGNORE INTO attachments (id, request_id, original_name, filename, file_path, file_type, file_size, uploaded_at, is_deleted)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [att.id, att.request_id, att.original_name, att.filename, att.file_path, att.file_type, att.file_size, att.uploaded_at, 0]
-        );
-      }
-      logger.info('Migration from JSON Store to Hostinger MySQL completed successfully!');
+    logger.info(`Checking and syncing JSON store data into Hostinger MySQL tables...`);
+
+    // 1. Sync Departments
+    for (const d of store.departments) {
+      if (!d || d.is_deleted) continue;
+      await pool.query(
+        `INSERT INTO departments (id, name, code, description, is_active, created_at, updated_at, is_deleted)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+         ON DUPLICATE KEY UPDATE name=VALUES(name), code=VALUES(code)`,
+        [d.id, d.name, d.code, d.description || '', d.is_active || 1, toMysqlDatetime(d.created_at), toMysqlDatetime(d.updated_at)]
+      );
     }
+
+    // 2. Sync Users
+    for (const u of store.users) {
+      if (!u || u.is_deleted) continue;
+      await pool.query(
+        `INSERT INTO users (id, username, password_hash, role, department_id, full_name, email, is_active, created_at, updated_at, is_deleted)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+         ON DUPLICATE KEY UPDATE full_name=VALUES(full_name), role=VALUES(role)`,
+        [u.id, u.username, u.password_hash, u.role, u.department_id || null, u.full_name, u.email || '', u.is_active || 1, toMysqlDatetime(u.created_at), toMysqlDatetime(u.updated_at)]
+      );
+    }
+
+    // 3. Sync Requests
+    for (const r of store.requests) {
+      if (!r || r.is_deleted) continue;
+      await pool.query(
+        `INSERT INTO requests 
+         (id, request_number, department_id, prepared_by, position, required_date, purpose, business_justification, priority, status, total_estimated_cost, created_by, revision_number, remarks, created_at, updated_at, is_deleted)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+         ON DUPLICATE KEY UPDATE prepared_by=VALUES(prepared_by), purpose=VALUES(purpose), total_estimated_cost=VALUES(total_estimated_cost), updated_at=VALUES(updated_at)`,
+        [r.id, r.request_number, r.department_id, r.prepared_by, r.position || '', r.required_date, r.purpose, r.business_justification || '', r.priority || 'Normal', r.status || 'Submitted', r.total_estimated_cost || 0, r.created_by || 1, r.revision_number || 1, r.remarks || '', toMysqlDatetime(r.created_at), toMysqlDatetime(r.updated_at)]
+      );
+    }
+
+    // 4. Sync Request Items
+    for (const item of store.request_items) {
+      if (!item || item.is_deleted) continue;
+      try {
+        await pool.query(
+          `INSERT INTO request_items (id, request_id, item_description, quantity, unit, estimated_cost, total_cost, remarks, item_type, is_deleted)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+           ON DUPLICATE KEY UPDATE item_description=VALUES(item_description), quantity=VALUES(quantity), estimated_cost=VALUES(estimated_cost)`,
+          [item.id, item.request_id, item.item_description, item.quantity, item.unit, item.estimated_cost, item.total_cost, item.remarks || '', item.item_type || 'subscription']
+        );
+      } catch (e) {
+        await pool.query(
+          `INSERT INTO request_items (id, request_id, item_description, quantity, unit, estimated_cost, total_cost, remarks, is_deleted)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+           ON DUPLICATE KEY UPDATE item_description=VALUES(item_description), quantity=VALUES(quantity), estimated_cost=VALUES(estimated_cost)`,
+          [item.id, item.request_id, item.item_description, item.quantity, item.unit, item.estimated_cost, item.total_cost, item.remarks || '']
+        );
+      }
+    }
+
+    // 5. Sync Attachments
+    for (const att of store.attachments) {
+      if (!att || att.is_deleted) continue;
+      await pool.query(
+        `INSERT INTO attachments (id, request_id, original_name, filename, file_path, file_type, file_size, uploaded_at, is_deleted)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+         ON DUPLICATE KEY UPDATE original_name=VALUES(original_name), filename=VALUES(filename)`,
+        [att.id, att.request_id, att.original_name, att.filename, att.file_path, att.file_type, att.file_size, toMysqlDatetime(att.uploaded_at)]
+      );
+    }
+
+    logger.info('Migration from JSON Store to Hostinger MySQL completed successfully!');
   } catch (err) {
-    logger.warn('MySQL auto sync check skipped:', err.message);
+    logger.warn('MySQL auto sync check notice:', err.message);
   }
 };
 
