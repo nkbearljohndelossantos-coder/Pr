@@ -297,6 +297,10 @@ export default function AdminSettingsPage() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
+                <span>🔒</span>
+                <span>Saved passwords are masked as <code className="bg-slate-100 px-1 font-bold">********</code> for account security.</span>
+              </p>
             </div>
           </div>
 
