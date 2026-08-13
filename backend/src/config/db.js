@@ -259,9 +259,116 @@ if (env.DB_TYPE === 'mysql' || process.env.DB_TYPE === 'mysql' || process.env.DB
   }
 }
 
+// Auto Create Table Schemas in Hostinger MySQL if missing
+const ensureMysqlTablesExist = async () => {
+  if (!pool) return;
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS departments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        code VARCHAR(50) NOT NULL UNIQUE,
+        description TEXT,
+        head_user_id INT,
+        is_active TINYINT DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        is_deleted TINYINT DEFAULT 0
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(100) NOT NULL UNIQUE,
+        password_hash VARCHAR(255) NOT NULL,
+        role VARCHAR(50) NOT NULL,
+        department_id INT,
+        full_name VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
+        is_active TINYINT DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        is_deleted TINYINT DEFAULT 0
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        request_number VARCHAR(100) NOT NULL UNIQUE,
+        department_id INT NOT NULL,
+        prepared_by VARCHAR(255) NOT NULL,
+        position VARCHAR(255),
+        required_date DATE NOT NULL,
+        purpose TEXT NOT NULL,
+        business_justification TEXT,
+        priority VARCHAR(50) DEFAULT 'Normal',
+        status VARCHAR(50) DEFAULT 'Submitted',
+        total_estimated_cost DECIMAL(15,2) DEFAULT 0.00,
+        created_by INT,
+        approved_by INT,
+        rejection_reason TEXT,
+        revision_number INT DEFAULT 1,
+        remarks TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        is_deleted TINYINT DEFAULT 0
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS request_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        request_id INT NOT NULL,
+        item_description TEXT NOT NULL,
+        quantity DECIMAL(15,2) NOT NULL,
+        unit VARCHAR(50) NOT NULL,
+        estimated_cost DECIMAL(15,2) NOT NULL,
+        total_cost DECIMAL(15,2) NOT NULL,
+        remarks TEXT,
+        item_type VARCHAR(50) DEFAULT 'item',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        is_deleted TINYINT DEFAULT 0
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS attachments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        request_id INT NOT NULL,
+        original_name VARCHAR(255) NOT NULL,
+        filename VARCHAR(255) NOT NULL,
+        file_path TEXT NOT NULL,
+        file_type VARCHAR(100),
+        file_size INT,
+        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_deleted TINYINT DEFAULT 0
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS master_dropdowns (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        category VARCHAR(100) NOT NULL,
+        label VARCHAR(255) NOT NULL,
+        value VARCHAR(255) NOT NULL,
+        sort_order INT DEFAULT 0,
+        is_active TINYINT DEFAULT 1
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    logger.info('Hostinger MySQL Schema Tables Verified & Created Successfully.');
+  } catch (err) {
+    logger.warn('MySQL table auto-creation notice:', err.message);
+  }
+};
+
 // Auto Sync JSON Store to Hostinger MySQL if MySQL tables are empty
 const syncJsonToMysql = async () => {
   if (!pool) return;
+  await ensureMysqlTablesExist();
   try {
     const [reqRows] = await pool.query('SELECT COUNT(*) as cnt FROM requests');
     if (reqRows && reqRows[0] && reqRows[0].cnt === 0 && store.requests.length > 0) {
@@ -306,7 +413,7 @@ const syncJsonToMysql = async () => {
   }
 };
 
-setTimeout(syncJsonToMysql, 3000);
+setTimeout(syncJsonToMysql, 1000);
 
 // Database Query Engine supporting both Real MySQL and Fail-safe Store Emulator
 const db = {

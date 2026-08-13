@@ -37,12 +37,12 @@ module.exports = {
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   DB_HOST: process.env.DB_HOST || '127.0.0.1',
   DB_PORT: process.env.DB_PORT || 3306,
-  DB_USER: process.env.DB_USER || 'root',
-  DB_PASS: process.env.DB_PASS || '',
-  DB_NAME: process.env.DB_NAME || 'purchase_requisition_erp',
-  DB_TYPE: process.env.DB_TYPE || 'sqlite',
+  DB_USER: process.env.DB_USER || 'u335953510_pr_user',
+  DB_PASS: process.env.DB_PASS || 'NkbManufacturing2025',
+  DB_NAME: process.env.DB_NAME || 'u335953510_pr_data',
+  DB_TYPE: process.env.DB_TYPE || 'mysql',
   UPLOAD_DIR: process.env.UPLOAD_DIR || defaultUploadDir,
   BACKUP_DIR: process.env.BACKUP_DIR || defaultBackupDir,
-  COMPANY_NAME: process.env.COMPANY_NAME || 'Enterprise Global Industries Inc.',
-  COMPANY_CODE: process.env.COMPANY_CODE || 'EGI-CORP'
+  COMPANY_NAME: process.env.COMPANY_NAME || 'NKB Manufacturing',
+  COMPANY_CODE: process.env.COMPANY_CODE || 'NKB'
 };
