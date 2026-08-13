@@ -116,6 +116,20 @@ const initData = () => {
     }
   ];
 
+  store.attachments = [
+    {
+      id: 1,
+      request_id: 1,
+      original_name: 'Hostinger_VPS_Renewal_Quotation.pdf',
+      filename: '1786083247-Hostinger_VPS_Renewal_Quotation.pdf',
+      file_path: 'uploads/1786083247-Hostinger_VPS_Renewal_Quotation.pdf',
+      file_type: 'application/pdf',
+      file_size: 102400,
+      uploaded_at: new Date().toISOString(),
+      is_deleted: 0
+    }
+  ];
+
   saveStore();
   logger.info('Enterprise Database Engine Initialized & Seeded Cleanly.');
 };
@@ -189,6 +203,19 @@ const loadStore = () => {
             remarks: 'Renewal Date: Nov 2026',
             item_type: 'subscription',
             created_at: new Date().toISOString()
+          }
+        ];
+        store.attachments = [
+          {
+            id: 1,
+            request_id: 1,
+            original_name: 'Hostinger_VPS_Renewal_Quotation.pdf',
+            filename: '1786083247-Hostinger_VPS_Renewal_Quotation.pdf',
+            file_path: 'uploads/1786083247-Hostinger_VPS_Renewal_Quotation.pdf',
+            file_type: 'application/pdf',
+            file_size: 102400,
+            uploaded_at: new Date().toISOString(),
+            is_deleted: 0
           }
         ];
         saveStore();
