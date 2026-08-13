@@ -17,6 +17,7 @@ import { requestApi } from '../services/systemApi';
 import { STATUS_COLORS } from '../constants/status';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
+import { formatCurrency, formatQuantity } from '../utils/numberFormat';
 
 export default function RequestDetailPage() {
   const { id } = useParams();
@@ -190,7 +191,7 @@ export default function RequestDetailPage() {
 
           <div>
             <span className="text-slate-400 block font-medium">Total Estimated Cost</span>
-            <span className="font-bold text-emerald-600 text-sm font-mono">₱{Number(request.total_estimated_cost || 0).toFixed(2)}</span>
+            <span className="font-bold text-emerald-600 text-sm font-mono">{formatCurrency(request.total_estimated_cost)}</span>
           </div>
         </div>
 
@@ -268,10 +269,10 @@ export default function RequestDetailPage() {
                         <tr key={item.id || idx} className="hover:bg-slate-50">
                           <td className="px-3 py-2.5 font-bold text-slate-400">{idx + 1}</td>
                           <td className="px-3 py-2.5 font-medium text-slate-800">{item.item_description}</td>
-                          <td className="px-3 py-2.5 text-right font-semibold text-slate-700">{Number(item.quantity).toFixed(2)}</td>
+                          <td className="px-3 py-2.5 text-right font-semibold text-slate-700">{formatQuantity(item.quantity)}</td>
                           <td className="px-3 py-2.5 font-mono text-slate-500">{item.unit}</td>
-                          <td className="px-3 py-2.5 text-right font-mono text-slate-600">₱{Number(item.estimated_cost).toFixed(2)}</td>
-                          <td className="px-3 py-2.5 text-right font-mono font-bold text-slate-800">₱{Number(item.total_cost).toFixed(2)}</td>
+                          <td className="px-3 py-2.5 text-right font-mono text-slate-600">{formatCurrency(item.estimated_cost)}</td>
+                          <td className="px-3 py-2.5 text-right font-mono font-bold text-slate-800">{formatCurrency(item.total_cost)}</td>
                           <td className="px-3 py-2.5 text-slate-500">{item.remarks || '-'}</td>
                         </tr>
                       ))}
@@ -305,9 +306,9 @@ export default function RequestDetailPage() {
                           <td className="px-3 py-2.5 font-bold text-indigo-500">{idx + 1}</td>
                           <td className="px-3 py-2.5 font-semibold text-slate-800">{item.item_description}</td>
                           <td className="px-3 py-2.5 font-bold text-indigo-700 font-mono">{formatBillingCycle(item.unit)}</td>
-                          <td className="px-3 py-2.5 text-right font-semibold text-slate-700">{Number(item.quantity).toFixed(0)}</td>
-                          <td className="px-3 py-2.5 text-right font-mono text-slate-600">₱{Number(item.estimated_cost).toFixed(2)}</td>
-                          <td className="px-3 py-2.5 text-right font-mono font-bold text-indigo-800">₱{Number(item.total_cost).toFixed(2)}</td>
+                          <td className="px-3 py-2.5 text-right font-semibold text-slate-700">{formatQuantity(item.quantity, 0)}</td>
+                          <td className="px-3 py-2.5 text-right font-mono text-slate-600">{formatCurrency(item.estimated_cost)}</td>
+                          <td className="px-3 py-2.5 text-right font-mono font-bold text-indigo-800">{formatCurrency(item.total_cost)}</td>
                           <td className="px-3 py-2.5 text-slate-600">{item.remarks || '-'}</td>
                         </tr>
                       ))}
@@ -319,7 +320,7 @@ export default function RequestDetailPage() {
 
             <div className="card-erp p-4 bg-slate-50 flex justify-between items-center text-xs font-bold text-slate-800">
               <span>COMBINED GRAND TOTAL ESTIMATED COST:</span>
-              <span className="text-base text-blue-600 font-mono">₱{Number(request.total_estimated_cost || 0).toFixed(2)}</span>
+              <span className="text-base text-blue-600 font-mono">{formatCurrency(request.total_estimated_cost)}</span>
             </div>
           </>
         );

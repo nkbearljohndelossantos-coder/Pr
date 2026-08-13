@@ -6,6 +6,7 @@ import { requestApi, reportApi, departmentApi } from '../services/systemApi';
 import { STATUS_COLORS } from '../constants/status';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
+import { formatCurrency } from '../utils/numberFormat';
 
 export default function RequestListPage() {
   const { user } = useAuth();
@@ -148,7 +149,7 @@ export default function RequestListPage() {
       sortable: true,
       render: (row) => (
         <span className="font-semibold text-slate-800 font-mono">
-          ₱{Number(row.total_estimated_cost || 0).toFixed(2)}
+          {formatCurrency(row.total_estimated_cost)}
         </span>
       )
     },

@@ -15,6 +15,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pi
 import KpiCard from '../components/KpiCard';
 import { requestApi } from '../services/systemApi';
 import { useAuth } from '../context/AuthContext';
+import { formatCurrency } from '../utils/numberFormat';
 import { STATUS_COLORS } from '../constants/status';
 
 const COLORS = ['#2563EB', '#F59E0B', '#10B981', '#EF4444', '#06B6D4', '#8B5CF6'];
@@ -252,7 +253,7 @@ export default function DashboardPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-slate-800 font-mono">
-                      ₱{Number(req.total_estimated_cost || 0).toFixed(2)}
+                      {formatCurrency(req.total_estimated_cost)}
                     </td>
                   </tr>
                 ))

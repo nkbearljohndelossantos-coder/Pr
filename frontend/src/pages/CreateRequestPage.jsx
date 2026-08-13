@@ -8,6 +8,7 @@ import EmployeeSelect from '../components/EmployeeSelect';
 import { requestApi, systemApi } from '../services/systemApi';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
+import { parseNum } from '../utils/numberFormat';
 
 export default function CreateRequestPage() {
   const { user } = useAuth();
@@ -99,7 +100,7 @@ export default function CreateRequestPage() {
         addToast(`Physical Item Row #${i + 1}: "Item Description" cannot be left blank.`, 'error');
         return false;
       }
-      if (!item.quantity || Number(item.quantity) <= 0) {
+      if (parseNum(item.quantity) <= 0) {
         addToast(`Physical Item Row #${i + 1}: "Quantity" must be a number greater than 0.`, 'error');
         return false;
       }
@@ -107,7 +108,7 @@ export default function CreateRequestPage() {
         addToast(`Physical Item Row #${i + 1}: "Unit of Measure" must be selected.`, 'error');
         return false;
       }
-      if (item.estimated_cost === undefined || item.estimated_cost === '' || Number(item.estimated_cost) <= 0) {
+      if (parseNum(item.estimated_cost) <= 0) {
         addToast(`Physical Item Row #${i + 1}: "Estimated Cost" must be a valid amount greater than ₱0.00.`, 'error');
         return false;
       }
@@ -124,7 +125,7 @@ export default function CreateRequestPage() {
         addToast(`Subscription Row #${i + 1}: "Subscription / Service Name" cannot be left blank.`, 'error');
         return false;
       }
-      if (!sub.quantity || Number(sub.quantity) <= 0) {
+      if (parseNum(sub.quantity) <= 0) {
         addToast(`Subscription Row #${i + 1}: "Seats / Qty" must be a number greater than 0.`, 'error');
         return false;
       }
@@ -132,7 +133,7 @@ export default function CreateRequestPage() {
         addToast(`Subscription Row #${i + 1}: "Billing Cycle" must be selected.`, 'error');
         return false;
       }
-      if (sub.estimated_cost === undefined || sub.estimated_cost === '' || Number(sub.estimated_cost) <= 0) {
+      if (parseNum(sub.estimated_cost) <= 0) {
         addToast(`Subscription Row #${i + 1}: "Unit Rate" must be a valid amount greater than ₱0.00.`, 'error');
         return false;
       }

@@ -2,19 +2,24 @@ const requestRepository = require('../repositories/requestRepository');
 const departmentRepository = require('../repositories/departmentRepository');
 const { generateRequestNumber } = require('../utils/requestNumberGenerator');
 
-class RequestService {
-  async createRequest(user, data, files = []) {
-    const departmentId = user.department_id || data.department_id;
-    const dept = await departmentRepository.findById(departmentId);
-    if (!dept) {
-      throw new Error('Invalid Department.');
-    }
+const parseNum = (val) => {
+  if (val === null || val === undefined) return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  const num = parseFloat(String(val).replace(/,/g, '').trim());
+  return isNaN(num) ? 0 : num;
+};
 
-    // Increment running sequence counter for department
-    const newSeq = await departmentRepository.incrementSeqCounter(dept.id);
+class RequestService {
+  async createRequest(user, data, files) {
+    const deptId = data.department_id || user.department_id;
+    const dept = await departmentRepository.findById(deptId);
+    if (!dept) throw new Error('Invalid department specified.');
+
+    const totalCount = await requestRepository.countAll({ department_id: dept.id });
+    const newSeq = (totalCount || 0) + 1;
     const requestNumber = generateRequestNumber(dept.code, newSeq);
 
-    // Calculate item total cost
+    // Calculate item total cost with comma stripping
     let items = [];
     if (typeof data.items === 'string') {
       try { items = JSON.parse(data.items); } catch(e) { items = []; }
@@ -24,8 +29,8 @@ class RequestService {
 
     let totalEstimatedCost = 0;
     const itemsToInsert = items.map((item) => {
-      const qty = parseFloat(item.quantity) || 1;
-      const cost = parseFloat(item.estimated_cost) || 0;
+      const qty = parseNum(item.quantity) || 1;
+      const cost = parseNum(item.estimated_cost);
       const total = qty * cost;
       totalEstimatedCost += total;
       return {
@@ -34,7 +39,8 @@ class RequestService {
         unit: item.unit || 'PCS',
         estimated_cost: cost,
         total_cost: total,
-        remarks: item.remarks || ''
+        remarks: item.remarks || '',
+        item_type: item.item_type || 'item'
       };
     });
 

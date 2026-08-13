@@ -1,5 +1,6 @@
 import React from 'react';
 import { Plus, Trash2, ShieldCheck } from 'lucide-react';
+import { parseNum, formatCurrency } from '../utils/numberFormat';
 
 export default function DynamicSubscriptionRows({ subscriptions = [], onChange }) {
   const handleSubscriptionChange = (index, field, value) => {
@@ -21,8 +22,8 @@ export default function DynamicSubscriptionRows({ subscriptions = [], onChange }
   };
 
   const totalSubscriptionsAmount = subscriptions.reduce((acc, item) => {
-    const q = parseFloat(item.quantity) || 0;
-    const c = parseFloat(item.estimated_cost) || 0;
+    const q = parseNum(item.quantity);
+    const c = parseNum(item.estimated_cost);
     return acc + q * c;
   }, 0);
 
@@ -53,8 +54,8 @@ export default function DynamicSubscriptionRows({ subscriptions = [], onChange }
               <th className="px-3 py-2.5">Subscription / Service Name <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2.5 w-32">Billing Cycle <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2.5 w-24">Seats / Qty <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2.5 w-32">Unit Rate (₱) <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2.5 w-32">Total (₱)</th>
+              <th className="px-3 py-2.5 w-36">Unit Rate (₱) <span className="text-rose-500 font-bold">*</span></th>
+              <th className="px-3 py-2.5 w-36">Total (₱)</th>
               <th className="px-3 py-2.5 w-48">Period / Renewal Notes <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2.5 w-12 text-center">Action</th>
             </tr>
@@ -68,8 +69,8 @@ export default function DynamicSubscriptionRows({ subscriptions = [], onChange }
               </tr>
             ) : (
               subscriptions.map((item, idx) => {
-                const qty = parseFloat(item.quantity) || 0;
-                const cost = parseFloat(item.estimated_cost) || 0;
+                const qty = parseNum(item.quantity);
+                const cost = parseNum(item.estimated_cost);
                 const rowTotal = qty * cost;
 
                 return (
@@ -105,9 +106,8 @@ export default function DynamicSubscriptionRows({ subscriptions = [], onChange }
                     </td>
                     <td className="px-3 py-2">
                       <input
-                        type="number"
-                        min="1"
-                        step="any"
+                        type="text"
+                        inputMode="decimal"
                         required
                         value={item.quantity}
                         onChange={(e) => handleSubscriptionChange(idx, 'quantity', e.target.value)}
@@ -116,17 +116,17 @@ export default function DynamicSubscriptionRows({ subscriptions = [], onChange }
                     </td>
                     <td className="px-3 py-2">
                       <input
-                        type="number"
-                        min="0.01"
-                        step="0.01"
+                        type="text"
+                        inputMode="decimal"
                         required
                         value={item.estimated_cost}
                         onChange={(e) => handleSubscriptionChange(idx, 'estimated_cost', e.target.value)}
-                        className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-indigo-600 focus:outline-none"
+                        placeholder="0.00 or 20,000.00"
+                        className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-indigo-600 focus:outline-none font-mono"
                       />
                     </td>
                     <td className="px-3 py-2 font-semibold text-indigo-900 font-mono">
-                      ₱{rowTotal.toFixed(2)}
+                      {formatCurrency(rowTotal)}
                     </td>
                     <td className="px-3 py-2">
                       <input
@@ -158,7 +158,7 @@ export default function DynamicSubscriptionRows({ subscriptions = [], onChange }
         {subscriptions.length > 0 && (
           <div className="p-3 bg-indigo-50/80 border-t border-indigo-200 flex items-center justify-between text-xs font-bold text-indigo-900">
             <span>TOTAL SUBSCRIPTIONS ESTIMATED COST:</span>
-            <span className="text-sm text-indigo-700 font-mono">₱{totalSubscriptionsAmount.toFixed(2)}</span>
+            <span className="text-sm text-indigo-700 font-mono">{formatCurrency(totalSubscriptionsAmount)}</span>
           </div>
         )}
       </div>

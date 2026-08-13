@@ -1,5 +1,6 @@
 import React from 'react';
 import { Plus, Trash2, Box } from 'lucide-react';
+import { parseNum, formatCurrency } from '../utils/numberFormat';
 
 export default function DynamicItemRows({ items = [], onChange, uomOptions = [] }) {
   const handleItemChange = (index, field, value) => {
@@ -21,8 +22,8 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
   };
 
   const totalAmount = items.reduce((acc, item) => {
-    const q = parseFloat(item.quantity) || 0;
-    const c = parseFloat(item.estimated_cost) || 0;
+    const q = parseNum(item.quantity);
+    const c = parseNum(item.estimated_cost);
     return acc + q * c;
   }, 0);
 
@@ -51,10 +52,10 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
             <tr>
               <th className="px-3 py-2.5 w-10">#</th>
               <th className="px-3 py-2.5">Item Description <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2.5 w-24">Quantity <span className="text-rose-500 font-bold">*</span></th>
+              <th className="px-3 py-2.5 w-28">Quantity <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2.5 w-28">Unit <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2.5 w-32">Est. Cost (₱) <span className="text-rose-500 font-bold">*</span></th>
-              <th className="px-3 py-2.5 w-32">Total (₱)</th>
+              <th className="px-3 py-2.5 w-36">Est. Cost (₱) <span className="text-rose-500 font-bold">*</span></th>
+              <th className="px-3 py-2.5 w-36">Total (₱)</th>
               <th className="px-3 py-2.5 w-40">Remarks / Specs <span className="text-rose-500 font-bold">*</span></th>
               <th className="px-3 py-2.5 w-12 text-center">Action</th>
             </tr>
@@ -68,8 +69,8 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
               </tr>
             ) : (
               items.map((item, idx) => {
-                const qty = parseFloat(item.quantity) || 0;
-                const cost = parseFloat(item.estimated_cost) || 0;
+                const qty = parseNum(item.quantity);
+                const cost = parseNum(item.estimated_cost);
                 const rowTotal = qty * cost;
 
                 return (
@@ -87,12 +88,12 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
                     </td>
                     <td className="px-3 py-2">
                       <input
-                        type="number"
-                        min="1"
-                        step="any"
+                        type="text"
+                        inputMode="decimal"
                         required
                         value={item.quantity}
                         onChange={(e) => handleItemChange(idx, 'quantity', e.target.value)}
+                        placeholder="1"
                         className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none"
                       />
                     </td>
@@ -122,17 +123,17 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
                     </td>
                     <td className="px-3 py-2">
                       <input
-                        type="number"
-                        min="0.01"
-                        step="0.01"
+                        type="text"
+                        inputMode="decimal"
                         required
                         value={item.estimated_cost}
                         onChange={(e) => handleItemChange(idx, 'estimated_cost', e.target.value)}
-                        className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none"
+                        placeholder="0.00 or 20,000.00"
+                        className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none font-mono"
                       />
                     </td>
                     <td className="px-3 py-2 font-semibold text-slate-800 font-mono">
-                      ₱{rowTotal.toFixed(2)}
+                      {formatCurrency(rowTotal)}
                     </td>
                     <td className="px-3 py-2">
                       <input
@@ -164,7 +165,7 @@ export default function DynamicItemRows({ items = [], onChange, uomOptions = [] 
         {items.length > 0 && (
           <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs font-bold text-slate-800">
             <span>TOTAL PHYSICAL ITEMS ESTIMATED COST:</span>
-            <span className="text-sm text-blue-600 font-mono">₱{totalAmount.toFixed(2)}</span>
+            <span className="text-sm text-blue-600 font-mono">{formatCurrency(totalAmount)}</span>
           </div>
         )}
       </div>
