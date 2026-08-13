@@ -61,6 +61,10 @@ class RequestService {
       items = data.items;
     }
 
+    if (!items || items.length === 0) {
+      throw new Error('Please add at least 1 Item or 1 Subscription to submit a requisition request.');
+    }
+
     let totalEstimatedCost = 0;
     const itemsToInsert = items.map((item) => {
       const qty = parseNum(item.quantity) || 1;
