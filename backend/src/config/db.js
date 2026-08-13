@@ -78,7 +78,13 @@ const initData = () => {
   store.users = [
     { id: 1, username: 'admin', password_hash: adminHash, role: 'admin', department_id: null, full_name: 'System Administrator (IT)', email: 'admin@company.com', is_active: 1, is_deleted: 0 },
     { id: 2, username: 'boss', password_hash: bossHash, role: 'executive', department_id: null, full_name: 'Executive Administrator', email: 'boss@company.com', is_active: 1, is_deleted: 0 },
-    { id: 3, username: 'it_dept', password_hash: deptHash, role: 'department', department_id: 1, full_name: 'Information Technology Dept', email: 'it@company.com', is_active: 1, is_deleted: 0 }
+    { id: 3, username: 'it_dept', password_hash: deptHash, role: 'department', department_id: 1, full_name: 'Information Technology Dept', email: 'it@company.com', is_active: 1, is_deleted: 0 },
+    { id: 4, username: 'hr_dept', password_hash: deptHash, role: 'department', department_id: 2, full_name: 'Human Resources Dept', email: 'hr@company.com', is_active: 1, is_deleted: 0 },
+    { id: 5, username: 'acct_dept', password_hash: deptHash, role: 'department', department_id: 3, full_name: 'Accounting Dept', email: 'acct@company.com', is_active: 1, is_deleted: 0 },
+    { id: 6, username: 'purch_dept', password_hash: deptHash, role: 'department', department_id: 4, full_name: 'Purchasing Dept', email: 'purch@company.com', is_active: 1, is_deleted: 0 },
+    { id: 7, username: 'prod_dept', password_hash: deptHash, role: 'department', department_id: 5, full_name: 'Production Dept', email: 'prod@company.com', is_active: 1, is_deleted: 0 },
+    { id: 8, username: 'wh_dept', password_hash: deptHash, role: 'department', department_id: 6, full_name: 'Warehouse Dept', email: 'wh@company.com', is_active: 1, is_deleted: 0 },
+    { id: 9, username: 'qa_dept', password_hash: deptHash, role: 'department', department_id: 7, full_name: 'Quality Assurance Dept', email: 'qa@company.com', is_active: 1, is_deleted: 0 }
   ];
 
   store.requests = [
@@ -163,11 +169,17 @@ const loadStore = () => {
         ];
       }
 
-      if (!store.users || store.users.length === 0) {
+      if (!store.users || store.users.length < 9) {
         store.users = [
           { id: 1, username: 'admin', password_hash: adminHash, role: 'admin', department_id: null, full_name: 'System Administrator (IT)', email: 'admin@company.com', is_active: 1, is_deleted: 0 },
           { id: 2, username: 'boss', password_hash: bossHash, role: 'executive', department_id: null, full_name: 'Executive Administrator', email: 'boss@company.com', is_active: 1, is_deleted: 0 },
-          { id: 3, username: 'it_dept', password_hash: deptHash, role: 'department', department_id: 1, full_name: 'Information Technology Dept', email: 'it@company.com', is_active: 1, is_deleted: 0 }
+          { id: 3, username: 'it_dept', password_hash: deptHash, role: 'department', department_id: 1, full_name: 'Information Technology Dept', email: 'it@company.com', is_active: 1, is_deleted: 0 },
+          { id: 4, username: 'hr_dept', password_hash: deptHash, role: 'department', department_id: 2, full_name: 'Human Resources Dept', email: 'hr@company.com', is_active: 1, is_deleted: 0 },
+          { id: 5, username: 'acct_dept', password_hash: deptHash, role: 'department', department_id: 3, full_name: 'Accounting Dept', email: 'acct@company.com', is_active: 1, is_deleted: 0 },
+          { id: 6, username: 'purch_dept', password_hash: deptHash, role: 'department', department_id: 4, full_name: 'Purchasing Dept', email: 'purch@company.com', is_active: 1, is_deleted: 0 },
+          { id: 7, username: 'prod_dept', password_hash: deptHash, role: 'department', department_id: 5, full_name: 'Production Dept', email: 'prod@company.com', is_active: 1, is_deleted: 0 },
+          { id: 8, username: 'wh_dept', password_hash: deptHash, role: 'department', department_id: 6, full_name: 'Warehouse Dept', email: 'wh@company.com', is_active: 1, is_deleted: 0 },
+          { id: 9, username: 'qa_dept', password_hash: deptHash, role: 'department', department_id: 7, full_name: 'Quality Assurance Dept', email: 'qa@company.com', is_active: 1, is_deleted: 0 }
         ];
       }
 
