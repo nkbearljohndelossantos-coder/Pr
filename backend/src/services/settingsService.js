@@ -3,13 +3,13 @@ const env = require('../config/env');
 const emailService = require('./emailService');
 
 class SettingsService {
-  async getSettings() {
-    const defaultSettings = {
+  async getRawSettings() {
+    const rawSettings = {
       approver_email: process.env.APPROVER_EMAIL || env.APPROVER_EMAIL || 'boss@company.com',
       smtp_host: process.env.SMTP_HOST || env.SMTP_HOST || '',
       smtp_port: Number(process.env.SMTP_PORT || env.SMTP_PORT || 587),
       smtp_user: process.env.SMTP_USER || env.SMTP_USER || '',
-      smtp_pass: (process.env.SMTP_PASS || env.SMTP_PASS) ? '********' : '',
+      smtp_pass: process.env.SMTP_PASS || env.SMTP_PASS || '',
       smtp_from: process.env.SMTP_FROM || env.SMTP_FROM || `"NKB ERP System" <${process.env.SMTP_USER || 'notifications@nkbmanufacturing.com'}>`
     };
 
@@ -18,13 +18,21 @@ class SettingsService {
       if (rows && Array.isArray(rows) && rows.length > 0) {
         rows.forEach(r => {
           if (r.setting_key && r.setting_value !== undefined) {
-            defaultSettings[r.setting_key] = r.setting_value;
+            rawSettings[r.setting_key] = r.setting_value;
           }
         });
       }
     } catch (err) {}
 
-    return defaultSettings;
+    return rawSettings;
+  }
+
+  async getSettings() {
+    const raw = await this.getRawSettings();
+    return {
+      ...raw,
+      smtp_pass: raw.smtp_pass ? '********' : ''
+    };
   }
 
   async updateSettings(data) {
@@ -43,9 +51,9 @@ class SettingsService {
       }
     }
 
-    const updated = await this.getSettings();
-    emailService.updateConfig(updated);
-    return updated;
+    const rawUpdated = await this.getRawSettings();
+    emailService.updateConfig(rawUpdated);
+    return await this.getSettings();
   }
 }
 

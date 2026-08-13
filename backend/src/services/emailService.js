@@ -7,10 +7,12 @@ class EmailService {
     this.transporter = null;
     this.customApproverEmail = null;
     this.customSmtpFrom = null;
+    this.currentPass = null;
     this.initTransporter();
   }
 
-  initTransporter() {
+  async initTransporter() {
+    // Initial attempt from env
     const smtpHost = process.env.SMTP_HOST || env.SMTP_HOST;
     const smtpPort = Number(process.env.SMTP_PORT || env.SMTP_PORT || 587);
     const smtpUser = process.env.SMTP_USER || env.SMTP_USER;
@@ -22,20 +24,30 @@ class EmailService {
           host: smtpHost,
           port: smtpPort,
           secure: smtpPort === 465,
-          auth: {
-            user: smtpUser,
-            pass: smtpPass
-          },
-          tls: {
-            rejectUnauthorized: false
-          }
+          auth: { user: smtpUser, pass: smtpPass },
+          tls: { rejectUnauthorized: false }
         });
         logger.info(`SMTP Mail Transporter Initialized for Host: ${smtpHost}:${smtpPort}`);
       } catch (err) {
         logger.warn('SMTP Mail Transporter failed to initialize:', err.message);
       }
-    } else {
-      logger.info('SMTP Mail Credentials not configured. Notification emails will be logged locally.');
+    }
+
+    // Try loading saved settings from DB
+    setTimeout(() => {
+      this.loadSavedSettings().catch(() => {});
+    }, 1000);
+  }
+
+  async loadSavedSettings() {
+    try {
+      const settingsService = require('./settingsService');
+      const rawSettings = await settingsService.getRawSettings();
+      if (rawSettings) {
+        this.updateConfig(rawSettings);
+      }
+    } catch (err) {
+      logger.warn('Could not load saved SMTP settings from DB:', err.message);
     }
   }
 
@@ -46,7 +58,11 @@ class EmailService {
     const host = settings.smtp_host || process.env.SMTP_HOST || env.SMTP_HOST;
     const port = Number(settings.smtp_port || process.env.SMTP_PORT || env.SMTP_PORT || 587);
     const user = settings.smtp_user || process.env.SMTP_USER || env.SMTP_USER;
-    const pass = settings.smtp_pass || process.env.SMTP_PASS || env.SMTP_PASS;
+
+    if (settings.smtp_pass && settings.smtp_pass !== '********') {
+      this.currentPass = settings.smtp_pass;
+    }
+    const pass = this.currentPass || process.env.SMTP_PASS || env.SMTP_PASS;
 
     if (host && user && pass) {
       try {
@@ -57,16 +73,32 @@ class EmailService {
           auth: { user, pass },
           tls: { rejectUnauthorized: false }
         });
-        logger.info(`SMTP Mail Transporter Updated for Host: ${host}:${port}`);
+        logger.info(`SMTP Mail Transporter Updated for Host: ${host}:${port} (User: ${user})`);
       } catch (err) {
         logger.warn('Failed to update SMTP transporter:', err.message);
+        this.transporter = null;
       }
+    } else {
+      this.transporter = null;
+      logger.info('SMTP Mail Credentials missing. Notifications will run in simulated mode.');
     }
   }
 
   async sendTestEmail(targetEmail) {
+    await this.loadSavedSettings();
+
     const toEmail = targetEmail || this.customApproverEmail || process.env.APPROVER_EMAIL || env.APPROVER_EMAIL || 'boss@company.com';
     const subject = '🧪 [TEST] NKB ERP Purchase Requisition Email Notification Test';
+
+    if (!this.transporter) {
+      return {
+        success: false,
+        simulated: true,
+        recipient: toEmail,
+        error: 'SMTP credentials (Host, User, Password) are not configured. Please fill in the SMTP form fields above and save settings.'
+      };
+    }
+
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; padding: 24px; background: #f8fafc; border-radius: 12px; border: 1px solid #cbd5e1; max-width: 550px; margin: 0 auto;">
         <div style="background: #2563eb; padding: 16px; border-radius: 8px; text-align: center; color: white; margin-bottom: 20px;">
@@ -91,22 +123,36 @@ class EmailService {
       </div>
     `;
 
-    if (this.transporter) {
-      try {
-        const fromEmail = this.customSmtpFrom || process.env.SMTP_FROM || env.SMTP_FROM || `"NKB ERP System" <${process.env.SMTP_USER || 'notifications@nkbmanufacturing.com'}>`;
-        const info = await this.transporter.sendMail({
-          from: fromEmail,
-          to: toEmail,
-          subject,
-          html: htmlContent
-        });
-        return { success: true, messageId: info.messageId, recipient: toEmail };
-      } catch (err) {
-        return { success: false, error: err.message, recipient: toEmail };
+    try {
+      const fromEmail = this.customSmtpFrom || process.env.SMTP_FROM || env.SMTP_FROM || `"NKB ERP System" <${process.env.SMTP_USER || 'notifications@nkbmanufacturing.com'}>`;
+      const info = await this.transporter.sendMail({
+        from: fromEmail,
+        to: toEmail,
+        subject,
+        html: htmlContent
+      });
+
+      logger.info(`Test Email sent successfully to ${toEmail}. Message ID: ${info.messageId}`);
+      return {
+        success: true,
+        messageId: info.messageId,
+        recipient: toEmail
+      };
+    } catch (err) {
+      logger.error(`SMTP Test Email Error to ${toEmail}: ${err.message}`);
+      let userFriendlyError = err.message;
+      if (err.message.includes('535') || err.message.includes('Username and Password not accepted') || err.message.includes('Invalid login')) {
+        userFriendlyError = 'Gmail Authentication Failed (535 Error). Please verify your 16-character Gmail App Password (not your normal Gmail login password).';
+      } else if (err.message.includes('ETIMEDOUT') || err.message.includes('ECONNREFUSED')) {
+        userFriendlyError = `Connection timeout to mail server. Please verify SMTP Host and Port (587 or 465).`;
       }
-    } else {
-      logger.info(`[SIMULATED TEST EMAIL] To: ${toEmail} | Subject: ${subject}`);
-      return { success: true, simulated: true, recipient: toEmail, message: 'SMTP credentials not provided. Email simulated successfully.' };
+
+      return {
+        success: false,
+        error: userFriendlyError,
+        rawError: err.message,
+        recipient: toEmail
+      };
     }
   }
 
@@ -114,6 +160,8 @@ class EmailService {
    * Send Executive Approval Notification Email when a new request is submitted
    */
   async sendApprovalNotification(requestData) {
+    await this.loadSavedSettings();
+
     const approverEmail = this.customApproverEmail || process.env.APPROVER_EMAIL || env.APPROVER_EMAIL || 'boss@company.com';
     const siteUrl = process.env.SITE_URL || 'https://pr.nkbmanufacturing.com';
     const requestUrl = `${siteUrl}/requests/${requestData.id}`;

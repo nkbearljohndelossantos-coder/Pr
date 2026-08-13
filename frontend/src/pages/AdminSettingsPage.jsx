@@ -75,13 +75,18 @@ export default function AdminSettingsPage() {
 
     setTesting(true);
     try {
+      // First save settings so backend has latest SMTP credentials
+      await systemApi.updateSettings(settings);
+
       const res = await systemApi.sendTestEmail(settings.approver_email);
-      if (res.data?.success) {
-        if (res.data.data?.simulated) {
-          addToast(`[Simulated] Test email alert generated for ${settings.approver_email}. (To send real emails, configure your SMTP server credentials).`, 'info');
-        } else {
-          addToast(`Test email notification sent successfully to ${settings.approver_email}! Please check inbox/spam.`, 'success');
-        }
+      const testResult = res.data?.data;
+
+      if (testResult?.success) {
+        addToast(`Test email notification sent successfully to ${settings.approver_email}! Please check inbox/spam.`, 'success');
+      } else if (testResult?.simulated) {
+        addToast(`[SMTP Credentials Missing] ${testResult.error || 'Please fill in SMTP Host, Username, and Password to send live emails.'}`, 'error');
+      } else {
+        addToast(`SMTP Error: ${testResult?.error || 'Failed to deliver email. Please check your credentials.'}`, 'error');
       }
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to send test email.', 'error');
