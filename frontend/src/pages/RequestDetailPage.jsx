@@ -352,8 +352,8 @@ export default function RequestDetailPage() {
         {request.attachments && request.attachments.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {request.attachments.map((att) => {
-              const isImg = att.file_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(att.original_name);
-              const previewUrl = `/uploads/${att.filename}`;
+              const isImg = att.file_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(att.original_name || att.filename);
+              const previewUrl = att.filename?.startsWith('/') ? att.filename : `/uploads/${att.filename}`;
 
               return (
                 <div

@@ -30,8 +30,12 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 // Rate Limiter for API Endpoints
 app.use('/api', globalRateLimiter);
 
-// Serve File Uploads Static Folder
+// Serve File Uploads Static Folder (Root and all subfolders)
 app.use('/uploads', express.static(env.UPLOAD_DIR));
+app.use('/uploads/images', express.static(path.join(env.UPLOAD_DIR, 'images')));
+app.use('/uploads/pdf', express.static(path.join(env.UPLOAD_DIR, 'pdf')));
+app.use('/uploads/documents', express.static(path.join(env.UPLOAD_DIR, 'documents')));
+app.use('/uploads/excel', express.static(path.join(env.UPLOAD_DIR, 'excel')));
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

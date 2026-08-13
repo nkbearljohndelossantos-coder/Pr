@@ -4,31 +4,17 @@ const fs = require('fs');
 const env = require('../config/env');
 
 const uploadDir = env.UPLOAD_DIR;
-const subDirs = ['documents', 'images', 'pdf', 'excel'];
-
-subDirs.forEach((sub) => {
-  const p = path.join(uploadDir, sub);
-  if (!fs.existsSync(p)) {
-    fs.mkdirSync(p, { recursive: true });
-  }
-});
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    let folder = 'documents';
-    if (['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext)) {
-      folder = 'images';
-    } else if (ext === '.pdf') {
-      folder = 'pdf';
-    } else if (['.xls', '.xlsx', '.csv'].includes(ext)) {
-      folder = 'excel';
-    }
-    cb(null, path.join(uploadDir, folder));
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const safeName = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const safeName = (file.originalname || 'file').replace(/[^a-zA-Z0-9.\-_]/g, '_');
     cb(null, `${uniqueSuffix}-${safeName}`);
   }
 });
