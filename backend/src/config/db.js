@@ -298,12 +298,17 @@ const ensureMysqlTablesExist = async () => {
         department_id INT,
         full_name VARCHAR(255) NOT NULL,
         email VARCHAR(255),
+        refresh_token TEXT,
         is_active TINYINT DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         is_deleted TINYINT DEFAULT 0
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+
+    try {
+      await pool.query(`ALTER TABLE users ADD COLUMN refresh_token TEXT`);
+    } catch (e) {}
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS requests (

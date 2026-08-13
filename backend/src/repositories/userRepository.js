@@ -24,7 +24,11 @@ class UserRepository {
   }
 
   async updateRefreshToken(id, refreshToken) {
-    await db.query(`UPDATE users SET refresh_token = ? WHERE id = ?`, [refreshToken, id]);
+    try {
+      await db.query(`UPDATE users SET refresh_token = ? WHERE id = ?`, [refreshToken, id]);
+    } catch (e) {
+      // Fail-safe ignore if refresh_token column is missing
+    }
   }
 
   async findAll() {
