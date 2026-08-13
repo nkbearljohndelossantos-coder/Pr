@@ -6,9 +6,7 @@ export const authApi = {
 };
 
 export const requestApi = {
-  create: (formData) => api.post('/requests', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
+  create: (formData) => api.post('/requests', formData),
   list: (params) => api.get('/requests', { params }),
   getById: (id) => api.get(`/requests/${id}`),
   updateStatus: (id, data) => api.put(`/requests/${id}/status`, data),

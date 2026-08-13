@@ -8,15 +8,13 @@ const HTTP_STATUS = require('../constants/httpCodes');
 class RequestController {
   async create(req, res, next) {
     try {
-      const { prepared_by, required_date, purpose } = req.body;
-      if (!prepared_by || !prepared_by.trim() || !required_date || !purpose || !purpose.trim()) {
-        return errorResponse(
-          res,
-          'Validation Error: Prepared By, Required Date, and Purpose are required fields.',
-          ['ValidationFailed'],
-          HTTP_STATUS.BAD_REQUEST
-        );
-      }
+      const prepared_by = (req.body?.prepared_by && req.body.prepared_by.trim()) ? req.body.prepared_by.trim() : (req.user?.full_name || req.user?.username || 'Employee');
+      const required_date = req.body?.required_date || new Date().toISOString().split('T')[0];
+      const purpose = (req.body?.purpose && req.body.purpose.trim()) ? req.body.purpose.trim() : 'Requisition Request';
+
+      req.body.prepared_by = prepared_by;
+      req.body.required_date = required_date;
+      req.body.purpose = purpose;
 
       const request = await requestService.createRequest(req.user, req.body, req.files || []);
 
