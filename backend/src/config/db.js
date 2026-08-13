@@ -376,6 +376,15 @@ const ensureMysqlTablesExist = async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS system_settings (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        setting_key VARCHAR(100) NOT NULL UNIQUE,
+        setting_value TEXT,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
     logger.info('Hostinger MySQL Schema Tables Verified & Created Successfully.');
   } catch (err) {
     logger.warn('MySQL table auto-creation notice:', err.message);

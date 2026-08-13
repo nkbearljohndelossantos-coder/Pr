@@ -1,0 +1,52 @@
+const db = require('../config/db');
+const env = require('../config/env');
+const emailService = require('./emailService');
+
+class SettingsService {
+  async getSettings() {
+    const defaultSettings = {
+      approver_email: process.env.APPROVER_EMAIL || env.APPROVER_EMAIL || 'boss@company.com',
+      smtp_host: process.env.SMTP_HOST || env.SMTP_HOST || '',
+      smtp_port: Number(process.env.SMTP_PORT || env.SMTP_PORT || 587),
+      smtp_user: process.env.SMTP_USER || env.SMTP_USER || '',
+      smtp_pass: (process.env.SMTP_PASS || env.SMTP_PASS) ? '********' : '',
+      smtp_from: process.env.SMTP_FROM || env.SMTP_FROM || `"NKB ERP System" <${process.env.SMTP_USER || 'notifications@nkbmanufacturing.com'}>`
+    };
+
+    try {
+      const [rows] = await db.query(`SELECT setting_key, setting_value FROM system_settings`);
+      if (rows && Array.isArray(rows) && rows.length > 0) {
+        rows.forEach(r => {
+          if (r.setting_key && r.setting_value !== undefined) {
+            defaultSettings[r.setting_key] = r.setting_value;
+          }
+        });
+      }
+    } catch (err) {}
+
+    return defaultSettings;
+  }
+
+  async updateSettings(data) {
+    const keys = ['approver_email', 'smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_from'];
+    for (const key of keys) {
+      if (data[key] !== undefined && data[key] !== '********') {
+        const val = String(data[key]).trim();
+        try {
+          await db.query(
+            `INSERT INTO system_settings (setting_key, setting_value)
+             VALUES (?, ?)
+             ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)`,
+            [key, val]
+          );
+        } catch (e) {}
+      }
+    }
+
+    const updated = await this.getSettings();
+    emailService.updateConfig(updated);
+    return updated;
+  }
+}
+
+module.exports = new SettingsService();

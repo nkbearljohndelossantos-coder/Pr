@@ -5,6 +5,8 @@ const logger = require('../utils/logger');
 class EmailService {
   constructor() {
     this.transporter = null;
+    this.customApproverEmail = null;
+    this.customSmtpFrom = null;
     this.initTransporter();
   }
 
@@ -37,11 +39,82 @@ class EmailService {
     }
   }
 
+  updateConfig(settings = {}) {
+    if (settings.approver_email) this.customApproverEmail = settings.approver_email;
+    if (settings.smtp_from) this.customSmtpFrom = settings.smtp_from;
+
+    const host = settings.smtp_host || process.env.SMTP_HOST || env.SMTP_HOST;
+    const port = Number(settings.smtp_port || process.env.SMTP_PORT || env.SMTP_PORT || 587);
+    const user = settings.smtp_user || process.env.SMTP_USER || env.SMTP_USER;
+    const pass = settings.smtp_pass || process.env.SMTP_PASS || env.SMTP_PASS;
+
+    if (host && user && pass) {
+      try {
+        this.transporter = nodemailer.createTransport({
+          host,
+          port,
+          secure: port === 465,
+          auth: { user, pass },
+          tls: { rejectUnauthorized: false }
+        });
+        logger.info(`SMTP Mail Transporter Updated for Host: ${host}:${port}`);
+      } catch (err) {
+        logger.warn('Failed to update SMTP transporter:', err.message);
+      }
+    }
+  }
+
+  async sendTestEmail(targetEmail) {
+    const toEmail = targetEmail || this.customApproverEmail || process.env.APPROVER_EMAIL || env.APPROVER_EMAIL || 'boss@company.com';
+    const subject = '🧪 [TEST] NKB ERP Purchase Requisition Email Notification Test';
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; padding: 24px; background: #f8fafc; border-radius: 12px; border: 1px solid #cbd5e1; max-width: 550px; margin: 0 auto;">
+        <div style="background: #2563eb; padding: 16px; border-radius: 8px; text-align: center; color: white; margin-bottom: 20px;">
+          <h2 style="margin: 0; font-size: 18px;">✅ System Test Email Successful!</h2>
+          <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">NKB Manufacturing Purchase Requisition System</p>
+        </div>
+        <p style="font-size: 14px; color: #334155;">This is a test notification email sent directly from the <strong>System Admin Email Settings</strong> page.</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0; background: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0;">
+          <tr>
+            <td style="padding: 10px; font-weight: bold; color: #64748b; font-size: 13px;">Target Approver Email:</td>
+            <td style="padding: 10px; font-weight: bold; color: #0f172a; font-size: 13px;">${toEmail}</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; font-weight: bold; color: #64748b; font-size: 13px;">System Date & Time:</td>
+            <td style="padding: 10px; font-weight: bold; color: #0f172a; font-size: 13px;">${new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' })}</td>
+          </tr>
+        </table>
+        <hr style="border: 0; border-top: 1px solid #cbd5e1; margin: 20px 0;" />
+        <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0;">
+          Your email notification system is properly configured and ready to send executive approval alerts.
+        </p>
+      </div>
+    `;
+
+    if (this.transporter) {
+      try {
+        const fromEmail = this.customSmtpFrom || process.env.SMTP_FROM || env.SMTP_FROM || `"NKB ERP System" <${process.env.SMTP_USER || 'notifications@nkbmanufacturing.com'}>`;
+        const info = await this.transporter.sendMail({
+          from: fromEmail,
+          to: toEmail,
+          subject,
+          html: htmlContent
+        });
+        return { success: true, messageId: info.messageId, recipient: toEmail };
+      } catch (err) {
+        return { success: false, error: err.message, recipient: toEmail };
+      }
+    } else {
+      logger.info(`[SIMULATED TEST EMAIL] To: ${toEmail} | Subject: ${subject}`);
+      return { success: true, simulated: true, recipient: toEmail, message: 'SMTP credentials not provided. Email simulated successfully.' };
+    }
+  }
+
   /**
    * Send Executive Approval Notification Email when a new request is submitted
    */
   async sendApprovalNotification(requestData) {
-    const approverEmail = process.env.APPROVER_EMAIL || env.APPROVER_EMAIL || 'boss@company.com';
+    const approverEmail = this.customApproverEmail || process.env.APPROVER_EMAIL || env.APPROVER_EMAIL || 'boss@company.com';
     const siteUrl = process.env.SITE_URL || 'https://pr.nkbmanufacturing.com';
     const requestUrl = `${siteUrl}/requests/${requestData.id}`;
 
@@ -72,7 +145,7 @@ class EmailService {
           .header h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #38bdf8; }
           .header p { margin: 4px 0 0 0; font-size: 12px; color: #94a3b8; }
           .content { padding: 24px; color: #334155; }
-          .alert-badge { display: inline-block; background: #fef3c7; border: 1px solid #fde68a; color: #92400e; font-size: 11px; font-weight: bold; padding: 4px 10px; rounded: 20px; margin-bottom: 16px; border-radius: 20px; }
+          .alert-badge { display: inline-block; background: #fef3c7; border: 1px solid #fde68a; color: #92400e; font-size: 11px; font-weight: bold; padding: 4px 10px; margin-bottom: 16px; border-radius: 20px; }
           .details-table { width: 100%; border-collapse: collapse; margin: 16px 0; background: #f8fafc; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; }
           .details-table td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid #e2e8f0; }
           .details-table td.label { font-weight: 600; color: #64748b; width: 35%; }
@@ -81,7 +154,7 @@ class EmailService {
           .items-table th { background: #f1f5f9; padding: 8px 10px; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; text-align: left; }
           .btn-container { text-align: center; margin: 28px 0 16px 0; }
           .btn { background-color: #2563eb; color: #ffffff !important; padding: 14px 28px; font-size: 14px; font-weight: bold; text-decoration: none; border-radius: 8px; display: inline-block; box-shadow: 0 2px 4px rgba(37,99,235,0.2); }
-          .footer { background: #f1f5f9; padding: 16px; text-align: center; font-size: 11px; color: #64748b; border-t: 1px solid #e2e8f0; }
+          .footer { background: #f1f5f9; padding: 16px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; }
         </style>
       </head>
       <body>
@@ -163,7 +236,7 @@ class EmailService {
 
     if (this.transporter) {
       try {
-        const fromEmail = process.env.SMTP_FROM || env.SMTP_FROM || `"NKB ERP System" <${process.env.SMTP_USER || 'notifications@nkbmanufacturing.com'}>`;
+        const fromEmail = this.customSmtpFrom || process.env.SMTP_FROM || env.SMTP_FROM || `"NKB ERP System" <${process.env.SMTP_USER || 'notifications@nkbmanufacturing.com'}>`;
         const mailOptions = {
           from: fromEmail,
           to: approverEmail,

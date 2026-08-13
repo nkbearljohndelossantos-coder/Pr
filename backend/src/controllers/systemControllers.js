@@ -98,11 +98,38 @@ class EmployeeController {
   }
 }
 
+class SettingsController {
+  async get(req, res, next) {
+    try {
+      const settingsService = require('../services/settingsService');
+      const settings = await settingsService.getSettings();
+      return successResponse(res, 'System settings retrieved', settings);
+    } catch (err) { next(err); }
+  }
+
+  async update(req, res, next) {
+    try {
+      const settingsService = require('../services/settingsService');
+      const updated = await settingsService.updateSettings(req.body);
+      return successResponse(res, 'System settings updated successfully', updated);
+    } catch (err) { next(err); }
+  }
+
+  async sendTestEmail(req, res, next) {
+    try {
+      const emailService = require('../services/emailService');
+      const result = await emailService.sendTestEmail(req.body.target_email);
+      return successResponse(res, 'Test email operation completed', result);
+    } catch (err) { next(err); }
+  }
+}
+
 module.exports = {
   notificationController: new NotificationController(),
   auditController: new AuditController(),
   backupController: new BackupController(),
   masterDataController: new MasterDataController(),
   healthController: new HealthController(),
-  employeeController: new EmployeeController()
+  employeeController: new EmployeeController(),
+  settingsController: new SettingsController()
 };

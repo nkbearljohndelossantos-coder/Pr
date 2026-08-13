@@ -36,5 +36,8 @@ export const systemApi = {
   addMasterData: (data) => api.post('/system/master-data', data),
   toggleMasterData: (id, is_active) => api.put(`/system/master-data/${id}/toggle`, { is_active }),
   getEmployees: () => api.get('/system/employees'),
-  getModules: () => api.get('/modules')
+  getModules: () => api.get('/modules'),
+  getSettings: () => api.get('/system/settings'),
+  updateSettings: (data) => api.put('/system/settings', data),
+  sendTestEmail: (target_email) => api.post('/system/settings/test-email', { target_email })
 };
