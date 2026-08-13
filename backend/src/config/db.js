@@ -384,16 +384,16 @@ const db = {
       const req = {
         id: newId,
         request_number: params[0],
-        department_id: params[1],
+        department_id: Number(params[1]),
         prepared_by: params[2],
-        position: params[3],
+        position: params[3] || '',
         required_date: params[4],
         purpose: params[5],
-        business_justification: params[6],
-        priority: params[7],
-        status: params[8],
-        total_estimated_cost: params[9],
-        created_by: params[10],
+        business_justification: params[6] || '',
+        priority: params[7] || 'Normal',
+        status: params[8] || 'Draft',
+        total_estimated_cost: Number(params[9] || 0),
+        created_by: params[10] ? Number(params[10]) : null,
         revision_number: 1,
         remarks: '',
         created_at: new Date().toISOString(),
@@ -409,13 +409,14 @@ const db = {
       const newId = store.request_items.length > 0 ? Math.max(...store.request_items.map(i => i.id)) + 1 : 1;
       const item = {
         id: newId,
-        request_id: params[0],
+        request_id: Number(params[0]),
         item_description: params[1],
         quantity: params[2],
         unit: params[3],
         estimated_cost: params[4],
         total_cost: params[5],
-        remarks: params[6],
+        remarks: params[6] || '',
+        item_type: params[7] || 'item',
         is_deleted: 0
       };
       store.request_items.push(item);
@@ -427,7 +428,7 @@ const db = {
       const newId = store.attachments.length > 0 ? Math.max(...store.attachments.map(a => a.id)) + 1 : 1;
       const att = {
         id: newId,
-        request_id: params[0],
+        request_id: Number(params[0]),
         original_name: params[1],
         filename: params[2],
         file_path: params[3],
@@ -473,17 +474,17 @@ const db = {
         return { ...r, department_name: dept?.name || 'Department', department_code: dept?.code || 'DEPT' };
       });
 
-      return [[enriched]];
+      return [enriched];
     }
 
     if (upper.includes('FROM REQUEST_ITEMS WHERE REQUEST_ID = ?')) {
       const items = store.request_items.filter(i => i.request_id === Number(params[0]) && !i.is_deleted);
-      return [[items]];
+      return [items];
     }
 
     if (upper.includes('FROM ATTACHMENTS WHERE REQUEST_ID = ?')) {
       const atts = store.attachments.filter(a => a.request_id === Number(params[0]) && !a.is_deleted);
-      return [[atts]];
+      return [atts];
     }
 
     if (upper.includes('UPDATE REQUESTS SET STATUS = ?')) {
