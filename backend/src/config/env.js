@@ -20,9 +20,19 @@ for (const p of envPaths) {
 const defaultUploadDir = path.join(__dirname, '../uploads');
 const defaultBackupDir = path.join(__dirname, '../backups');
 
-try {
-  if (!fs.existsSync(defaultUploadDir)) fs.mkdirSync(defaultUploadDir, { recursive: true });
-} catch (e) {}
+const candidateUploadDirs = [
+  defaultUploadDir,
+  path.join(__dirname, '../../uploads'),
+  path.join(process.cwd(), 'uploads'),
+  path.join(process.cwd(), 'backend/uploads'),
+  path.join(process.cwd(), 'backend/src/uploads')
+];
+
+for (const d of candidateUploadDirs) {
+  try {
+    if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
+  } catch (e) {}
+}
 
 try {
   if (!fs.existsSync(defaultBackupDir)) fs.mkdirSync(defaultBackupDir, { recursive: true });

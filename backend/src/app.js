@@ -30,12 +30,42 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 // Rate Limiter for API Endpoints
 app.use('/api', globalRateLimiter);
 
-// Serve File Uploads Static Folder (Root and all subfolders)
-app.use('/uploads', express.static(env.UPLOAD_DIR));
-app.use('/uploads/images', express.static(path.join(env.UPLOAD_DIR, 'images')));
-app.use('/uploads/pdf', express.static(path.join(env.UPLOAD_DIR, 'pdf')));
-app.use('/uploads/documents', express.static(path.join(env.UPLOAD_DIR, 'documents')));
-app.use('/uploads/excel', express.static(path.join(env.UPLOAD_DIR, 'excel')));
+// Serve File Uploads Static Folder across all candidate locations
+const uploadCandidateDirs = [
+  env.UPLOAD_DIR,
+  path.join(__dirname, '../uploads'),
+  path.join(__dirname, '../../uploads'),
+  path.join(process.cwd(), 'uploads'),
+  path.join(process.cwd(), 'backend/uploads'),
+  path.join(process.cwd(), 'backend/src/uploads')
+];
+
+uploadCandidateDirs.forEach(dir => {
+  if (fs.existsSync(dir)) {
+    app.use('/uploads', express.static(dir));
+  }
+});
+
+// Universal Fail-Safe Route for Upload Files (eliminates 404 on any upload file)
+app.get('/uploads/:filename', (req, res) => {
+  const safeFilename = path.basename(req.params.filename);
+  const possiblePaths = [
+    path.join(env.UPLOAD_DIR, safeFilename),
+    path.join(__dirname, '../uploads', safeFilename),
+    path.join(__dirname, '../../uploads', safeFilename),
+    path.join(process.cwd(), 'uploads', safeFilename),
+    path.join(process.cwd(), 'backend', 'uploads', safeFilename),
+    path.join(process.cwd(), 'backend', 'src', 'uploads', safeFilename)
+  ];
+
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      return res.sendFile(p);
+    }
+  }
+
+  return res.status(404).json({ success: false, message: `Upload file '${safeFilename}' not found on server.` });
+});
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
