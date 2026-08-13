@@ -1,4 +1,6 @@
 const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
 const env = require('../config/env');
 const logger = require('../utils/logger');
 
@@ -181,6 +183,27 @@ class EmailService {
     const businessJustification = requestData.business_justification || requestData.purpose || 'Required for ongoing projects and operational productivity.';
     const requiredDate = requestData.required_date || new Date().toISOString().split('T')[0];
 
+    // Build physical file attachments for Nodemailer
+    const mailAttachments = [];
+    if (requestData.attachments && Array.isArray(requestData.attachments)) {
+      for (const att of requestData.attachments) {
+        let targetPath = att.file_path || att.path;
+        if (!targetPath || !fs.existsSync(targetPath)) {
+          const candidate = path.join(env.UPLOAD_DIR, att.filename || att.original_name);
+          if (fs.existsSync(candidate)) {
+            targetPath = candidate;
+          }
+        }
+
+        if (targetPath && fs.existsSync(targetPath)) {
+          mailAttachments.push({
+            filename: att.original_name || att.filename || path.basename(targetPath),
+            path: targetPath
+          });
+        }
+      }
+    }
+
     const itemsRowsHtml = (requestData.items || []).map((item, idx) => `
       <tr style="border-bottom: 1px solid #e2e8f0;">
         <td style="padding: 10px; font-size: 13px; color: #1e293b;">${idx + 1}. ${item.item_description}</td>
@@ -188,6 +211,19 @@ class EmailService {
         <td style="padding: 10px; font-size: 13px; color: #1e293b; text-align: right; font-weight: bold;">₱${Number(item.total_cost || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
       </tr>
     `).join('');
+
+    const attachmentsListHtml = mailAttachments.length > 0
+      ? `
+        <div class="section-title">Attached Files & Supporting Documents (${mailAttachments.length}):</div>
+        <ul style="margin: 8px 0; padding-left: 20px; font-size: 13px; color: #1e293b; background: #f8fafc; padding: 12px 12px 12px 28px; border-radius: 6px; border: 1px solid #e2e8f0;">
+          ${mailAttachments.map(a => `
+            <li style="margin-bottom: 4px;">
+              📎 <strong>${a.filename}</strong> <span style="color: #64748b; font-size: 11px;">(Attached to this email)</span>
+            </li>
+          `).join('')}
+        </ul>
+      `
+      : '';
 
     const subject = `Requisition Approval Request for ${positionTitle} - #${requestData.request_number}`;
 
@@ -278,6 +314,8 @@ class EmailService {
               </tbody>
             </table>
 
+            ${attachmentsListHtml}
+
             <p style="margin-top: 20px;">
               <strong>Urgency:</strong> Given our current timeline and workload, we aim to have this position filled by <strong>${requiredDate}</strong>. This aligns with our hiring plan to meet project deadlines and maintain team productivity.
             </p>
@@ -333,19 +371,20 @@ class EmailService {
           from: fromEmail,
           to: approverEmail,
           subject,
-          html: htmlContent
+          html: htmlContent,
+          attachments: mailAttachments
         };
         const info = await this.transporter.sendMail(mailOptions);
-        logger.info(`Approval Notification Email sent to ${approverEmail} for Request ${requestData.request_number}. Message ID: ${info.messageId}`);
-        return { success: true, messageId: info.messageId };
+        logger.info(`Approval Notification Email sent to ${approverEmail} with ${mailAttachments.length} physical file attachment(s) for Request ${requestData.request_number}. Message ID: ${info.messageId}`);
+        return { success: true, messageId: info.messageId, attachmentCount: mailAttachments.length };
       } catch (err) {
         logger.error(`Failed to send email to ${approverEmail}: ${err.message}`);
         return { success: false, error: err.message };
       }
     } else {
-      logger.info(`[SIMULATED EMAIL NOTIFICATION] To: ${approverEmail} | Subject: ${subject}`);
+      logger.info(`[SIMULATED EMAIL NOTIFICATION] To: ${approverEmail} | Subject: ${subject} | Attachments: ${mailAttachments.length} file(s)`);
       logger.info(`[SIMULATED EMAIL CONTENT] Direct Approve Link: ${approveUrl} | Direct Decline Link: ${declineUrl}`);
-      return { success: true, simulated: true };
+      return { success: true, simulated: true, attachmentCount: mailAttachments.length };
     }
   }
 }
