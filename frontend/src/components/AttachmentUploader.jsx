@@ -1,6 +1,22 @@
 import React, { useState } from 'react';
-import { UploadCloud, File, X, CheckCircle2, AlertCircle, ZoomIn, Image as ImageIcon } from 'lucide-react';
-import FilePreviewModal from './FilePreviewModal';
+import { UploadCloud, File, X, CheckCircle2, Info, ZoomIn } from 'lucide-react';
+
+const getFileName = (file) => {
+  if (!file) return 'Attachment';
+  return file.name || file.original_name || file.filename || 'Attachment';
+};
+
+const getFileExt = (file) => {
+  const name = getFileName(file);
+  return name.includes('.') ? name.split('.').pop().toUpperCase() : 'FILE';
+};
+
+const isImage = (file) => {
+  if (!file) return false;
+  const name = getFileName(file);
+  const type = file.type || file.file_type || '';
+  return type.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(name);
+};
 
 export default function AttachmentUploader({ files = [], onFilesChange }) {
   const [dragOver, setDragOver] = useState(false);
@@ -27,33 +43,19 @@ export default function AttachmentUploader({ files = [], onFilesChange }) {
     onFilesChange(updated);
   };
 
-  const isImage = (file) => {
-    return file.type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.name);
-  };
-
-  const minRequired = 3;
-  const isSatisfied = files.length >= minRequired;
-
   return (
     <div className="space-y-4">
-      {/* Header & Status Indicator */}
-      <div className="flex items-center justify-between">
+      {/* Header & Informative Note */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
         <label className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
           <span>Attachments & Supporting Documents</span>
-          <span className="text-rose-500 font-bold">* (Minimum 3 Required)</span>
+          <span className="text-slate-400 font-normal">({files.length} attached)</span>
         </label>
 
-        {isSatisfied ? (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold rounded-full">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Requirement Met ({files.length} attached)</span>
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-full">
-            <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-            <span>{files.length}/{minRequired} attached ({minRequired - files.length} more required)</span>
-          </span>
-        )}
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50/80 border border-blue-200 text-blue-800 text-[11px] font-medium rounded-lg">
+          <Info className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+          <span>Note: Uploading supporting documents or pictures (quotations, specs, photos) is recommended for faster approval.</span>
+        </div>
       </div>
 
       {/* Drag & Drop Zone */}
@@ -83,9 +85,6 @@ export default function AttachmentUploader({ files = [], onFilesChange }) {
           <span className="text-[11px] text-slate-500 max-w-sm">
             Supported Formats: Quotations, Specs, Invoices, PDF, Excel, Word, PNG, JPG (Max 10 MB per file).
           </span>
-          <span className="text-[11px] text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200 mt-1">
-            ⚠️ Rule: Must attach at least 3 supporting files.
-          </span>
         </label>
       </div>
 
@@ -94,7 +93,12 @@ export default function AttachmentUploader({ files = [], onFilesChange }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-3">
           {files.map((file, idx) => {
             const hasImage = isImage(file);
-            const previewUrl = hasImage ? URL.createObjectURL(file) : null;
+            const fileName = getFileName(file);
+            const fileExt = getFileExt(file);
+            const previewUrl = hasImage
+              ? (file instanceof File ? URL.createObjectURL(file) : `/uploads/${file.filename}`)
+              : null;
+            const fileSizeKB = file.size || file.file_size ? `${(((file.size || file.file_size) / 1024)).toFixed(1)} KB` : '';
 
             return (
               <div
@@ -106,17 +110,17 @@ export default function AttachmentUploader({ files = [], onFilesChange }) {
                   onClick={() => setPreviewFile(file)}
                   className="h-28 bg-slate-100 flex items-center justify-center relative cursor-pointer overflow-hidden"
                 >
-                  {hasImage ? (
+                  {hasImage && previewUrl ? (
                     <img
                       src={previewUrl}
-                      alt={file.name}
+                      alt={fileName}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-1.5 p-2 text-slate-500">
                       <File className="w-8 h-8 text-indigo-500" />
                       <span className="text-[10px] font-bold uppercase text-slate-600 bg-slate-200 px-1.5 py-0.5 rounded">
-                        {file.name.split('.').pop()}
+                        {fileExt}
                       </span>
                     </div>
                   )}
@@ -131,23 +135,20 @@ export default function AttachmentUploader({ files = [], onFilesChange }) {
                 {/* File Metadata & Delete */}
                 <div className="p-2 flex items-center justify-between gap-1 bg-white border-t border-slate-100">
                   <div className="truncate min-w-0 pr-1">
-                    <p className="text-[11px] font-semibold text-slate-800 truncate" title={file.name}>
-                      {file.name}
+                    <p className="text-[11px] font-semibold text-slate-800 truncate" title={fileName}>
+                      {fileName}
                     </p>
                     <p className="text-[10px] text-slate-400 font-mono">
-                      {(file.size / 1024).toFixed(1)} KB
+                      {fileSizeKB}
                     </p>
                   </div>
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeFile(idx);
-                    }}
-                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors shrink-0"
-                    title="Remove attachment"
+                    onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
+                    className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors shrink-0"
+                    title="Remove File"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -155,13 +156,6 @@ export default function AttachmentUploader({ files = [], onFilesChange }) {
           })}
         </div>
       )}
-
-      {/* Enlarged Image Lightbox Modal */}
-      <FilePreviewModal
-        isOpen={!!previewFile}
-        file={previewFile}
-        onClose={() => setPreviewFile(null)}
-      />
     </div>
   );
 }

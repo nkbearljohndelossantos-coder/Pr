@@ -143,15 +143,6 @@ export default function CreateRequestPage() {
       }
     }
 
-    // Validate attachments count (must be at least 3)
-    if (!files || files.length < 3) {
-      addToast(
-        `Attachment Requirement: You must upload at least 3 supporting documents/files (currently uploaded: ${files ? files.length : 0}).`,
-        'error'
-      );
-      return false;
-    }
-
     return true;
   };
 

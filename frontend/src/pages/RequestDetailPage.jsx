@@ -357,7 +357,7 @@ export default function RequestDetailPage() {
                       <div className="flex flex-col items-center gap-1.5 p-2 text-slate-500">
                         <FileText className="w-8 h-8 text-indigo-500" />
                         <span className="text-[10px] font-bold uppercase text-slate-600 bg-slate-200 px-1.5 py-0.5 rounded">
-                          {att.original_name.split('.').pop()}
+                          {(att.original_name || att.filename || 'file').split('.').pop().toUpperCase()}
                         </span>
                       </div>
                     )}
