@@ -81,6 +81,41 @@ const initData = () => {
     { id: 3, username: 'it_dept', password_hash: deptHash, role: 'department', department_id: 1, full_name: 'Information Technology Dept', email: 'it@company.com', is_active: 1, is_deleted: 0 }
   ];
 
+  store.requests = [
+    {
+      id: 1,
+      request_number: 'REQ-IT-20260813-00001',
+      department_id: 1,
+      prepared_by: 'IT Department Staff',
+      position: 'IT Specialist',
+      required_date: '2026-08-20',
+      purpose: 'Hostinger VPS KVM4 Server Infrastructure Renewal & Upgrade',
+      business_justification: 'Production server hosting renewal for enterprise applications.',
+      priority: 'Normal',
+      status: 'Submitted',
+      total_estimated_cost: 20133.12,
+      created_by: 1,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: 0
+    }
+  ];
+
+  store.request_items = [
+    {
+      id: 1,
+      request_id: 1,
+      item_description: 'Hostinger VPS KVM4 Subscription Plan',
+      quantity: 1,
+      unit: '24_MONTHS',
+      estimated_cost: 20133.12,
+      total_cost: 20133.12,
+      remarks: 'Renewal Date: Nov 2026',
+      item_type: 'subscription',
+      created_at: new Date().toISOString()
+    }
+  ];
+
   saveStore();
   logger.info('Enterprise Database Engine Initialized & Seeded Cleanly.');
 };
@@ -120,6 +155,43 @@ const loadStore = () => {
           { id: 2, username: 'boss', password_hash: bossHash, role: 'executive', department_id: null, full_name: 'Executive Administrator', email: 'boss@company.com', is_active: 1, is_deleted: 0 },
           { id: 3, username: 'it_dept', password_hash: deptHash, role: 'department', department_id: 1, full_name: 'Information Technology Dept', email: 'it@company.com', is_active: 1, is_deleted: 0 }
         ];
+      }
+
+      if (!store.requests || store.requests.length === 0) {
+        store.requests = [
+          {
+            id: 1,
+            request_number: 'REQ-IT-20260813-00001',
+            department_id: 1,
+            prepared_by: 'IT Department Staff',
+            position: 'IT Specialist',
+            required_date: '2026-08-20',
+            purpose: 'Hostinger VPS KVM4 Server Infrastructure Renewal & Upgrade',
+            business_justification: 'Production server hosting renewal for enterprise applications.',
+            priority: 'Normal',
+            status: 'Submitted',
+            total_estimated_cost: 20133.12,
+            created_by: 1,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            is_deleted: 0
+          }
+        ];
+        store.request_items = [
+          {
+            id: 1,
+            request_id: 1,
+            item_description: 'Hostinger VPS KVM4 Subscription Plan',
+            quantity: 1,
+            unit: '24_MONTHS',
+            estimated_cost: 20133.12,
+            total_cost: 20133.12,
+            remarks: 'Renewal Date: Nov 2026',
+            item_type: 'subscription',
+            created_at: new Date().toISOString()
+          }
+        ];
+        saveStore();
       }
 
       logger.info(`Enterprise Database Engine Loaded Successfully (${store.requests.length} requests persisted).`);
