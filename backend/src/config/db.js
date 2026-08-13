@@ -244,7 +244,7 @@ if (env.DB_TYPE === 'mysql' || process.env.DB_TYPE === 'mysql' || process.env.DB
     pool = mysql.createPool({
       host: mysqlHost,
       port: Number(env.DB_PORT || process.env.DB_PORT) || 3306,
-      user: env.DB_USER || process.env.DB_USER || 'root',
+      user: env.DB_USER || process.env.DB_USER || 'u335953510_Request',
       password: env.DB_PASS || process.env.DB_PASS || '',
       database: env.DB_NAME || process.env.DB_NAME || 'u335953510_pr_data',
       waitForConnections: true,

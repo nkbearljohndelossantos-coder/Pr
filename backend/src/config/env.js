@@ -37,7 +37,7 @@ module.exports = {
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   DB_HOST: process.env.DB_HOST || '127.0.0.1',
   DB_PORT: process.env.DB_PORT || 3306,
-  DB_USER: process.env.DB_USER || 'u335953510_pr_user',
+  DB_USER: process.env.DB_USER || 'u335953510_Request',
   DB_PASS: process.env.DB_PASS || 'NkbManufacturing2025',
   DB_NAME: process.env.DB_NAME || 'u335953510_pr_data',
   DB_TYPE: process.env.DB_TYPE || 'mysql',
