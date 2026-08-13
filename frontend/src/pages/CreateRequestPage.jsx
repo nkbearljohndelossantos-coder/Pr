@@ -34,8 +34,14 @@ export default function CreateRequestPage() {
   const [subscriptions, setSubscriptions] = useState([]);
   const [files, setFiles] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
+  const [removedAttachmentIds, setRemovedAttachmentIds] = useState([]);
   const [uomOptions, setUomOptions] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+
+  const handleRemoveExistingAttachment = (attId) => {
+    setExistingAttachments(prev => prev.filter(a => a.id !== attId));
+    setRemovedAttachmentIds(prev => [...prev, attId]);
+  };
 
   useEffect(() => {
     fetchUomOptions();
@@ -195,6 +201,10 @@ export default function CreateRequestPage() {
       formData.append('priority', priority);
       formData.append('status', statusType);
       formData.append('items', JSON.stringify(allItemsCombined));
+
+      if (removedAttachmentIds.length > 0) {
+        formData.append('remove_attachment_ids', JSON.stringify(removedAttachmentIds));
+      }
 
       files.forEach((file) => {
         if (file) {
@@ -444,17 +454,30 @@ export default function CreateRequestPage() {
                       <span className="text-blue-600 font-bold text-sm">📎</span>
                       <span className="font-semibold text-slate-800 truncate" title={att.original_name}>{att.original_name || att.filename}</span>
                     </div>
-                    <a
-                      href={`/uploads/${att.filename}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline shrink-0 bg-blue-50 px-2 py-1 rounded"
-                    >
-                      View File
-                    </a>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <a
+                        href={`/uploads/${att.filename}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline px-2 py-0.5 rounded bg-blue-50"
+                      >
+                        View
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveExistingAttachment(att.id)}
+                        className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors"
+                        title="Remove Attachment"
+                      >
+                        <span className="font-bold text-xs">✕</span>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
+              <p className="text-[10px] text-slate-500 pt-1">
+                💡 <strong>Attachment Rule:</strong> If you upload new replacement file(s) below, the old attachments will be replaced upon submit. If you do not upload new files, existing attachments will remain preserved.
+              </p>
             </div>
           )}
 

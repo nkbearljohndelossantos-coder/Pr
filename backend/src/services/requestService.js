@@ -182,7 +182,23 @@ class RequestService {
       updated_at: new Date().toISOString()
     });
 
+    // 1. Handle soft-delete for specific removed attachments
+    if (data.remove_attachment_ids) {
+      let removeIds = [];
+      if (typeof data.remove_attachment_ids === 'string') {
+        try { removeIds = JSON.parse(data.remove_attachment_ids); } catch (e) {}
+      } else if (Array.isArray(data.remove_attachment_ids)) {
+        removeIds = data.remove_attachment_ids;
+      }
+      for (const attId of removeIds) {
+        await requestRepository.deleteAttachment(attId);
+      }
+    }
+
+    // 2. If new files are uploaded, replace old attachments with newly uploaded ones!
+    //    If no new files are uploaded, old attachments remain intact in database!
     if (files && files.length > 0) {
+      await requestRepository.deleteAttachmentsByRequestId(id);
       for (const file of files) {
         await requestRepository.addAttachment({
           request_id: Number(id),

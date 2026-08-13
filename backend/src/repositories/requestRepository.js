@@ -198,6 +198,14 @@ class RequestRepository {
     await db.query(`DELETE FROM request_items WHERE request_id = ?`, [requestId]);
   }
 
+  async deleteAttachmentsByRequestId(requestId) {
+    await db.query(`UPDATE attachments SET is_deleted = 1 WHERE request_id = ?`, [requestId]);
+  }
+
+  async deleteAttachment(attachmentId) {
+    await db.query(`UPDATE attachments SET is_deleted = 1 WHERE id = ?`, [attachmentId]);
+  }
+
   async updateStatus(id, status, remarks, updated_by) {
     await db.query(
       `UPDATE requests SET status = ?, remarks = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
