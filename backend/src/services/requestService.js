@@ -176,6 +176,7 @@ class RequestService {
       purpose: data.purpose || existing.purpose,
       business_justification: data.business_justification !== undefined ? data.business_justification : existing.business_justification,
       priority: data.priority || existing.priority,
+      status: data.status || existing.status,
       total_estimated_cost: totalEstimatedCost,
       revision_number: (existing.revision_number || 1) + 1,
       updated_at: new Date().toISOString()

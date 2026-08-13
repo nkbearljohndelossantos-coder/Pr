@@ -424,7 +424,40 @@ export default function CreateRequestPage() {
         </div>
 
         {/* Section 5: Attachments */}
-        <div className="card-erp p-6">
+        <div className="card-erp p-6 space-y-4">
+          {existingAttachments.length > 0 && (
+            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                  <span>📎 Previously Uploaded Attachments</span>
+                  <span className="text-slate-500 font-normal">({existingAttachments.length} file{existingAttachments.length > 1 ? 's' : ''})</span>
+                </span>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Preserved Automatically
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1">
+                {existingAttachments.map((att, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-lg text-xs shadow-2xs">
+                    <div className="flex items-center gap-2 truncate pr-2">
+                      <span className="text-blue-600 font-bold text-sm">📎</span>
+                      <span className="font-semibold text-slate-800 truncate" title={att.original_name}>{att.original_name || att.filename}</span>
+                    </div>
+                    <a
+                      href={`/uploads/${att.filename}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline shrink-0 bg-blue-50 px-2 py-1 rounded"
+                    >
+                      View File
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <AttachmentUploader files={files} onFilesChange={setFiles} />
         </div>
       </form>

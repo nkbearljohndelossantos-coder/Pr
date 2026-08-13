@@ -168,6 +168,7 @@ class RequestRepository {
       purpose,
       business_justification,
       priority,
+      status,
       total_estimated_cost,
       revision_number,
       updated_at
@@ -175,7 +176,7 @@ class RequestRepository {
 
     await db.query(
       `UPDATE requests 
-       SET prepared_by = ?, position = ?, required_date = ?, purpose = ?, business_justification = ?, priority = ?, total_estimated_cost = ?, revision_number = ?, updated_at = ?
+       SET prepared_by = ?, position = ?, required_date = ?, purpose = ?, business_justification = ?, priority = ?, status = COALESCE(?, status), total_estimated_cost = ?, revision_number = ?, updated_at = ?
        WHERE id = ? AND is_deleted = 0`,
       [
         prepared_by,
@@ -184,6 +185,7 @@ class RequestRepository {
         purpose,
         business_justification || '',
         priority || 'Normal',
+        status || null,
         total_estimated_cost || 0.00,
         revision_number || 1,
         updated_at || new Date().toISOString(),
