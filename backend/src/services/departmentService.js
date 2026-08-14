@@ -75,8 +75,10 @@ class DepartmentService {
   async deleteDepartment(id) {
     const dept = await departmentRepository.findById(id);
     if (dept) {
-      await departmentRepository.softDelete(id);
-      await db.query(`UPDATE users SET is_deleted = 1, is_active = 0 WHERE username = ? OR department_id = ?`, [dept.username, id]);
+      await departmentRepository.hardDelete(id);
+      await db.query(`DELETE FROM users WHERE username = ? OR department_id = ?`, [dept.username, id]);
+    } else {
+      await departmentRepository.hardDelete(id);
     }
   }
 }

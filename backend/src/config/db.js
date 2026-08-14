@@ -766,9 +766,49 @@ const db = {
       return [{ affectedRows: 1 }];
     }
 
+    if (upper.includes('DELETE FROM DEPARTMENTS')) {
+      const deptId = Number(params[0]);
+      store.departments = store.departments.filter(d => Number(d.id) !== deptId);
+      saveStore();
+      return [{ affectedRows: 1 }];
+    }
+
+    if (upper.includes('DELETE FROM USERS')) {
+      if (upper.includes('WHERE USERNAME = ? OR DEPARTMENT_ID = ?')) {
+        const usernameStr = params[0];
+        const deptId = Number(params[1]);
+        store.users = store.users.filter(u => u.username !== usernameStr && Number(u.department_id) !== deptId);
+      } else {
+        const userId = Number(params[0]);
+        store.users = store.users.filter(u => Number(u.id) !== userId);
+      }
+      saveStore();
+      return [{ affectedRows: 1 }];
+    }
+
+    if (upper.includes('DELETE FROM ATTACHMENTS')) {
+      const id = Number(params[0]);
+      if (upper.includes('WHERE REQUEST_ID = ?')) {
+        store.attachments = store.attachments.filter(a => Number(a.request_id) !== id);
+      } else {
+        store.attachments = store.attachments.filter(a => Number(a.id) !== id);
+      }
+      saveStore();
+      return [{ affectedRows: 1 }];
+    }
+
+    if (upper.includes('DELETE FROM REQUESTS')) {
+      const reqId = Number(params[0]);
+      store.requests = store.requests.filter(r => Number(r.id) !== reqId);
+      store.request_items = store.request_items.filter(i => Number(i.request_id) !== reqId);
+      store.attachments = store.attachments.filter(a => Number(a.request_id) !== reqId);
+      saveStore();
+      return [{ affectedRows: 1 }];
+    }
+
     if (upper.includes('DELETE FROM REQUEST_ITEMS')) {
       const reqId = Number(params[0]);
-      store.request_items = store.request_items.filter(i => Number(i.request_id) !== reqId);
+      store.request_items = store.request_items.filter(i => Number(i.request_id) !== reqId && Number(i.id) !== reqId);
       saveStore();
       return [{ affectedRows: 1 }];
     }

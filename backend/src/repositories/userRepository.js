@@ -58,7 +58,7 @@ class UserRepository {
   }
 
   async deleteUser(id) {
-    await db.query(`UPDATE users SET is_deleted = 1, is_active = 0 WHERE id = ?`, [id]);
+    await db.query(`DELETE FROM users WHERE id = ?`, [id]);
   }
 }
 

@@ -62,8 +62,12 @@ class DepartmentRepository {
     return newSeq;
   }
 
+  async hardDelete(id) {
+    await db.query(`DELETE FROM departments WHERE id = ?`, [id]);
+  }
+
   async softDelete(id) {
-    await db.query(`UPDATE departments SET is_deleted = 1, is_active = 0 WHERE id = ?`, [id]);
+    await db.query(`DELETE FROM departments WHERE id = ?`, [id]);
   }
 }
 
