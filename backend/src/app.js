@@ -36,14 +36,18 @@ const uploadCandidateDirs = [
   path.join(__dirname, '../uploads'),
   path.join(__dirname, '../../uploads'),
   path.join(process.cwd(), 'uploads'),
+  path.join(process.cwd(), 'public/uploads'),
   path.join(process.cwd(), 'backend/uploads'),
-  path.join(process.cwd(), 'backend/src/uploads')
+  path.join(process.cwd(), 'backend/public/uploads'),
+  path.join(process.cwd(), 'backend/src/uploads'),
+  path.join(process.cwd(), 'dist/uploads')
 ];
 
 uploadCandidateDirs.forEach(dir => {
-  if (fs.existsSync(dir)) {
+  try {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     app.use('/uploads', express.static(dir));
-  }
+  } catch (e) {}
 });
 
 // Universal Fail-Safe Route for Upload Files (eliminates 404 on any upload file)
@@ -54,8 +58,11 @@ app.get('/uploads/:filename', (req, res) => {
     path.join(__dirname, '../uploads', safeFilename),
     path.join(__dirname, '../../uploads', safeFilename),
     path.join(process.cwd(), 'uploads', safeFilename),
+    path.join(process.cwd(), 'public', 'uploads', safeFilename),
     path.join(process.cwd(), 'backend', 'uploads', safeFilename),
-    path.join(process.cwd(), 'backend', 'src', 'uploads', safeFilename)
+    path.join(process.cwd(), 'backend', 'public', 'uploads', safeFilename),
+    path.join(process.cwd(), 'backend', 'src', 'uploads', safeFilename),
+    path.join(process.cwd(), 'dist', 'uploads', safeFilename)
   ];
 
   for (const p of possiblePaths) {
