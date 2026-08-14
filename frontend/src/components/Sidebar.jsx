@@ -222,17 +222,19 @@ export default function Sidebar() {
           </NavLink>
         )}
 
-        <NavLink
-          to="/settings"
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
-              isActive ? 'bg-[#2563EB] text-white shadow-sm' : 'text-slate-300 hover:bg-[#334155] hover:text-white'
-            }`
-          }
-        >
-          <Settings className="w-4 h-4 text-slate-400" />
-          <span>System Settings</span>
-        </NavLink>
+        {isAdmin && (
+          <NavLink
+            to="/settings"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                isActive ? 'bg-[#2563EB] text-white shadow-sm' : 'text-slate-300 hover:bg-[#334155] hover:text-white'
+              }`
+            }
+          >
+            <Settings className="w-4 h-4 text-slate-400" />
+            <span>System Settings</span>
+          </NavLink>
+        )}
       </div>
 
       {/* User Footer Card */}

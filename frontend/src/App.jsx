@@ -26,6 +26,17 @@ function ProtectedRoute({ children }) {
   return <Layout>{children}</Layout>;
 }
 
+function AdminRoute({ children }) {
+  const { isAuthenticated, user } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  if (user?.role !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <Layout>{children}</Layout>;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -40,13 +51,13 @@ export default function App() {
             <Route path="/requests/new" element={<ProtectedRoute><CreateRequestPage /></ProtectedRoute>} />
             <Route path="/requests/:id/edit" element={<ProtectedRoute><CreateRequestPage /></ProtectedRoute>} />
             <Route path="/requests/:id" element={<ProtectedRoute><RequestDetailPage /></ProtectedRoute>} />
-            <Route path="/departments" element={<ProtectedRoute><DepartmentManagementPage /></ProtectedRoute>} />
-            <Route path="/users" element={<ProtectedRoute><UserManagementPage /></ProtectedRoute>} />
-            <Route path="/master-data" element={<ProtectedRoute><MasterDataManagerPage /></ProtectedRoute>} />
+            <Route path="/departments" element={<AdminRoute><DepartmentManagementPage /></AdminRoute>} />
+            <Route path="/users" element={<AdminRoute><UserManagementPage /></AdminRoute>} />
+            <Route path="/master-data" element={<AdminRoute><MasterDataManagerPage /></AdminRoute>} />
             <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
-            <Route path="/audit-logs" element={<ProtectedRoute><AuditLogsPage /></ProtectedRoute>} />
-            <Route path="/backups" element={<ProtectedRoute><BackupPage /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="/audit-logs" element={<AdminRoute><AuditLogsPage /></AdminRoute>} />
+            <Route path="/backups" element={<AdminRoute><BackupPage /></AdminRoute>} />
+            <Route path="/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
 
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
