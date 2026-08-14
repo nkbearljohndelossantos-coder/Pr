@@ -84,10 +84,26 @@ class EmailService {
     }
   }
 
+  getLogoPath() {
+    const candidates = [
+      path.join(__dirname, '../public/nkb-logo.png'),
+      path.join(process.cwd(), 'nkb-logo.png'),
+      path.join(process.cwd(), 'public/nkb-logo.png'),
+      path.join(process.cwd(), 'backend/public/nkb-logo.png'),
+      path.join(__dirname, '../../public/nkb-logo.png')
+    ];
+
+    for (const p of candidates) {
+      if (fs.existsSync(p)) return p;
+    }
+    return null;
+  }
+
   async sendTestEmail(targetEmail) {
     await this.loadSavedSettings();
 
     const toEmail = targetEmail || this.customApproverEmail || process.env.APPROVER_EMAIL || env.APPROVER_EMAIL || 'boss@company.com';
+    const siteUrl = process.env.SITE_URL || 'https://pr.nkbmanufacturing.com';
     const subject = '🧪 [TEST] NKB ERP Purchase Requisition Email Notification Test';
 
     if (!this.transporter) {
@@ -99,11 +115,21 @@ class EmailService {
       };
     }
 
+    const logoPath = this.getLogoPath();
+    const testMailAttachments = [];
+    if (logoPath) {
+      testMailAttachments.push({
+        filename: 'nkb-logo.png',
+        path: logoPath,
+        cid: 'nkblogo'
+      });
+    }
+
     const htmlContent = `
-      <div style="font-family: Arial, sans-serif; padding: 24px; background: #f8fafc; border-radius: 12px; border: 1px solid #cbd5e1; max-width: 550px; margin: 0 auto;">
-        <div style="background: #2563eb; padding: 16px; border-radius: 8px; text-align: center; color: white; margin-bottom: 20px;">
-          <h2 style="margin: 0; font-size: 18px;">✅ System Test Email Successful!</h2>
-          <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">NKB Manufacturing Purchase Requisition System</p>
+      <div style="font-family: Arial, sans-serif; padding: 24px; background: #f8fafc; border-radius: 12px; border: 1px solid #cbd5e1; max-width: 580px; margin: 0 auto;">
+        <div style="background: #0f172a; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px; border-bottom: 3px solid #d97706;">
+          <img src="${logoPath ? 'cid:nkblogo' : `${siteUrl}/nkb-logo.png`}" alt="NKB Manufacturing Corp." style="max-width: 250px; width: 100%; height: auto; display: block; margin: 0 auto 8px auto;" />
+          <p style="margin: 0; font-size: 11px; font-weight: bold; color: #fbbf24; text-transform: uppercase; letter-spacing: 1px;">System Test Email Notification</p>
         </div>
         <p style="font-size: 14px; color: #334155;">This is a test notification email sent directly from the <strong>System Admin Email Settings</strong> page.</p>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0; background: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0;">
@@ -118,7 +144,7 @@ class EmailService {
         </table>
         <hr style="border: 0; border-top: 1px solid #cbd5e1; margin: 20px 0;" />
         <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0;">
-          Your email notification system is properly configured and ready to send executive approval alerts.
+          Your email notification system is properly configured and ready to send executive approval alerts with NKB logo branding.
         </p>
       </div>
     `;
@@ -129,7 +155,8 @@ class EmailService {
         from: fromEmail,
         to: toEmail,
         subject,
-        html: htmlContent
+        html: htmlContent,
+        attachments: testMailAttachments
       });
 
       logger.info(`Test Email sent successfully to ${toEmail}. Message ID: ${info.messageId}`);
@@ -185,6 +212,18 @@ class EmailService {
 
     // Build physical file attachments for Nodemailer
     const mailAttachments = [];
+
+    // 1. Embed NKB Logo via CID in approval email header
+    const logoPath = this.getLogoPath();
+    if (logoPath) {
+      mailAttachments.push({
+        filename: 'nkb-logo.png',
+        path: logoPath,
+        cid: 'nkblogo'
+      });
+    }
+
+    // 2. Physical File Attachments (uploaded quotations, pdfs, images)
     if (requestData.attachments && Array.isArray(requestData.attachments)) {
       for (const att of requestData.attachments) {
         let targetPath = att.file_path || att.path;
@@ -224,11 +263,12 @@ class EmailService {
       </tr>
     `).join('');
 
-    const attachmentsListHtml = mailAttachments.length > 0
+    const userUploadedCount = mailAttachments.filter(a => a.cid !== 'nkblogo').length;
+    const attachmentsListHtml = userUploadedCount > 0
       ? `
-        <div class="section-title">Attached Files & Supporting Documents (${mailAttachments.length}):</div>
+        <div class="section-title">Attached Files & Supporting Documents (${userUploadedCount}):</div>
         <ul style="margin: 8px 0; padding-left: 20px; font-size: 13px; color: #1e293b; background: #f8fafc; padding: 12px 12px 12px 28px; border-radius: 6px; border: 1px solid #e2e8f0;">
-          ${mailAttachments.map(a => `
+          ${mailAttachments.filter(a => a.cid !== 'nkblogo').map(a => `
             <li style="margin-bottom: 4px;">
               📎 <strong>${a.filename}</strong> <span style="color: #64748b; font-size: 11px;">(Attached to this email)</span>
             </li>
@@ -247,9 +287,9 @@ class EmailService {
         <style>
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #334155; }
           .card { max-width: 650px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #cbd5e1; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
-          .header { background: #0f172a; padding: 24px; text-align: center; color: #ffffff; }
-          .header h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #38bdf8; }
-          .header p { margin: 4px 0 0 0; font-size: 12px; color: #94a3b8; }
+          .header { background: #0f172a; padding: 24px; text-align: center; color: #ffffff; border-bottom: 4px solid #d97706; }
+          .header img { max-width: 280px; width: 100%; height: auto; display: block; margin: 0 auto; }
+          .header p { margin: 8px 0 0 0; font-size: 11px; font-weight: bold; color: #fbbf24; text-transform: uppercase; letter-spacing: 1.5px; }
           .content { padding: 28px; line-height: 1.6; font-size: 14px; color: #334155; }
           .section-title { font-weight: 700; font-size: 14px; color: #0f172a; margin-top: 20px; margin-bottom: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; }
           .overview-table { width: 100%; border-collapse: collapse; margin: 12px 0; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
@@ -267,8 +307,8 @@ class EmailService {
       <body>
         <div class="card">
           <div class="header">
-            <h1>NKB Manufacturing</h1>
-            <p>Enterprise Purchase Requisition System</p>
+            <img src="${logoPath ? 'cid:nkblogo' : `${siteUrl}/nkb-logo.png`}" alt="NKB Manufacturing Corp." />
+            <p>Enterprise Requisition System</p>
           </div>
           
           <div class="content">
@@ -390,7 +430,7 @@ class EmailService {
           </div>
 
           <div class="footer">
-            © ${new Date().getFullYear()} NKB Manufacturing. Enterprise Purchase Requisition System. All rights reserved.
+            © ${new Date().getFullYear()} NKB Manufacturing Corp. Enterprise Purchase Requisition System. All rights reserved.
           </div>
         </div>
       </body>
@@ -408,16 +448,16 @@ class EmailService {
           attachments: mailAttachments
         };
         const info = await this.transporter.sendMail(mailOptions);
-        logger.info(`Approval Notification Email sent to ${approverEmail} with ${mailAttachments.length} physical file attachment(s) for Request ${requestData.request_number}. Message ID: ${info.messageId}`);
-        return { success: true, messageId: info.messageId, attachmentCount: mailAttachments.length };
+        logger.info(`Approval Notification Email sent to ${approverEmail} with logo branding and ${userUploadedCount} physical file attachment(s) for Request ${requestData.request_number}. Message ID: ${info.messageId}`);
+        return { success: true, messageId: info.messageId, attachmentCount: userUploadedCount };
       } catch (err) {
         logger.error(`Failed to send email to ${approverEmail}: ${err.message}`);
         return { success: false, error: err.message };
       }
     } else {
-      logger.info(`[SIMULATED EMAIL NOTIFICATION] To: ${approverEmail} | Subject: ${subject} | Attachments: ${mailAttachments.length} file(s)`);
+      logger.info(`[SIMULATED EMAIL NOTIFICATION] To: ${approverEmail} | Subject: ${subject} | Attachments: ${userUploadedCount} file(s)`);
       logger.info(`[SIMULATED EMAIL CONTENT] Direct Approve Link: ${approveUrl} | Direct Decline Link: ${declineUrl}`);
-      return { success: true, simulated: true, attachmentCount: mailAttachments.length };
+      return { success: true, simulated: true, attachmentCount: userUploadedCount };
     }
   }
 }
