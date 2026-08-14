@@ -742,7 +742,8 @@ const db = {
     }
 
     if (upper.includes('UPDATE REQUESTS SET PREPARED_BY = ?')) {
-      const req = store.requests.find(r => r.id === Number(params[9]));
+      const targetId = Number(params[params.length - 1]);
+      const req = store.requests.find(r => r.id === targetId);
       if (req) {
         req.prepared_by = params[0];
         req.position = params[1];
@@ -750,9 +751,16 @@ const db = {
         req.purpose = params[3];
         req.business_justification = params[4];
         req.priority = params[5];
-        req.total_estimated_cost = params[6];
-        req.revision_number = params[7];
-        req.updated_at = params[8];
+        if (params.length >= 11) {
+          if (params[6]) req.status = params[6];
+          req.total_estimated_cost = Number(params[7]);
+          req.revision_number = Number(params[8]);
+          req.updated_at = params[9];
+        } else {
+          req.total_estimated_cost = Number(params[6]);
+          req.revision_number = Number(params[7]);
+          req.updated_at = params[8];
+        }
         saveStore();
       }
       return [{ affectedRows: 1 }];

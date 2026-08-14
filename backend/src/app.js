@@ -50,6 +50,26 @@ uploadCandidateDirs.forEach(dir => {
   } catch (e) {}
 });
 
+// Auto-sync existing uploaded files across all candidate upload directories on startup
+try {
+  uploadCandidateDirs.forEach(srcDir => {
+    if (fs.existsSync(srcDir)) {
+      const files = fs.readdirSync(srcDir);
+      files.forEach(file => {
+        const srcPath = path.join(srcDir, file);
+        if (fs.statSync(srcPath).isFile()) {
+          uploadCandidateDirs.forEach(destDir => {
+            const destPath = path.join(destDir, file);
+            if (!fs.existsSync(destPath)) {
+              try { fs.copyFileSync(srcPath, destPath); } catch (e) {}
+            }
+          });
+        }
+      });
+    }
+  });
+} catch (e) {}
+
 // Universal Fail-Safe Route for Upload Files (eliminates 404 on any upload file)
 app.get('/uploads/:filename', (req, res) => {
   const safeFilename = path.basename(req.params.filename);
