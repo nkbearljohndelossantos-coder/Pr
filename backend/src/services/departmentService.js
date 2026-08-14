@@ -71,6 +71,14 @@ class DepartmentService {
       await db.query(`UPDATE users SET password_hash = ? WHERE username = ?`, [hash, dept.username]);
     }
   }
+
+  async deleteDepartment(id) {
+    const dept = await departmentRepository.findById(id);
+    if (dept) {
+      await departmentRepository.softDelete(id);
+      await db.query(`UPDATE users SET is_deleted = 1, is_active = 0 WHERE username = ? OR department_id = ?`, [dept.username, id]);
+    }
+  }
 }
 
 module.exports = new DepartmentService();

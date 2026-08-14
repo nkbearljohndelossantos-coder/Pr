@@ -18,6 +18,7 @@ export const departmentApi = {
   getAll: () => api.get('/departments'),
   create: (data) => api.post('/departments', data),
   update: (id, data) => api.put(`/departments/${id}`, data),
+  delete: (id) => api.delete(`/departments/${id}`),
   resetPassword: (id, data) => api.post(`/departments/${id}/reset-password`, data)
 };
 
@@ -41,5 +42,6 @@ export const systemApi = {
   updateSettings: (data) => api.put('/system/settings', data),
   sendTestEmail: (target_email) => api.post('/system/settings/test-email', { target_email }),
   getUsers: () => api.get('/system/users'),
-  updateUser: (id, data) => api.put(`/system/users/${id}`, data)
+  updateUser: (id, data) => api.put(`/system/users/${id}`, data),
+  deleteUser: (id) => api.delete(`/system/users/${id}`)
 };

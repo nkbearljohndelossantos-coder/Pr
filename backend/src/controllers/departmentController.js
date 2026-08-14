@@ -29,9 +29,9 @@ class DepartmentController {
   async update(req, res, next) {
     try {
       const { id } = req.params;
-      const { name, is_active } = req.body;
-      await departmentService.updateDepartment(id, { name, is_active, updated_by: req.user.id });
-      return successResponse(res, 'Department updated successfully');
+      const { code, name, username, password, is_active } = req.body;
+      await departmentService.updateDepartment(id, { code, name, username, password, is_active, updated_by: req.user.id });
+      return successResponse(res, 'Department credentials updated successfully');
     } catch (err) {
       next(err);
     }
@@ -47,6 +47,16 @@ class DepartmentController {
 
       await departmentService.resetPassword(id, password);
       return successResponse(res, 'Department password reset successfully');
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async delete(req, res, next) {
+    try {
+      const { id } = req.params;
+      await departmentService.deleteDepartment(id);
+      return successResponse(res, 'Department deleted successfully');
     } catch (err) {
       next(err);
     }

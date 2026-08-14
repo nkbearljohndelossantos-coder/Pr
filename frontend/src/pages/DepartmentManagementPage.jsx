@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Plus, KeyRound, Edit3, CheckCircle2, XCircle } from 'lucide-react';
+import { Building2, Plus, KeyRound, Edit3, Trash2, AlertTriangle } from 'lucide-react';
 import DataTable from '../components/DataTable';
 import { departmentApi } from '../services/systemApi';
 import { useNotification } from '../context/NotificationContext';
@@ -13,6 +13,7 @@ export default function DepartmentManagementPage() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedDept, setSelectedDept] = useState(null);
 
   // Form states
@@ -94,6 +95,19 @@ export default function DepartmentManagementPage() {
     }
   };
 
+  const handleConfirmDelete = async () => {
+    if (!selectedDept) return;
+    try {
+      await departmentApi.delete(selectedDept.id);
+      addToast(`Department '${selectedDept.name}' deleted successfully.`, 'success');
+      setDeleteModalOpen(false);
+      setSelectedDept(null);
+      fetchDepartments();
+    } catch (e) {
+      addToast('Failed to delete department credential.', 'error');
+    }
+  };
+
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (!newPassword || !selectedDept) return;
@@ -140,10 +154,19 @@ export default function DepartmentManagementPage() {
           <button
             onClick={() => handleToggleActive(row)}
             className={`px-2.5 py-1 rounded text-xs font-semibold border transition-colors ${
-              row.is_active ? 'border-rose-200 text-rose-600 hover:bg-rose-50' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50'
+              row.is_active ? 'border-amber-200 text-amber-700 hover:bg-amber-50' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50'
             }`}
           >
             {row.is_active ? 'Deactivate' : 'Activate'}
+          </button>
+
+          <button
+            onClick={() => { setSelectedDept(row); setDeleteModalOpen(true); }}
+            className="flex items-center gap-1 px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded text-xs font-semibold transition-colors"
+            title="Permanently Delete Department Credential"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Delete</span>
           </button>
           
           <button
@@ -163,7 +186,7 @@ export default function DepartmentManagementPage() {
       <div className="flex items-center justify-between border-b border-slate-200 pb-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800">Department Account & Credentials Management</h1>
-          <p className="text-xs text-slate-500">System Admin Control Center for Editing & Managing Shared Department Credentials</p>
+          <p className="text-xs text-slate-500">System Admin Control Center for Editing, Deleting, and Managing Shared Department Credentials</p>
         </div>
         <button
           onClick={() => { setCode(''); setName(''); setUsername(''); setPassword(''); setAddModalOpen(true); }}
@@ -285,6 +308,25 @@ export default function DepartmentManagementPage() {
                 <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded font-bold">Save Changes</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-sm w-full p-6">
+            <div className="flex items-center gap-3 text-rose-600 mb-3">
+              <AlertTriangle className="w-6 h-6 shrink-0" />
+              <h3 className="text-sm font-bold text-slate-900">Delete Department Credential?</h3>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed mb-4">
+              Are you sure you want to permanently delete <strong>{selectedDept?.name} ({selectedDept?.code})</strong>? This department account will no longer be able to log in.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setDeleteModalOpen(false)} className="px-4 py-1.5 border rounded text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+              <button onClick={handleConfirmDelete} className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-bold shadow-sm">Delete Permanently</button>
+            </div>
           </div>
         </div>
       )}

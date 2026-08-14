@@ -150,6 +150,15 @@ class UserController {
       return successResponse(res, 'User credentials updated successfully');
     } catch (err) { next(err); }
   }
+
+  async delete(req, res, next) {
+    try {
+      const userRepository = require('../repositories/userRepository');
+      const { id } = req.params;
+      await userRepository.deleteUser(id);
+      return successResponse(res, 'User account deleted successfully');
+    } catch (err) { next(err); }
+  }
 }
 
 module.exports = {

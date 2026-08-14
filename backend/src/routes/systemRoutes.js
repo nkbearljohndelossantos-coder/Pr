@@ -17,6 +17,7 @@ router.get('/employees', (req, res, next) => employeeController.list(req, res, n
 // Users & Credentials Management (Admin only)
 router.get('/users', isAdmin, (req, res, next) => userController.list(req, res, next));
 router.put('/users/:id', isAdmin, (req, res, next) => userController.update(req, res, next));
+router.delete('/users/:id', isAdmin, (req, res, next) => userController.delete(req, res, next));
 
 // System Settings (Admin only)
 router.get('/settings', isAdmin, (req, res, next) => settingsController.get(req, res, next));
