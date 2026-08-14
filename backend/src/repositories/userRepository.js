@@ -59,6 +59,11 @@ class UserRepository {
 
   async deleteUser(id) {
     const userId = Number(id);
+    const user = await this.findById(userId);
+    if (user && (user.username === 'admin' || user.username === 'boss')) {
+      throw new Error('System Administrator and Executive Boss root accounts cannot be deleted.');
+    }
+
     try {
       await db.query(`UPDATE requests SET created_by = NULL WHERE created_by = ?`, [userId]);
       await db.query(`UPDATE requests SET updated_by = NULL WHERE updated_by = ?`, [userId]);

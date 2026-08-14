@@ -480,7 +480,80 @@ const syncJsonToMysql = async () => {
   }
 };
 
-setTimeout(syncJsonToMysql, 1000);
+const ensureRootUsersExist = async () => {
+  const adminHash = await bcrypt.hash('admin123', 10);
+  const bossHash = await bcrypt.hash('boss123', 10);
+
+  // 1. Guarantee in JSON store
+  if (!store.users) store.users = [];
+  let adminObj = store.users.find(u => u.username === 'admin');
+  if (!adminObj) {
+    store.users.unshift({
+      id: 1,
+      username: 'admin',
+      password_hash: adminHash,
+      role: 'admin',
+      department_id: null,
+      full_name: 'System Administrator (IT)',
+      email: 'admin@company.com',
+      is_active: 1,
+      is_deleted: 0
+    });
+  } else {
+    adminObj.is_active = 1;
+    adminObj.is_deleted = 0;
+    adminObj.role = 'admin';
+  }
+
+  let bossObj = store.users.find(u => u.username === 'boss');
+  if (!bossObj) {
+    store.users.splice(1, 0, {
+      id: 2,
+      username: 'boss',
+      password_hash: bossHash,
+      role: 'executive',
+      department_id: null,
+      full_name: 'Executive Administrator',
+      email: 'boss@company.com',
+      is_active: 1,
+      is_deleted: 0
+    });
+  } else {
+    bossObj.is_active = 1;
+    bossObj.is_deleted = 0;
+    bossObj.role = 'executive';
+  }
+
+  saveStore();
+
+  // 2. Guarantee in Hostinger MySQL Database
+  if (pool) {
+    try {
+      await ensureMysqlTablesExist();
+      await pool.query(
+        `INSERT INTO users (id, username, password_hash, role, department_id, full_name, email, is_active, is_deleted)
+         VALUES (1, 'admin', ?, 'admin', NULL, 'System Administrator (IT)', 'admin@company.com', 1, 0)
+         ON DUPLICATE KEY UPDATE is_active = 1, is_deleted = 0, role = 'admin'`,
+        [adminHash]
+      );
+
+      await pool.query(
+        `INSERT INTO users (id, username, password_hash, role, department_id, full_name, email, is_active, is_deleted)
+         VALUES (2, 'boss', ?, 'executive', NULL, 'Executive Administrator', 'boss@company.com', 1, 0)
+         ON DUPLICATE KEY UPDATE is_active = 1, is_deleted = 0, role = 'executive'`,
+        [bossHash]
+      );
+      logger.info('System Admin & Executive Boss root accounts verified and active in Hostinger MySQL.');
+    } catch (e) {
+      logger.warn('Notice verifying root accounts in MySQL:', e.message);
+    }
+  }
+};
+
+setTimeout(() => {
+  syncJsonToMysql();
+  ensureRootUsersExist();
+}, 1000);
 
 // Database Query Engine supporting both Real MySQL and Fail-safe Store Emulator
 const db = {

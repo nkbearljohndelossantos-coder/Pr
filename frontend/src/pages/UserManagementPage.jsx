@@ -126,14 +126,16 @@ export default function UserManagementPage() {
             <span>Edit</span>
           </button>
           
-          <button
-            onClick={() => { setSelectedUser(r); setDeleteModalOpen(true); }}
-            className="flex items-center gap-1 px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded text-xs font-semibold transition-colors"
-            title="Permanently Delete User Account"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>Delete</span>
-          </button>
+          {r.username !== 'admin' && r.username !== 'boss' && (
+            <button
+              onClick={() => { setSelectedUser(r); setDeleteModalOpen(true); }}
+              className="flex items-center gap-1 px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded text-xs font-semibold transition-colors"
+              title="Permanently Delete User Account"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Delete</span>
+            </button>
+          )}
         </div>
       )
     }
