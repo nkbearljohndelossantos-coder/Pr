@@ -11,8 +11,9 @@ router.get('/health', (req, res) => healthController.check(req, res));
 // Protected Routes
 router.use(authenticateToken);
 
-// Employees Integration Endpoint
+// Employees & Canteen Integration Endpoints
 router.get('/employees', (req, res, next) => employeeController.list(req, res, next));
+router.get('/canteen/employees', (req, res, next) => employeeController.list(req, res, next));
 
 // Users & Credentials Management (Admin only)
 router.get('/users', isAdmin, (req, res, next) => userController.list(req, res, next));

@@ -103,6 +103,12 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/system', systemRoutes);
 
+// Canteen & Employees Integration Direct Route Aliases
+app.get(['/api/canteen/employees', '/api/employees'], (req, res, next) => {
+  const { employeeController } = require('./controllers/systemControllers');
+  employeeController.list(req, res, next);
+});
+
 // Module Registry Route
 app.get('/api/modules', (req, res) => {
   return res.json({ success: true, data: MODULE_REGISTRY });
