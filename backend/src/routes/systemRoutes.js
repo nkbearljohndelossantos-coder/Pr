@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const reportController = require('../controllers/reportController');
-const { notificationController, auditController, backupController, masterDataController, healthController, employeeController, settingsController } = require('../controllers/systemControllers');
+const { notificationController, auditController, backupController, masterDataController, healthController, employeeController, settingsController, userController } = require('../controllers/systemControllers');
 const { authenticateToken } = require('../middlewares/authMiddleware');
 const { isAdmin } = require('../middlewares/rbacMiddleware');
 
@@ -13,6 +13,10 @@ router.use(authenticateToken);
 
 // Employees Integration Endpoint
 router.get('/employees', (req, res, next) => employeeController.list(req, res, next));
+
+// Users & Credentials Management (Admin only)
+router.get('/users', isAdmin, (req, res, next) => userController.list(req, res, next));
+router.put('/users/:id', isAdmin, (req, res, next) => userController.update(req, res, next));
 
 // System Settings (Admin only)
 router.get('/settings', isAdmin, (req, res, next) => settingsController.get(req, res, next));

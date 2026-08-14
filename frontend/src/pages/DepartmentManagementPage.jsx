@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Plus, KeyRound, CheckCircle2, XCircle } from 'lucide-react';
+import { Building2, Plus, KeyRound, Edit3, CheckCircle2, XCircle } from 'lucide-react';
 import DataTable from '../components/DataTable';
 import { departmentApi } from '../services/systemApi';
 import { useNotification } from '../context/NotificationContext';
@@ -11,6 +11,7 @@ export default function DepartmentManagementPage() {
 
   // Modals
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const [selectedDept, setSelectedDept] = useState(null);
 
@@ -51,6 +52,35 @@ export default function DepartmentManagementPage() {
       }
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to create department.', 'error');
+    }
+  };
+
+  const handleOpenEditModal = (dept) => {
+    setSelectedDept(dept);
+    setCode(dept.code || '');
+    setName(dept.name || '');
+    setUsername(dept.username || '');
+    setPassword('');
+    setEditModalOpen(true);
+  };
+
+  const handleEditDepartmentSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedDept) return;
+    try {
+      await departmentApi.update(selectedDept.id, {
+        code,
+        name,
+        username,
+        password: password && password.trim() !== '' ? password.trim() : undefined
+      });
+      addToast(`Credentials for '${name}' updated successfully!`, 'success');
+      setEditModalOpen(false);
+      setSelectedDept(null);
+      setCode(''); setName(''); setUsername(''); setPassword('');
+      fetchDepartments();
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Failed to update department credentials.', 'error');
     }
   };
 
@@ -97,7 +127,16 @@ export default function DepartmentManagementPage() {
       header: 'Actions',
       key: 'actions',
       render: (row) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => handleOpenEditModal(row)}
+            className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded text-xs font-semibold transition-colors"
+            title="Edit Credentials & Details"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+            <span>Edit</span>
+          </button>
+
           <button
             onClick={() => handleToggleActive(row)}
             className={`px-2.5 py-1 rounded text-xs font-semibold border transition-colors ${
@@ -106,6 +145,7 @@ export default function DepartmentManagementPage() {
           >
             {row.is_active ? 'Deactivate' : 'Activate'}
           </button>
+          
           <button
             onClick={() => { setSelectedDept(row); setResetModalOpen(true); }}
             className="p-1.5 border border-slate-200 rounded text-slate-600 hover:bg-slate-50"
@@ -122,11 +162,11 @@ export default function DepartmentManagementPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between border-b border-slate-200 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">Department Account Management</h1>
-          <p className="text-xs text-slate-500">System Admin Control Center for Shared Department Accounts</p>
+          <h1 className="text-xl font-bold text-slate-800">Department Account & Credentials Management</h1>
+          <p className="text-xs text-slate-500">System Admin Control Center for Editing & Managing Shared Department Credentials</p>
         </div>
         <button
-          onClick={() => setAddModalOpen(true)}
+          onClick={() => { setCode(''); setName(''); setUsername(''); setPassword(''); setAddModalOpen(true); }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md"
         >
           <Plus className="w-4 h-4" />
@@ -185,6 +225,64 @@ export default function DepartmentManagementPage() {
               <div className="flex justify-end gap-2 pt-4">
                 <button type="button" onClick={() => setAddModalOpen(false)} className="px-4 py-2 border rounded font-semibold text-slate-600">Cancel</button>
                 <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded font-bold">Create Department</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Department Credentials Modal */}
+      {editModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center gap-2 pb-3 mb-3 border-b border-slate-100">
+              <Edit3 className="w-5 h-5 text-blue-600" />
+              <h3 className="text-sm font-bold text-slate-800">Edit Department Credentials</h3>
+            </div>
+            <form onSubmit={handleEditDepartmentSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold mb-1">Department Code *</label>
+                <input
+                  type="text"
+                  required
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="w-full px-3 py-1.5 border border-slate-200 rounded focus:ring-2 focus:ring-blue-600 focus:outline-none font-bold text-blue-700"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold mb-1">Department Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-1.5 border border-slate-200 rounded focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold mb-1">Login Username *</label>
+                <input
+                  type="text"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full px-3 py-1.5 border border-slate-200 rounded focus:ring-2 focus:ring-blue-600 focus:outline-none font-mono"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold mb-1">New Password (Leave blank to keep existing password)</label>
+                <input
+                  type="password"
+                  placeholder="Enter new password if changing"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-1.5 border border-slate-200 rounded focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <button type="button" onClick={() => setEditModalOpen(false)} className="px-4 py-2 border rounded font-semibold text-slate-600">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded font-bold">Save Changes</button>
               </div>
             </form>
           </div>

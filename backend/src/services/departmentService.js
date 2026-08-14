@@ -27,8 +27,39 @@ class DepartmentService {
     return deptId;
   }
 
-  async updateDepartment(id, { name, is_active, updated_by }) {
-    await departmentRepository.update(id, { name, is_active, updated_by });
+  async updateDepartment(id, { code, name, username, password, is_active, updated_by }) {
+    const existing = await departmentRepository.findById(id);
+    if (!existing) throw new Error('Department not found.');
+
+    let hash = null;
+    if (password && password.trim() !== '') {
+      hash = await bcrypt.hash(password.trim(), 10);
+    }
+
+    await departmentRepository.update(id, {
+      code,
+      name,
+      username,
+      password_hash: hash,
+      is_active,
+      updated_by
+    });
+
+    // Also update associated user account in users table
+    if (existing.username || username) {
+      const targetUsername = username || existing.username;
+      if (hash) {
+        await db.query(
+          `UPDATE users SET username = ?, full_name = ?, password_hash = ? WHERE username = ? OR department_id = ?`,
+          [targetUsername, name || existing.name, hash, existing.username, id]
+        );
+      } else {
+        await db.query(
+          `UPDATE users SET username = ?, full_name = ? WHERE username = ? OR department_id = ?`,
+          [targetUsername, name || existing.name, existing.username, id]
+        );
+      }
+    }
   }
 
   async resetPassword(id, newPassword) {

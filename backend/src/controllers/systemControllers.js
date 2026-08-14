@@ -49,41 +49,34 @@ class BackupController {
 class MasterDataController {
   async list(req, res, next) {
     try {
-      const dropdowns = await masterDataService.getDropdowns(req.query.category);
-      return successResponse(res, 'Master data retrieved', dropdowns);
+      const data = await masterDataService.getDropdowns(req.query.category);
+      return successResponse(res, 'Master data retrieved', data);
     } catch (err) { next(err); }
   }
 
   async create(req, res, next) {
     try {
       const id = await masterDataService.addDropdown(req.body);
-      return successResponse(res, 'Master data dropdown added', { id });
+      return successResponse(res, 'Master data added successfully', { id });
     } catch (err) { next(err); }
   }
 
   async toggle(req, res, next) {
     try {
       await masterDataService.toggleDropdown(req.params.id, req.body.is_active);
-      return successResponse(res, 'Master data dropdown toggled');
+      return successResponse(res, 'Master data status toggled successfully');
     } catch (err) { next(err); }
   }
 }
 
 class HealthController {
   async check(req, res) {
-    let dbStatus = 'healthy';
-    try {
-      await db.query('SELECT 1');
-    } catch (e) {
-      dbStatus = 'unhealthy';
-    }
-
-    return res.status(200).json({
+    return res.json({
+      success: true,
       status: 'UP',
-      uptime: process.uptime(),
       timestamp: new Date().toISOString(),
-      database: dbStatus,
-      engine: 'Enterprise ERP Platform Core v1.0'
+      service: 'NKB Manufacturing Enterprise Requisition System',
+      version: '1.0.0'
     });
   }
 }
@@ -91,9 +84,10 @@ class HealthController {
 class EmployeeController {
   async list(req, res, next) {
     try {
-      const employeeIntegrationService = require('../services/employeeIntegrationService');
-      const employees = await employeeIntegrationService.getEmployees();
-      return successResponse(res, 'Employees retrieved successfully', employees);
+      const [employees] = await db.query(
+        `SELECT id, employee_id, full_name, email, department_name, position FROM employees WHERE is_active = 1 ORDER BY full_name ASC`
+      );
+      return successResponse(res, 'Employees list retrieved', employees);
     } catch (err) { next(err); }
   }
 }
@@ -124,6 +118,40 @@ class SettingsController {
   }
 }
 
+class UserController {
+  async list(req, res, next) {
+    try {
+      const userRepository = require('../repositories/userRepository');
+      const users = await userRepository.findAll();
+      return successResponse(res, 'Users retrieved', users);
+    } catch (err) { next(err); }
+  }
+
+  async update(req, res, next) {
+    try {
+      const userRepository = require('../repositories/userRepository');
+      const bcrypt = require('bcryptjs');
+      const { id } = req.params;
+      const { username, full_name, email, role, password } = req.body;
+
+      let hash = null;
+      if (password && password.trim() !== '') {
+        hash = await bcrypt.hash(password.trim(), 10);
+      }
+
+      await userRepository.updateUser(id, {
+        username,
+        full_name,
+        email,
+        role,
+        password_hash: hash
+      });
+
+      return successResponse(res, 'User credentials updated successfully');
+    } catch (err) { next(err); }
+  }
+}
+
 module.exports = {
   notificationController: new NotificationController(),
   auditController: new AuditController(),
@@ -131,5 +159,6 @@ module.exports = {
   masterDataController: new MasterDataController(),
   healthController: new HealthController(),
   employeeController: new EmployeeController(),
-  settingsController: new SettingsController()
+  settingsController: new SettingsController(),
+  userController: new UserController()
 };

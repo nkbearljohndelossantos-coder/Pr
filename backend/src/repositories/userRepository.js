@@ -41,6 +41,21 @@ class UserRepository {
     );
     return rows;
   }
+
+  async updateUser(id, { username, full_name, email, role, password_hash, is_active }) {
+    const activeVal = is_active !== undefined ? (is_active ? 1 : 0) : null;
+    if (password_hash) {
+      await db.query(
+        `UPDATE users SET username = COALESCE(?, username), full_name = COALESCE(?, full_name), email = COALESCE(?, email), role = COALESCE(?, role), password_hash = ?, is_active = COALESCE(?, is_active) WHERE id = ?`,
+        [username ? username.trim() : null, full_name ? full_name.trim() : null, email ? email.trim() : null, role || null, password_hash, activeVal, id]
+      );
+    } else {
+      await db.query(
+        `UPDATE users SET username = COALESCE(?, username), full_name = COALESCE(?, full_name), email = COALESCE(?, email), role = COALESCE(?, role), is_active = COALESCE(?, is_active) WHERE id = ?`,
+        [username ? username.trim() : null, full_name ? full_name.trim() : null, email ? email.trim() : null, role || null, activeVal, id]
+      );
+    }
+  }
 }
 
 module.exports = new UserRepository();

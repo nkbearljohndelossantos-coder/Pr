@@ -32,11 +32,19 @@ class DepartmentRepository {
     return res.insertId;
   }
 
-  async update(id, { name, is_active, updated_by }) {
-    await db.query(
-      `UPDATE departments SET name = ?, is_active = ?, updated_by = ? WHERE id = ?`,
-      [name, is_active ? 1 : 0, updated_by || null, id]
-    );
+  async update(id, { code, name, username, password_hash, is_active, updated_by }) {
+    const activeVal = is_active !== undefined ? (is_active ? 1 : 0) : null;
+    if (password_hash) {
+      await db.query(
+        `UPDATE departments SET code = COALESCE(?, code), name = COALESCE(?, name), username = COALESCE(?, username), password_hash = ?, is_active = COALESCE(?, is_active), updated_by = ? WHERE id = ?`,
+        [code ? code.toUpperCase().trim() : null, name ? name.trim() : null, username ? username.trim() : null, password_hash, activeVal, updated_by || null, id]
+      );
+    } else {
+      await db.query(
+        `UPDATE departments SET code = COALESCE(?, code), name = COALESCE(?, name), username = COALESCE(?, username), is_active = COALESCE(?, is_active), updated_by = ? WHERE id = ?`,
+        [code ? code.toUpperCase().trim() : null, name ? name.trim() : null, username ? username.trim() : null, activeVal, updated_by || null, id]
+      );
+    }
   }
 
   async updatePassword(id, password_hash) {

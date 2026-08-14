@@ -39,5 +39,7 @@ export const systemApi = {
   getModules: () => api.get('/modules'),
   getSettings: () => api.get('/system/settings'),
   updateSettings: (data) => api.put('/system/settings', data),
-  sendTestEmail: (target_email) => api.post('/system/settings/test-email', { target_email })
+  sendTestEmail: (target_email) => api.post('/system/settings/test-email', { target_email }),
+  getUsers: () => api.get('/system/users'),
+  updateUser: (id, data) => api.put(`/system/users/${id}`, data)
 };
