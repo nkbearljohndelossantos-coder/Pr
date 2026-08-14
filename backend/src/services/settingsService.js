@@ -10,7 +10,9 @@ class SettingsService {
       smtp_port: Number(process.env.SMTP_PORT || env.SMTP_PORT || 587),
       smtp_user: process.env.SMTP_USER || env.SMTP_USER || '',
       smtp_pass: process.env.SMTP_PASS || env.SMTP_PASS || '',
-      smtp_from: process.env.SMTP_FROM || env.SMTP_FROM || `"NKB ERP System" <${process.env.SMTP_USER || 'notifications@nkbmanufacturing.com'}>`
+      smtp_from: process.env.SMTP_FROM || env.SMTP_FROM || `"NKB ERP System" <${process.env.SMTP_USER || 'notifications@nkbmanufacturing.com'}>`,
+      canteen_api_url: process.env.CANTEEN_API_URL || '',
+      canteen_api_key: process.env.CANTEEN_API_KEY || ''
     };
 
     try {
@@ -36,7 +38,7 @@ class SettingsService {
   }
 
   async updateSettings(data) {
-    const keys = ['approver_email', 'smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_from'];
+    const keys = ['approver_email', 'smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_from', 'canteen_api_url', 'canteen_api_key'];
     for (const key of keys) {
       if (data[key] !== undefined && data[key] !== '********') {
         const val = String(data[key]).trim();

@@ -318,6 +318,56 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
+        {/* Section 3: External Canteen & HR Employees API Integration Endpoint */}
+        <div className="card-erp p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-slate-800">3. External Canteen & HR Employees Live API Integration</h2>
+                <p className="text-[11px] text-slate-500">Connect your company's external Canteen / HR server endpoint URL to fetch live employee names and departments automatically.</p>
+              </div>
+            </div>
+            <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">Live API Sync</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                External Canteen API Endpoint URL
+              </label>
+              <input
+                type="text"
+                value={settings.canteen_api_url || ''}
+                onChange={(e) => handleChange('canteen_api_url', e.target.value)}
+                placeholder="https://canteen-api.nkbmanufacturing.com/api/v1/employees"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-mono font-medium text-emerald-900 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Enter your live Canteen / HR server URL. If left empty, system uses local MySQL cached employees.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                API Authorization Key / Token (Optional)
+              </label>
+              <input
+                type="text"
+                value={settings.canteen_api_key || ''}
+                onChange={(e) => handleChange('canteen_api_key', e.target.value)}
+                placeholder="e.g. Bearer token or secret API key"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-mono font-medium text-slate-800 focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Passed in <code className="bg-slate-100 px-1 rounded font-mono">Authorization: Bearer [key]</code> header when calling external server.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Bottom Save & Action Footer */}
         <div className="flex items-center justify-end gap-3 pt-2">
           <button

@@ -4,6 +4,7 @@ const backupService = require('../services/backupService');
 const masterDataService = require('../services/masterDataService');
 const { successResponse } = require('../utils/response');
 const db = require('../config/db');
+const logger = require('../utils/logger');
 
 class NotificationController {
   async list(req, res, next) {
@@ -84,16 +85,78 @@ class HealthController {
 class EmployeeController {
   async list(req, res, next) {
     try {
+      const settingsService = require('../services/settingsService');
+      const settings = await settingsService.getRawSettings();
+      const canteenUrl = settings.canteen_api_url ? settings.canteen_api_url.trim() : '';
+
+      let fetchedFromExternal = false;
       let employees = [];
-      try {
-        const [rows] = await db.query(
-          `SELECT id, employee_id, full_name, name, email, department_name, department, position, canteen_allowance, is_active FROM employees WHERE is_active = 1 ORDER BY full_name ASC`
-        );
-        employees = rows;
-      } catch (e) {
-        employees = [];
+
+      // 1. If an external Canteen API URL is configured in System Settings, fetch live data!
+      if (canteenUrl && canteenUrl.startsWith('http')) {
+        try {
+          const axios = require('axios');
+          const headers = {};
+          if (settings.canteen_api_key) {
+            headers['Authorization'] = `Bearer ${settings.canteen_api_key.trim()}`;
+            headers['x-api-key'] = settings.canteen_api_key.trim();
+          }
+
+          const response = await axios.get(canteenUrl, { headers, timeout: 6000 });
+          let rawData = response.data;
+          if (rawData && rawData.data && Array.isArray(rawData.data)) {
+            rawData = rawData.data;
+          } else if (rawData && rawData.employees && Array.isArray(rawData.employees)) {
+            rawData = rawData.employees;
+          } else if (!Array.isArray(rawData)) {
+            rawData = [];
+          }
+
+          if (rawData.length > 0) {
+            employees = rawData.map((e, idx) => ({
+              id: e.id || e.emp_id || idx + 1,
+              employee_id: e.employee_id || e.emp_id || e.id || `EMP-${idx + 1}`,
+              name: e.name || e.full_name || `${e.first_name || ''} ${e.last_name || ''}`.trim() || 'Employee',
+              full_name: e.full_name || e.name || `${e.first_name || ''} ${e.last_name || ''}`.trim() || 'Employee',
+              department: e.department || e.department_name || e.dept_name || 'General Dept',
+              department_name: e.department_name || e.department || e.dept_name || 'General Dept',
+              position: e.position || e.job_title || e.designation || 'Staff',
+              email: e.email || '',
+              canteen_allowance: e.canteen_allowance || e.allowance || 0,
+              is_active: 1
+            }));
+            fetchedFromExternal = true;
+
+            // Cache/Upsert into MySQL employees table so local database has latest copy!
+            try {
+              for (const emp of employees) {
+                await db.query(
+                  `INSERT INTO employees (employee_id, full_name, name, department_name, department, position, email, canteen_allowance, is_active)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+                   ON DUPLICATE KEY UPDATE full_name=VALUES(full_name), name=VALUES(name), department_name=VALUES(department_name), department=VALUES(department), position=VALUES(position)`,
+                  [emp.employee_id, emp.full_name, emp.name, emp.department_name, emp.department, emp.position, emp.email, emp.canteen_allowance]
+                );
+              }
+            } catch (e) {}
+          }
+        } catch (extErr) {
+          logger.warn(`External Canteen API fetch failed (${extErr.message}). Falling back to database cache.`);
+        }
       }
 
+      // 2. Fallback to MySQL local database cache if external API not configured or offline
+      if (!fetchedFromExternal || employees.length === 0) {
+        try {
+          const [rows] = await db.query(
+            `SELECT id, employee_id, full_name, name, email, department_name, department, position, canteen_allowance, is_active FROM employees WHERE is_active = 1 ORDER BY full_name ASC`
+          );
+          employees = rows;
+        } catch (e) {
+          employees = [];
+        }
+      }
+
+      // 3. Fallback default employees if table is empty
       if (!employees || employees.length === 0) {
         employees = [
           { id: 1, employee_id: 'NKB-EMP-001', name: 'Earl Delos Santos', full_name: 'Earl Delos Santos', department: 'Information Technology Department', department_name: 'Information Technology Department', position: 'IT Infrastructure Specialist', email: 'earl.delossantos@nkbmanufacturing.com', canteen_allowance: 250.00, is_active: 1 },
@@ -122,7 +185,10 @@ class EmployeeController {
         is_active: e.is_active || 1
       }));
 
-      return successResponse(res, 'Employees & Canteen integration list retrieved', formatted);
+      return successResponse(res, 'Employees & Canteen integration list retrieved', formatted, {
+        fetched_from_external: fetchedFromExternal,
+        external_url: canteenUrl || null
+      });
     } catch (err) { next(err); }
   }
 }
