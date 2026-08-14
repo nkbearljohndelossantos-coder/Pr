@@ -6,7 +6,7 @@ class UserRepository {
       `SELECT u.*, d.code as department_code, d.name as department_name 
        FROM users u 
        LEFT JOIN departments d ON u.department_id = d.id 
-       WHERE u.username = ? AND u.is_deleted = 0`,
+       WHERE LOWER(u.username) = LOWER(?) AND u.is_deleted = 0`,
       [username]
     );
     return rows[0] || null;

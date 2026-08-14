@@ -18,8 +18,16 @@ class DepartmentRepository {
 
   async findByCode(code) {
     const [rows] = await db.query(
-      `SELECT * FROM departments WHERE code = ? AND is_deleted = 0`,
+      `SELECT * FROM departments WHERE LOWER(code) = LOWER(?) AND is_deleted = 0`,
       [code]
+    );
+    return rows[0] || null;
+  }
+
+  async findByUsername(username) {
+    const [rows] = await db.query(
+      `SELECT * FROM departments WHERE (LOWER(username) = LOWER(?) OR LOWER(code) = LOWER(?)) AND is_deleted = 0`,
+      [username, username]
     );
     return rows[0] || null;
   }

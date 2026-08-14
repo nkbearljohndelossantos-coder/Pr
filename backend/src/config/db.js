@@ -518,9 +518,9 @@ const db = {
 
     // 2. USERS Queries
     if (upper.includes('FROM USERS')) {
-      if (upper.includes('WHERE U.USERNAME = ?') || upper.includes('WHERE USERNAME = ?')) {
-        const username = params[0];
-        const user = store.users.find(u => u.username === username && !u.is_deleted);
+      if (upper.includes('WHERE U.USERNAME = ?') || upper.includes('WHERE USERNAME = ?') || upper.includes('WHERE LOWER(U.USERNAME) = LOWER(?)')) {
+        const username = String(params[0] || '').toLowerCase();
+        const user = store.users.find(u => String(u.username || '').toLowerCase() === username && !u.is_deleted);
         if (user) {
           const dept = store.departments.find(d => d.id === user.department_id);
           return [[{ ...user, department_code: dept?.code, department_name: dept?.name }]];
