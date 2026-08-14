@@ -33,12 +33,15 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
         {/* Header */}
-        <div className="bg-[#1E293B] p-8 text-white text-center border-b border-slate-700">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-lg text-white mx-auto shadow-md mb-3">
-            ERP
-          </div>
-          <h2 className="text-xl font-bold tracking-tight">Enterprise ERP Platform</h2>
-          <p className="text-xs text-slate-400 mt-1">Department Request & Requisition Gateway</p>
+        <div className="bg-[#0f172a] p-6 text-white text-center border-b border-slate-700 flex flex-col items-center justify-center">
+          <img
+            src="/nkb-logo.png"
+            alt="NKB Requisition Logo"
+            className="w-56 max-h-36 object-contain mx-auto mb-1 drop-shadow-lg hover:scale-105 transition-transform duration-300"
+          />
+          <p className="text-[11px] font-bold text-amber-400 uppercase tracking-widest mt-1">
+            Enterprise Requisition System
+          </p>
         </div>
 
         {/* Form Body */}

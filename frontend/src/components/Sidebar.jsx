@@ -31,15 +31,13 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-[#1E293B] text-white flex flex-col fixed inset-y-0 left-0 z-30 select-none shadow-lg">
-      {/* Brand Header */}
-      <div className="h-16 px-6 flex items-center gap-3 border-b border-slate-700/60 bg-slate-900/40">
-        <div className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center font-bold text-white shadow-sm">
-          ERP
-        </div>
-        <div className="flex flex-col">
-          <span className="font-bold text-sm tracking-wide text-white">ENTERPRISE ERP</span>
-          <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Request Platform</span>
-        </div>
+      {/* Brand Header - LOGO ONLY (PROMINENT & LARGE) */}
+      <div className="py-4 px-3 flex items-center justify-center border-b border-slate-700/80 bg-slate-950/70">
+        <img
+          src="/nkb-logo.png"
+          alt="NKB Requisition Logo"
+          className="w-52 h-auto max-h-28 object-contain mx-auto drop-shadow-md hover:scale-105 transition-transform duration-300 cursor-pointer"
+        />
       </div>
 
       {/* Navigation Links */}
