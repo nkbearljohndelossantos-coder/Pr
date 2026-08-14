@@ -58,7 +58,15 @@ class UserRepository {
   }
 
   async deleteUser(id) {
-    await db.query(`DELETE FROM users WHERE id = ?`, [id]);
+    const userId = Number(id);
+    try {
+      await db.query(`UPDATE requests SET created_by = NULL WHERE created_by = ?`, [userId]);
+      await db.query(`UPDATE requests SET updated_by = NULL WHERE updated_by = ?`, [userId]);
+      await db.query(`UPDATE requests SET deleted_by = NULL WHERE deleted_by = ?`, [userId]);
+      await db.query(`DELETE FROM notifications WHERE user_id = ?`, [userId]);
+    } catch (e) {}
+
+    await db.query(`DELETE FROM users WHERE id = ?`, [userId]);
   }
 }
 

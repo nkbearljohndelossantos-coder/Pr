@@ -73,13 +73,59 @@ class DepartmentService {
   }
 
   async deleteDepartment(id) {
-    const dept = await departmentRepository.findById(id);
-    if (dept) {
-      await departmentRepository.hardDelete(id);
-      await db.query(`DELETE FROM users WHERE username = ? OR department_id = ?`, [dept.username, id]);
-    } else {
-      await departmentRepository.hardDelete(id);
-    }
+    const deptId = Number(id);
+    const dept = await departmentRepository.findById(deptId);
+
+    // Cascading deletion of dependent MySQL rows to prevent #1451 Foreign Key Constraint Errors
+    try {
+      // 1. Delete request items of requests belonging to this department
+      await db.query(
+        `DELETE FROM request_items WHERE request_id IN (SELECT id FROM requests WHERE department_id = ?)`,
+        [deptId]
+      );
+    } catch (e) {}
+
+    try {
+      // 2. Delete attachments of requests belonging to this department
+      await db.query(
+        `DELETE FROM attachments WHERE request_id IN (SELECT id FROM requests WHERE department_id = ?)`,
+        [deptId]
+      );
+    } catch (e) {}
+
+    try {
+      // 3. Delete notifications for this department
+      await db.query(
+        `DELETE FROM notifications WHERE department_id = ?`,
+        [deptId]
+      );
+    } catch (e) {}
+
+    try {
+      // 4. Delete requests belonging to this department
+      await db.query(
+        `DELETE FROM requests WHERE department_id = ?`,
+        [deptId]
+      );
+    } catch (e) {}
+
+    try {
+      // 5. Delete users associated with this department
+      if (dept && dept.username) {
+        await db.query(
+          `DELETE FROM users WHERE username = ? OR department_id = ?`,
+          [dept.username, deptId]
+        );
+      } else {
+        await db.query(
+          `DELETE FROM users WHERE department_id = ?`,
+          [deptId]
+        );
+      }
+    } catch (e) {}
+
+    // 6. Delete department record from departments table
+    await departmentRepository.hardDelete(deptId);
   }
 }
 
