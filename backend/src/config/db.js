@@ -589,6 +589,42 @@ const db = {
       }
     }
 
+    // EMPLOYEES Queries
+    if (upper.includes('FROM EMPLOYEES')) {
+      const emps = (store.employees || []).filter(e => e && e.is_active);
+      return [[emps]];
+    }
+
+    if (upper.includes('INSERT INTO EMPLOYEES')) {
+      if (!store.employees) store.employees = [];
+      const empCode = params[0];
+      const existing = store.employees.find(e => e.employee_id === empCode);
+      if (existing) {
+        existing.full_name = params[1];
+        existing.name = params[2];
+        existing.department_name = params[3];
+        existing.department = params[4];
+        existing.position = params[5];
+        existing.email = params[6];
+        existing.canteen_balance = params[7];
+      } else {
+        store.employees.push({
+          id: store.employees.length + 1,
+          employee_id: empCode,
+          full_name: params[1],
+          name: params[2],
+          department_name: params[3],
+          department: params[4],
+          position: params[5],
+          email: params[6],
+          canteen_balance: params[7],
+          is_active: 1
+        });
+      }
+      saveStore();
+      return [{ insertId: store.employees.length }];
+    }
+
     // 2. USERS Queries
     if (upper.includes('FROM USERS')) {
       if (upper.includes('WHERE U.USERNAME = ?') || upper.includes('WHERE USERNAME = ?') || upper.includes('WHERE LOWER(U.USERNAME) = LOWER(?)')) {

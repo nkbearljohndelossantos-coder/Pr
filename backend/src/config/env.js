@@ -60,5 +60,7 @@ module.exports = {
   SMTP_USER: process.env.SMTP_USER || '',
   SMTP_PASS: process.env.SMTP_PASS || '',
   SMTP_FROM: process.env.SMTP_FROM || '',
-  APPROVER_EMAIL: process.env.APPROVER_EMAIL || 'boss@company.com'
+  APPROVER_EMAIL: process.env.APPROVER_EMAIL || 'boss@company.com',
+  CANTEEN_API_URL: process.env.CANTEEN_API_URL || 'https://canteen.nkbmanufacturing.com/api/integration/employees?api_key=NkbCanteenIntegrationSecretApiKey2026',
+  CANTEEN_API_KEY: process.env.CANTEEN_API_KEY || 'NkbCanteenIntegrationSecretApiKey2026'
 };

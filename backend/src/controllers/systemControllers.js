@@ -5,6 +5,33 @@ const masterDataService = require('../services/masterDataService');
 const { successResponse } = require('../utils/response');
 const db = require('../config/db');
 const logger = require('../utils/logger');
+const https = require('https');
+
+const fetchCanteenData = async (url, apiKey) => {
+  if (typeof globalThis.fetch === 'function') {
+    const headers = {};
+    if (apiKey && !url.includes('api_key=')) {
+      headers['Authorization'] = `Bearer ${apiKey.trim()}`;
+      headers['x-api-key'] = apiKey.trim();
+    }
+    const response = await fetch(url, { headers, signal: AbortSignal.timeout(8000) });
+    return await response.json();
+  }
+
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          reject(e);
+        }
+      });
+    }).on('error', reject);
+  });
+};
 
 class NotificationController {
   async list(req, res, next) {
@@ -87,107 +114,101 @@ class EmployeeController {
     try {
       const settingsService = require('../services/settingsService');
       const settings = await settingsService.getRawSettings();
-      const canteenUrl = settings.canteen_api_url ? settings.canteen_api_url.trim() : '';
+      const defaultCanteenUrl = 'https://canteen.nkbmanufacturing.com/api/integration/employees?api_key=NkbCanteenIntegrationSecretApiKey2026';
+      const canteenUrl = (settings.canteen_api_url && settings.canteen_api_url.trim()) || defaultCanteenUrl;
 
       let fetchedFromExternal = false;
       let employees = [];
 
-      // 1. If an external Canteen API URL is configured in System Settings, fetch live data!
+      // 1. Fetch live real employees from Canteen API!
       if (canteenUrl && canteenUrl.startsWith('http')) {
         try {
-          const axios = require('axios');
-          const headers = {};
-          if (settings.canteen_api_key) {
-            headers['Authorization'] = `Bearer ${settings.canteen_api_key.trim()}`;
-            headers['x-api-key'] = settings.canteen_api_key.trim();
-          }
-
-          const response = await axios.get(canteenUrl, { headers, timeout: 6000 });
-          let rawData = response.data;
+          const rawData = await fetchCanteenData(canteenUrl, settings.canteen_api_key);
+          let list = [];
           if (rawData && rawData.data && Array.isArray(rawData.data)) {
-            rawData = rawData.data;
+            list = rawData.data;
           } else if (rawData && rawData.employees && Array.isArray(rawData.employees)) {
-            rawData = rawData.employees;
-          } else if (!Array.isArray(rawData)) {
-            rawData = [];
+            list = rawData.employees;
+          } else if (Array.isArray(rawData)) {
+            list = rawData;
           }
 
-          if (rawData.length > 0) {
-            employees = rawData.map((e, idx) => ({
-              id: e.id || e.emp_id || idx + 1,
-              employee_id: e.employee_id || e.emp_id || e.id || `EMP-${idx + 1}`,
-              name: e.name || e.full_name || `${e.first_name || ''} ${e.last_name || ''}`.trim() || 'Employee',
-              full_name: e.full_name || e.name || `${e.first_name || ''} ${e.last_name || ''}`.trim() || 'Employee',
-              department: e.department || e.department_name || e.dept_name || 'General Dept',
-              department_name: e.department_name || e.department || e.dept_name || 'General Dept',
-              position: e.position || e.job_title || e.designation || 'Staff',
-              email: e.email || '',
-              canteen_allowance: e.canteen_allowance || e.allowance || 0,
-              is_active: 1
-            }));
+          if (list.length > 0) {
+            // Filter active employees
+            const activeOnly = list.filter(e => e && e.status !== 'inactive');
+            const targetList = activeOnly.length > 0 ? activeOnly : list;
+
+            employees = targetList.map((e, idx) => {
+              const empName = (e.name || e.full_name || `${e.first_name || ''} ${e.last_name || ''}`.trim() || 'Employee').trim();
+              const deptName = (e.department || e.department_name || e.dept_name || 'General').trim();
+              const empPosition = (e.position || e.job_title || e.designation || '').trim();
+              const empCode = (e.employee_id || e.emp_id || e.barcode_number || `EMP-${idx + 1}`).trim();
+
+              return {
+                id: e.id || idx + 1,
+                employee_id: empCode,
+                barcode_number: e.barcode_number || empCode,
+                name: empName,
+                full_name: empName,
+                department: deptName,
+                department_name: deptName,
+                position: empPosition,
+                email: (e.email || '').trim(),
+                canteen_balance: e.current_balance || 0,
+                credit_limit: e.credit_limit || 0,
+                wallet_balance: e.wallet_balance || 0,
+                is_active: e.status === 'inactive' ? 0 : 1
+              };
+            });
             fetchedFromExternal = true;
 
-            // Cache/Upsert into MySQL employees table so local database has latest copy!
+            // Cache/Upsert into MySQL employees table and fallback store!
             try {
               for (const emp of employees) {
                 await db.query(
                   `INSERT INTO employees (employee_id, full_name, name, department_name, department, position, email, canteen_allowance, is_active)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
                    ON DUPLICATE KEY UPDATE full_name=VALUES(full_name), name=VALUES(name), department_name=VALUES(department_name), department=VALUES(department), position=VALUES(position)`,
-                  [emp.employee_id, emp.full_name, emp.name, emp.department_name, emp.department, emp.position, emp.email, emp.canteen_allowance]
+                  [emp.employee_id, emp.full_name, emp.name, emp.department_name, emp.department, emp.position, emp.email, emp.canteen_balance]
                 );
               }
             } catch (e) {}
           }
         } catch (extErr) {
-          logger.warn(`External Canteen API fetch failed (${extErr.message}). Falling back to database cache.`);
+          logger.warn(`External Canteen API fetch error (${extErr.message}). Falling back to local cache.`);
         }
       }
 
-      // 2. Fallback to MySQL local database cache if external API not configured or offline
+      // 2. Fallback to MySQL local database cache if external API offline
       if (!fetchedFromExternal || employees.length === 0) {
         try {
           const [rows] = await db.query(
             `SELECT id, employee_id, full_name, name, email, department_name, department, position, canteen_allowance, is_active FROM employees WHERE is_active = 1 ORDER BY full_name ASC`
           );
-          employees = rows;
+          if (rows && rows.length > 0) {
+            employees = rows.map(e => ({
+              id: e.id,
+              employee_id: e.employee_id,
+              barcode_number: e.employee_id,
+              name: e.name || e.full_name,
+              full_name: e.full_name || e.name,
+              department: e.department || e.department_name || 'General',
+              department_name: e.department_name || e.department || 'General',
+              position: e.position || '',
+              email: e.email || '',
+              canteen_balance: e.canteen_allowance || 0,
+              is_active: 1
+            }));
+          }
         } catch (e) {
           employees = [];
         }
       }
 
-      // 3. Fallback default employees if table is empty
-      if (!employees || employees.length === 0) {
-        employees = [
-          { id: 1, employee_id: 'NKB-EMP-001', name: 'Earl Delos Santos', full_name: 'Earl Delos Santos', department: 'Information Technology Department', department_name: 'Information Technology Department', position: 'IT Infrastructure Specialist', email: 'earl.delossantos@nkbmanufacturing.com', canteen_allowance: 250.00, is_active: 1 },
-          { id: 2, employee_id: 'NKB-EMP-002', name: 'Maria Santos', full_name: 'Maria Santos', department: 'Human Resources Department', department_name: 'Human Resources Department', position: 'HR Manager', email: 'maria.santos@nkbmanufacturing.com', canteen_allowance: 250.00, is_active: 1 },
-          { id: 3, employee_id: 'NKB-EMP-003', name: 'Juan Dela Cruz', full_name: 'Juan Dela Cruz', department: 'Production Department', department_name: 'Production Department', position: 'Senior Production Engineer', email: 'juan.delacruz@nkbmanufacturing.com', canteen_allowance: 250.00, is_active: 1 },
-          { id: 4, employee_id: 'NKB-EMP-004', name: 'Ana Reyes', full_name: 'Ana Reyes', department: 'Accounting Department', department_name: 'Accounting Department', position: 'Chief Accountant', email: 'ana.reyes@nkbmanufacturing.com', canteen_allowance: 250.00, is_active: 1 },
-          { id: 5, employee_id: 'NKB-EMP-005', name: 'Mark Bautista', full_name: 'Mark Bautista', department: 'Purchasing Department', department_name: 'Purchasing Department', position: 'Purchasing Specialist', email: 'mark.bautista@nkbmanufacturing.com', canteen_allowance: 250.00, is_active: 1 },
-          { id: 6, employee_id: 'NKB-EMP-006', name: 'Joseph Tan', full_name: 'Joseph Tan', department: 'Warehouse Department', department_name: 'Warehouse Department', position: 'Logistics & Warehouse Supervisor', email: 'joseph.tan@nkbmanufacturing.com', canteen_allowance: 250.00, is_active: 1 },
-          { id: 7, employee_id: 'NKB-EMP-007', name: 'Liza Garcia', full_name: 'Liza Garcia', department: 'Quality Assurance Department', department_name: 'Quality Assurance Department', position: 'QA Lead Auditor', email: 'liza.garcia@nkbmanufacturing.com', canteen_allowance: 250.00, is_active: 1 },
-          { id: 8, employee_id: 'NKB-EMP-008', name: 'Robert Lim', full_name: 'Robert Lim', department: 'Production Department', department_name: 'Production Department', position: 'Plant Maintenance Manager', email: 'robert.lim@nkbmanufacturing.com', canteen_allowance: 250.00, is_active: 1 },
-          { id: 9, employee_id: 'NKB-EMP-009', name: 'Elena Gomez', full_name: 'Elena Gomez', department: 'Executive Management', department_name: 'Executive Management', position: 'Executive Operations Director', email: 'elena.gomez@nkbmanufacturing.com', canteen_allowance: 250.00, is_active: 1 },
-          { id: 10, employee_id: 'NKB-EMP-010', name: 'Carlos Ramos', full_name: 'Carlos Ramos', department: 'Information Technology Department', department_name: 'Information Technology Department', position: 'Network & Security Engineer', email: 'carlos.ramos@nkbmanufacturing.com', canteen_allowance: 250.00, is_active: 1 }
-        ];
-      }
-
-      const formatted = employees.map(e => ({
-        id: e.id,
-        employee_id: e.employee_id,
-        name: e.name || e.full_name || 'Employee',
-        full_name: e.full_name || e.name || 'Employee',
-        department: e.department || e.department_name || 'General Dept',
-        department_name: e.department_name || e.department || 'General Dept',
-        position: e.position || 'Staff',
-        email: e.email || '',
-        canteen_allowance: e.canteen_allowance || 250.00,
-        is_active: e.is_active || 1
-      }));
-
-      return successResponse(res, 'Employees & Canteen integration list retrieved', formatted, {
+      return successResponse(res, 'Live Canteen Real Employees retrieved successfully', employees, {
+        total_count: employees.length,
         fetched_from_external: fetchedFromExternal,
-        external_url: canteenUrl || null
+        external_url: canteenUrl
       });
     } catch (err) { next(err); }
   }
