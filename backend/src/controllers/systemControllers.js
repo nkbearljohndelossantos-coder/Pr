@@ -6,30 +6,52 @@ const { successResponse } = require('../utils/response');
 const db = require('../config/db');
 const logger = require('../utils/logger');
 const https = require('https');
+const http = require('http');
 
-const fetchCanteenData = async (url, apiKey) => {
-  if (typeof globalThis.fetch === 'function') {
-    const headers = {};
-    if (apiKey && !url.includes('api_key=')) {
-      headers['Authorization'] = `Bearer ${apiKey.trim()}`;
-      headers['x-api-key'] = apiKey.trim();
-    }
-    const response = await fetch(url, { headers, signal: AbortSignal.timeout(8000) });
-    return await response.json();
-  }
+let memoryEmployeeCache = null;
+let lastFetchTime = 0;
+const CACHE_TTL = 3 * 60 * 1000; // 3 minutes
 
-  return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          resolve(JSON.parse(data));
-        } catch (e) {
-          reject(e);
-        }
+const fetchCanteenData = (url) => {
+  return new Promise((resolve) => {
+    try {
+      const parsedUrl = new URL(url);
+      const isHttps = parsedUrl.protocol === 'https:';
+      const client = isHttps ? https : http;
+
+      const req = client.get(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) NKB-ERP/1.0',
+          'Accept': 'application/json'
+        },
+        timeout: 8000
+      }, (res) => {
+        let raw = '';
+        res.on('data', chunk => raw += chunk);
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(raw);
+            resolve(parsed);
+          } catch (e) {
+            logger.warn('Failed to parse Canteen API response:', e.message);
+            resolve(null);
+          }
+        });
       });
-    }).on('error', reject);
+
+      req.on('timeout', () => {
+        req.destroy();
+        resolve(null);
+      });
+
+      req.on('error', (err) => {
+        logger.warn('Canteen API network error:', err.message);
+        resolve(null);
+      });
+    } catch (e) {
+      logger.warn('Invalid Canteen API URL:', e.message);
+      resolve(null);
+    }
   });
 };
 
@@ -110,107 +132,112 @@ class HealthController {
 }
 
 class EmployeeController {
-  async list(req, res, next) {
+  async list(req, res) {
     try {
+      const now = Date.now();
+      // 1. Fast path: return memory cache if fresh
+      if (memoryEmployeeCache && (now - lastFetchTime) < CACHE_TTL && memoryEmployeeCache.length > 0) {
+        return successResponse(res, 'Live Canteen Real Employees retrieved (cached)', memoryEmployeeCache, {
+          total_count: memoryEmployeeCache.length,
+          cached: true
+        });
+      }
+
       const settingsService = require('../services/settingsService');
       const settings = await settingsService.getRawSettings();
       const defaultCanteenUrl = 'https://canteen.nkbmanufacturing.com/api/integration/employees?api_key=NkbCanteenIntegrationSecretApiKey2026';
       const canteenUrl = (settings.canteen_api_url && settings.canteen_api_url.trim()) || defaultCanteenUrl;
 
-      let fetchedFromExternal = false;
-      let employees = [];
+      let rawData = await fetchCanteenData(canteenUrl);
+      let list = [];
 
-      // 1. Fetch live real employees from Canteen API!
-      if (canteenUrl && canteenUrl.startsWith('http')) {
-        try {
-          const rawData = await fetchCanteenData(canteenUrl, settings.canteen_api_key);
-          let list = [];
-          if (rawData && rawData.data && Array.isArray(rawData.data)) {
-            list = rawData.data;
-          } else if (rawData && rawData.employees && Array.isArray(rawData.employees)) {
-            list = rawData.employees;
-          } else if (Array.isArray(rawData)) {
-            list = rawData;
-          }
-
-          if (list.length > 0) {
-            // Filter active employees
-            const activeOnly = list.filter(e => e && e.status !== 'inactive');
-            const targetList = activeOnly.length > 0 ? activeOnly : list;
-
-            employees = targetList.map((e, idx) => {
-              const empName = (e.name || e.full_name || `${e.first_name || ''} ${e.last_name || ''}`.trim() || 'Employee').trim();
-              const deptName = (e.department || e.department_name || e.dept_name || 'General').trim();
-              const empPosition = (e.position || e.job_title || e.designation || '').trim();
-              const empCode = (e.employee_id || e.emp_id || e.barcode_number || `EMP-${idx + 1}`).trim();
-
-              return {
-                id: e.id || idx + 1,
-                employee_id: empCode,
-                barcode_number: e.barcode_number || empCode,
-                name: empName,
-                full_name: empName,
-                department: deptName,
-                department_name: deptName,
-                position: empPosition,
-                email: (e.email || '').trim(),
-                canteen_balance: e.current_balance || 0,
-                credit_limit: e.credit_limit || 0,
-                wallet_balance: e.wallet_balance || 0,
-                is_active: e.status === 'inactive' ? 0 : 1
-              };
-            });
-            fetchedFromExternal = true;
-
-            // Cache/Upsert into MySQL employees table and fallback store!
-            try {
-              for (const emp of employees) {
-                await db.query(
-                  `INSERT INTO employees (employee_id, full_name, name, department_name, department, position, email, canteen_allowance, is_active)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
-                   ON DUPLICATE KEY UPDATE full_name=VALUES(full_name), name=VALUES(name), department_name=VALUES(department_name), department=VALUES(department), position=VALUES(position)`,
-                  [emp.employee_id, emp.full_name, emp.name, emp.department_name, emp.department, emp.position, emp.email, emp.canteen_balance]
-                );
-              }
-            } catch (e) {}
-          }
-        } catch (extErr) {
-          logger.warn(`External Canteen API fetch error (${extErr.message}). Falling back to local cache.`);
-        }
+      if (rawData && rawData.data && Array.isArray(rawData.data)) {
+        list = rawData.data;
+      } else if (rawData && rawData.employees && Array.isArray(rawData.employees)) {
+        list = rawData.employees;
+      } else if (Array.isArray(rawData)) {
+        list = rawData;
       }
 
-      // 2. Fallback to MySQL local database cache if external API offline
-      if (!fetchedFromExternal || employees.length === 0) {
-        try {
-          const [rows] = await db.query(
-            `SELECT id, employee_id, full_name, name, email, department_name, department, position, canteen_allowance, is_active FROM employees WHERE is_active = 1 ORDER BY full_name ASC`
-          );
-          if (rows && rows.length > 0) {
-            employees = rows.map(e => ({
-              id: e.id,
-              employee_id: e.employee_id,
-              barcode_number: e.employee_id,
-              name: e.name || e.full_name,
-              full_name: e.full_name || e.name,
-              department: e.department || e.department_name || 'General',
-              department_name: e.department_name || e.department || 'General',
-              position: e.position || '',
-              email: e.email || '',
-              canteen_balance: e.canteen_allowance || 0,
-              is_active: 1
-            }));
-          }
-        } catch (e) {
-          employees = [];
-        }
+      if (list && list.length > 0) {
+        // Filter out inactive employees
+        const activeOnly = list.filter(e => e && e.status !== 'inactive');
+        const targetList = activeOnly.length > 0 ? activeOnly : list;
+
+        const formatted = targetList.map((e, idx) => {
+          const empName = (e.name || e.full_name || `${e.first_name || ''} ${e.last_name || ''}`.trim() || 'Employee').trim();
+          const deptName = (e.department || e.department_name || e.dept_name || 'General').trim();
+          const empPosition = (e.position || e.job_title || e.designation || '').trim();
+          const empCode = (e.employee_id || e.emp_id || e.barcode_number || `EMP-${idx + 1}`).trim();
+
+          return {
+            id: e.id || idx + 1,
+            employee_id: empCode,
+            barcode_number: e.barcode_number || empCode,
+            name: empName,
+            full_name: empName,
+            department: deptName,
+            department_name: deptName,
+            position: empPosition,
+            email: (e.email || '').trim(),
+            canteen_balance: e.current_balance || 0,
+            credit_limit: e.credit_limit || 0,
+            wallet_balance: e.wallet_balance || 0,
+            is_active: e.status === 'inactive' ? 0 : 1
+          };
+        });
+
+        memoryEmployeeCache = formatted;
+        lastFetchTime = now;
+
+        return successResponse(res, 'Live Canteen Real Employees retrieved successfully', formatted, {
+          total_count: formatted.length,
+          fetched_from_external: true,
+          external_url: canteenUrl
+        });
       }
 
-      return successResponse(res, 'Live Canteen Real Employees retrieved successfully', employees, {
-        total_count: employees.length,
-        fetched_from_external: fetchedFromExternal,
-        external_url: canteenUrl
-      });
-    } catch (err) { next(err); }
+      // 2. Fallback to memory cache if previous fetch succeeded
+      if (memoryEmployeeCache && memoryEmployeeCache.length > 0) {
+        return successResponse(res, 'Live Canteen Real Employees retrieved (fallback cache)', memoryEmployeeCache, {
+          total_count: memoryEmployeeCache.length,
+          cached: true
+        });
+      }
+
+      // 3. Fallback to MySQL local database cache
+      try {
+        const [rows] = await db.query(
+          `SELECT id, employee_id, full_name, name, email, department_name, department, position, canteen_allowance, is_active FROM employees WHERE is_active = 1 ORDER BY full_name ASC`
+        );
+        if (rows && rows.length > 0) {
+          const formattedRows = rows.map(e => ({
+            id: e.id,
+            employee_id: e.employee_id,
+            barcode_number: e.employee_id,
+            name: e.name || e.full_name,
+            full_name: e.full_name || e.name,
+            department: e.department || e.department_name || 'General',
+            department_name: e.department_name || e.department || 'General',
+            position: e.position || '',
+            email: e.email || '',
+            canteen_balance: e.canteen_allowance || 0,
+            is_active: 1
+          }));
+          return successResponse(res, 'Live Canteen Real Employees retrieved (db cache)', formattedRows, {
+            total_count: formattedRows.length
+          });
+        }
+      } catch (e) {}
+
+      return successResponse(res, 'Employees list retrieved', []);
+    } catch (err) {
+      logger.error('Error in EmployeeController.list:', err);
+      if (memoryEmployeeCache && memoryEmployeeCache.length > 0) {
+        return successResponse(res, 'Live Canteen Real Employees retrieved (emergency cache)', memoryEmployeeCache);
+      }
+      return successResponse(res, 'Employees list retrieved (empty)', []);
+    }
   }
 }
 
