@@ -68,7 +68,7 @@ export default function RequestDetailPage() {
     try {
       const res = await requestApi.updateStatus(id, { status, remarks: approvalNotes });
       if (res.data.success) {
-        addToast(`Request status updated to '${status}' successfully!`, 'success');
+        addToast(status === 'Submitted' ? `Request submitted for Executive Approval! Notification email dispatched to Approver.` : `Request status updated to '${status}' successfully!`, 'success');
         setRequest(res.data.data);
         setApprovalNotes('');
       }

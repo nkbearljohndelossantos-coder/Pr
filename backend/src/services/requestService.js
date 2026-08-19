@@ -163,7 +163,9 @@ class RequestService {
 
     const createdReq = await requestRepository.findById(requestId);
     if (createdReq && createdReq.status === 'Submitted') {
-      emailService.sendApprovalNotification(createdReq).catch((err) => {
+      emailService.sendApprovalNotification(createdReq).then((res) => {
+        logger.info(`Live approval notification dispatched for request #${createdReq.request_number} (Status: ${res?.success ? 'Delivered' : 'Failed'})`);
+      }).catch((err) => {
         logger.error('Failed to trigger background approval email notification:', err.message);
       });
     }
@@ -288,7 +290,9 @@ class RequestService {
 
     const updatedReq = await requestRepository.findById(id);
     if (updatedReq && updatedReq.status === 'Submitted') {
-      emailService.sendApprovalNotification(updatedReq).catch((err) => {
+      emailService.sendApprovalNotification(updatedReq).then((res) => {
+        logger.info(`Live approval notification dispatched for updated request #${updatedReq.request_number} (Status: ${res?.success ? 'Delivered' : 'Failed'})`);
+      }).catch((err) => {
         logger.error('Failed to trigger background approval email notification:', err.message);
       });
     }
@@ -325,7 +329,9 @@ class RequestService {
 
     if (updated) {
       if (status === 'Submitted') {
-        emailService.sendApprovalNotification(updated).catch(err => {
+        emailService.sendApprovalNotification(updated).then((res) => {
+          logger.info(`Live approval notification dispatched for status change to Submitted #${updated.request_number} (Status: ${res?.success ? 'Delivered' : 'Failed'})`);
+        }).catch(err => {
           logger.error('Failed to send approval notification email:', err.message);
         });
       } else if (status === 'Approved' || status === 'Rejected') {

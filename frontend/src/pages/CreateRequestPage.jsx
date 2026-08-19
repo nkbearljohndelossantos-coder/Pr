@@ -238,13 +238,13 @@ export default function CreateRequestPage() {
       if (isEditMode) {
         const res = await requestApi.update(id, formData);
         if (res.data?.success) {
-          addToast(`Request ${res.data.data.request_number} updated successfully!`, 'success');
+          addToast(statusType === 'Submitted' ? `Request ${res.data.data.request_number} updated and submitted for Executive Approval!` : `Request ${res.data.data.request_number} saved as Draft!`, 'success');
           navigate(`/requests/${id}`);
         }
       } else {
         const res = await requestApi.create(formData);
         if (res.data?.success) {
-          addToast(`Request ${res.data.data.request_number} created successfully!`, 'success');
+          addToast(statusType === 'Submitted' ? `Request ${res.data.data.request_number} created and submitted for Executive Approval!` : `Request ${res.data.data.request_number} saved as Draft!`, 'success');
           navigate(`/requests/${res.data.data.id}`);
         }
       }
