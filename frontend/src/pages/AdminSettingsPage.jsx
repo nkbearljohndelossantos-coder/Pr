@@ -67,6 +67,8 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const [testResponse, setTestResponse] = useState(null);
+
   const handleSendTestEmail = async () => {
     if (!settings.approver_email) {
       addToast('Please enter an Approver Email address first.', 'error');
@@ -74,12 +76,14 @@ export default function AdminSettingsPage() {
     }
 
     setTesting(true);
+    setTestResponse(null);
     try {
       // First save settings so backend has latest SMTP credentials
       await systemApi.updateSettings(settings);
 
       const res = await systemApi.sendTestEmail(settings.approver_email);
       const testResult = res.data?.data;
+      setTestResponse(testResult);
 
       if (testResult?.success) {
         addToast(`Test email notification sent successfully to ${settings.approver_email}! Please check inbox/spam.`, 'success');
@@ -89,7 +93,9 @@ export default function AdminSettingsPage() {
         addToast(`SMTP Error: ${testResult?.error || 'Failed to deliver email. Please check your credentials.'}`, 'error');
       }
     } catch (err) {
-      addToast(err.response?.data?.message || 'Failed to send test email.', 'error');
+      const errObj = { success: false, error: err.response?.data?.message || err.message || 'Failed to send test email.' };
+      setTestResponse(errObj);
+      addToast(errObj.error, 'error');
     } finally {
       setTesting(false);
     }
@@ -368,6 +374,32 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
+        {/* Real-Time Test Diagnostic Status Card */}
+        {testResponse && (
+          <div className={`p-4 rounded-xl border ${testResponse.success ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : (testResponse.simulated ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-rose-50 border-rose-200 text-rose-900')} space-y-1.5 transition-all`}>
+            <div className="flex items-center gap-2 font-bold text-xs">
+              {testResponse.success ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              ) : (
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              )}
+              <span>{testResponse.success ? 'Email Dispatched Successfully!' : (testResponse.simulated ? 'Simulated Mode Notice' : 'SMTP Delivery Error')}</span>
+            </div>
+            <p className="text-xs font-medium">
+              {testResponse.success ? (
+                <>Email successfully handed off to mail server for <strong>{testResponse.recipient}</strong>. Message ID: <code className="font-mono text-[10px] bg-white px-1 py-0.5 rounded border border-emerald-200">{testResponse.messageId}</code>. Please check inbox & Spam folder.</>
+              ) : (
+                <>{testResponse.error || 'Failed to deliver email.'}</>
+              )}
+            </p>
+            {testResponse.rawError && testResponse.rawError !== testResponse.error && (
+              <p className="text-[10px] font-mono text-rose-700 bg-white/80 p-2 rounded border border-rose-200 mt-1">
+                Server response: {testResponse.rawError}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Bottom Save & Action Footer */}
         <div className="flex items-center justify-end gap-3 pt-2">
           <button
@@ -376,8 +408,8 @@ export default function AdminSettingsPage() {
             disabled={testing}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all disabled:opacity-50 cursor-pointer"
           >
-            <Send className="w-4 h-4 text-blue-600" />
-            <span>Send Test Email</span>
+            <Send className={`w-4 h-4 text-blue-600 ${testing ? 'animate-pulse' : ''}`} />
+            <span>{testing ? 'Dispatching Test Email...' : 'Send Test Email'}</span>
           </button>
 
           <button
