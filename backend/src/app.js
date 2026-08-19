@@ -23,7 +23,14 @@ const app = express();
 // Security & Optimization Middlewares
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors({ origin: '*', credentials: true }));
-app.use(compression());
+app.use(compression({
+  filter: (req, res) => {
+    if (req.path && req.path.includes('employees')) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 

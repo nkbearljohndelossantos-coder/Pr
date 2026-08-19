@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Building2, Search, Check, ChevronDown, RotateCcw, CheckCircle2, Sparkles, RefreshCw } from 'lucide-react';
+import { User, Building2, Search, Check, ChevronDown, RotateCcw, CheckCircle2, Sparkles, RefreshCw, BadgeCheck } from 'lucide-react';
 import { systemApi } from '../services/systemApi';
+import preloadedEmployees from '../data/realEmployees.json';
+
+const CANTEEN_API_DIRECT_URL = 'https://canteen.nkbmanufacturing.com/api/integration/employees?api_key=NkbCanteenIntegrationSecretApiKey2026';
 
 export default function EmployeeSelect({
   preparedBy,
@@ -11,7 +14,8 @@ export default function EmployeeSelect({
   setPosition,
   onSelectEmployee
 }) {
-  const [employees, setEmployees] = useState([]);
+  // Pre-seed with the 94 real employees so list is immediately available with zero delay
+  const [employees, setEmployees] = useState(preloadedEmployees && preloadedEmployees.length > 0 ? preloadedEmployees : []);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,6 +25,21 @@ export default function EmployeeSelect({
   useEffect(() => {
     fetchEmployees();
   }, []);
+
+  // Sync selectedEmp if preparedBy already matches an employee
+  useEffect(() => {
+    if (preparedBy && employees.length > 0 && !selectedEmp) {
+      const q = preparedBy.trim().toLowerCase();
+      const matched = employees.find((e) => {
+        const eName = (e.name || '').toLowerCase();
+        const eId = (e.employee_id || '').toLowerCase();
+        return eName === q || eName.replace(/,/g, '') === q || eId === q;
+      });
+      if (matched) {
+        setSelectedEmp(matched);
+      }
+    }
+  }, [preparedBy, employees]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -34,16 +53,48 @@ export default function EmployeeSelect({
 
   const fetchEmployees = async () => {
     setLoading(true);
+    let loaded = false;
+
+    // Tier 1: Fetch from backend API
     try {
       const res = await systemApi.getEmployees();
       if (res.data?.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
         setEmployees(res.data.data);
+        loaded = true;
       }
     } catch (err) {
-      console.warn('Could not load employees list:', err);
-    } finally {
-      setLoading(false);
+      console.warn('Backend employee API fetch notice:', err?.message);
     }
+
+    // Tier 2: Direct browser fetch to live Canteen API if backend returned empty
+    if (!loaded) {
+      try {
+        const response = await fetch(CANTEEN_API_DIRECT_URL);
+        const data = await response.json();
+        const list = Array.isArray(data) ? data : (data.data || data.employees || []);
+        if (list && list.length > 0) {
+          const activeOnly = list.filter(e => e && e.status !== 'inactive');
+          const formatted = (activeOnly.length > 0 ? activeOnly : list).map((e, idx) => ({
+            id: e.id || idx + 1,
+            employee_id: (e.employee_id || e.barcode_number || `EMP-${idx + 1}`).trim(),
+            barcode_number: (e.barcode_number || e.employee_id || '').trim(),
+            name: (e.name || e.full_name || 'Employee').trim(),
+            full_name: (e.name || e.full_name || 'Employee').trim(),
+            department: (e.department || 'General').trim(),
+            department_name: (e.department || 'General').trim(),
+            position: (e.position || '').trim(),
+            canteen_balance: e.current_balance || 0,
+            is_active: 1
+          }));
+          setEmployees(formatted);
+          loaded = true;
+        }
+      } catch (directErr) {
+        console.warn('Direct Canteen fetch notice:', directErr?.message);
+      }
+    }
+
+    setLoading(false);
   };
 
   const autoMatchEmployee = (typedName) => {
@@ -122,12 +173,12 @@ export default function EmployeeSelect({
         </span>
         {loading ? (
           <span className="text-[10px] text-blue-600 font-semibold flex items-center gap-1">
-            <RefreshCw className="w-3 h-3 animate-spin" /> Syncing Real Canteen Employees...
+            <RefreshCw className="w-3 h-3 animate-spin" /> Checking Canteen Sync...
           </span>
         ) : employees.length > 0 ? (
           <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-emerald-600" />
-            <span>{employees.length} Real Canteen Employees Live</span>
+            <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{employees.length} Real Canteen Employees Loaded</span>
           </span>
         ) : null}
       </label>
@@ -148,8 +199,8 @@ export default function EmployeeSelect({
           onFocus={() => {
             setIsOpen(true);
           }}
-          placeholder="Search or click to select employee name from Canteen..."
-          className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-600 focus:outline-none"
+          placeholder="Click or type to search employee name from Canteen..."
+          className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-600 focus:outline-none cursor-pointer"
         />
         <User className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
         <button
