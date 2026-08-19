@@ -200,7 +200,7 @@ class EmailService {
         success: false,
         error: userFriendlyError,
         rawError: err.message,
-        recipient: toEmail
+        recipient: toRecipients.join(', ')
       };
     }
   }

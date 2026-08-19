@@ -258,12 +258,27 @@ class SettingsController {
     } catch (err) { next(err); }
   }
 
-  async sendTestEmail(req, res, next) {
+  async sendTestEmail(req, res) {
     try {
       const emailService = require('../services/emailService');
-      const result = await emailService.sendTestEmail(req.body.target_email);
-      return successResponse(res, 'Test email operation completed', result);
-    } catch (err) { next(err); }
+      const targetEmail = req.body?.target_email || null;
+      const result = await emailService.sendTestEmail(targetEmail);
+      return res.status(200).json({
+        success: true,
+        message: result.success ? 'Test email operation completed' : (result.error || 'Failed to deliver test email.'),
+        data: result
+      });
+    } catch (err) {
+      logger.error('Error in sendTestEmail controller:', err);
+      return res.status(200).json({
+        success: true,
+        message: err.message,
+        data: {
+          success: false,
+          error: err.message || 'Failed to process test email request.'
+        }
+      });
+    }
   }
 }
 
