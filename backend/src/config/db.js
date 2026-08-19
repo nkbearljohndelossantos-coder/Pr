@@ -32,7 +32,9 @@ let store = {
   master_dropdowns: [],
   notifications: [],
   audit_logs: [],
-  backups: []
+  backups: [],
+  employees: [],
+  system_settings: []
 };
 
 // Synchronous password hash generation for instant zero-delay database seeding
@@ -962,9 +964,9 @@ const db = {
     // 5. MASTER DROPDOWNS
     if (upper.includes('FROM MASTER_DROPDOWNS')) {
       if (upper.includes('WHERE CATEGORY = ?')) {
-        return [[store.master_dropdowns.filter(m => m.category === params[0] && m.is_active)]];
+        return [store.master_dropdowns.filter(m => m.category === params[0] && m.is_active)];
       }
-      return [[store.master_dropdowns]];
+      return [store.master_dropdowns];
     }
 
     if (upper.includes('INSERT INTO MASTER_DROPDOWNS')) {
@@ -992,7 +994,7 @@ const db = {
     }
 
     if (upper.includes('FROM NOTIFICATIONS')) {
-      return [[store.notifications.slice(-20)]];
+      return [store.notifications.slice(-20)];
     }
 
     // 7. AUDIT LOGS
@@ -1018,7 +1020,7 @@ const db = {
     }
 
     if (upper.includes('FROM AUDIT_LOGS')) {
-      return [[store.audit_logs.slice(-50)]];
+      return [store.audit_logs.slice(-50)];
     }
 
     // 8. BACKUPS
@@ -1031,7 +1033,27 @@ const db = {
     }
 
     if (upper.includes('FROM BACKUPS')) {
-      return [[store.backups]];
+      return [store.backups];
+    }
+
+    // 9. SYSTEM SETTINGS
+    if (upper.includes('FROM SYSTEM_SETTINGS')) {
+      if (!store.system_settings) store.system_settings = [];
+      return [store.system_settings];
+    }
+
+    if (upper.includes('INSERT INTO SYSTEM_SETTINGS')) {
+      if (!store.system_settings) store.system_settings = [];
+      const key = params[0];
+      const val = params[1];
+      const existing = store.system_settings.find(s => s.setting_key === key);
+      if (existing) {
+        existing.setting_value = val;
+      } else {
+        store.system_settings.push({ setting_key: key, setting_value: val });
+      }
+      saveStore();
+      return [{ affectedRows: 1 }];
     }
 
     return [[]];
