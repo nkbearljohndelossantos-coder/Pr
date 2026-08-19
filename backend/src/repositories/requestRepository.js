@@ -121,6 +121,7 @@ class RequestRepository {
 
   async update(id, data) {
     const {
+      department_id,
       prepared_by,
       position,
       required_date,
@@ -135,6 +136,7 @@ class RequestRepository {
 
     await db.query(
       `UPDATE requests SET 
+         department_id = COALESCE(?, department_id),
          prepared_by = ?,
          position = ?,
          required_date = ?,
@@ -147,6 +149,7 @@ class RequestRepository {
          updated_at = ?
        WHERE id = ? AND is_deleted = 0`,
       [
+        department_id || null,
         prepared_by,
         position,
         required_date,

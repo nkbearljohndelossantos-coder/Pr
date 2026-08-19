@@ -194,6 +194,7 @@ export default function CreateRequestPage() {
 
       const formData = new FormData();
       formData.append('prepared_by', preparedBy.trim());
+      formData.append('department_name', departmentName.trim());
       formData.append('position', position.trim());
       formData.append('required_date', requiredDate);
       formData.append('purpose', purpose.trim());

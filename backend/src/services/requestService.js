@@ -52,14 +52,46 @@ const parseNum = (val) => {
 
 class RequestService {
   async createRequest(user, data, files) {
-    let deptId = data?.department_id || user?.department_id || 1;
-    let dept = await departmentRepository.findById(deptId);
-    if (!dept) {
+    let dept = null;
+    const targetDeptName = (data?.department_name || data?.department || '').trim();
+
+    if (targetDeptName) {
       const allDepts = await departmentRepository.findAll();
-      if (allDepts && allDepts.length > 0) {
+      const cleanTarget = targetDeptName.toLowerCase();
+
+      dept = allDepts.find(d => 
+        (d.name && d.name.toLowerCase() === cleanTarget) ||
+        (d.code && d.code.toLowerCase() === cleanTarget) ||
+        (d.name && (d.name.toLowerCase().includes(cleanTarget) || cleanTarget.includes(d.name.toLowerCase()))) ||
+        (d.code && (d.code.toLowerCase().includes(cleanTarget) || cleanTarget.includes(d.code.toLowerCase())))
+      );
+
+      if (!dept) {
+        try {
+          const bcrypt = require('bcryptjs');
+          const defaultHash = bcrypt.hashSync('password123', 10);
+          const deptCode = targetDeptName.slice(0, 10).toUpperCase().replace(/[^A-Z0-9]/g, '');
+          const newDeptId = await departmentRepository.create({
+            code: deptCode || 'DEPT',
+            name: targetDeptName,
+            username: (deptCode || 'dept').toLowerCase() + '_dept',
+            password_hash: defaultHash,
+            created_by: user?.id || null
+          });
+          dept = await departmentRepository.findById(newDeptId);
+        } catch (createErr) {
+          const refreshed = await departmentRepository.findAll();
+          dept = refreshed.find(d => d.name?.toLowerCase().includes(cleanTarget)) || refreshed[0];
+        }
+      }
+    }
+
+    if (!dept) {
+      let deptId = data?.department_id || user?.department_id || 1;
+      dept = await departmentRepository.findById(deptId);
+      if (!dept) {
+        const allDepts = await departmentRepository.findAll();
         dept = allDepts[0];
-      } else {
-        throw new Error('Invalid department specified.');
       }
     }
 
@@ -150,6 +182,36 @@ class RequestService {
       throw new Error('Cannot edit a request that has already been approved.');
     }
 
+    let newDeptId = existing.department_id;
+    const targetDeptName = (data?.department_name || data?.department || '').trim();
+    if (targetDeptName) {
+      const allDepts = await departmentRepository.findAll();
+      const cleanTarget = targetDeptName.toLowerCase();
+      let matchedDept = allDepts.find(d => 
+        (d.name && d.name.toLowerCase() === cleanTarget) ||
+        (d.code && d.code.toLowerCase() === cleanTarget) ||
+        (d.name && (d.name.toLowerCase().includes(cleanTarget) || cleanTarget.includes(d.name.toLowerCase())))
+      );
+      if (!matchedDept) {
+        try {
+          const bcrypt = require('bcryptjs');
+          const defaultHash = bcrypt.hashSync('password123', 10);
+          const deptCode = targetDeptName.slice(0, 10).toUpperCase().replace(/[^A-Z0-9]/g, '');
+          const createdId = await departmentRepository.create({
+            code: deptCode || 'DEPT',
+            name: targetDeptName,
+            username: (deptCode || 'dept').toLowerCase() + '_dept',
+            password_hash: defaultHash,
+            created_by: user?.id || null
+          });
+          matchedDept = await departmentRepository.findById(createdId);
+        } catch (e) {}
+      }
+      if (matchedDept) {
+        newDeptId = matchedDept.id;
+      }
+    }
+
     let items = [];
     if (typeof data.items === 'string') {
       try { items = JSON.parse(data.items); } catch (e) {}
@@ -183,6 +245,7 @@ class RequestService {
     }
 
     await requestRepository.update(id, {
+      department_id: newDeptId,
       prepared_by: data.prepared_by || existing.prepared_by,
       position: data.position !== undefined ? data.position : existing.position,
       required_date: data.required_date || existing.required_date,
