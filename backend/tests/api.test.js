@@ -101,7 +101,7 @@ async function runTests() {
       });
 
       assert.strictEqual(reqRes.status, 201);
-      assert.ok(reqRes.body.data.request_number.startsWith('REQ-IT-'), 'Request number should start with REQ-IT-');
+      assert.ok(reqRes.body.data.request_number.startsWith('REQ-'), 'Request number should start with REQ-');
       console.log(`✅ PASS: Department Request Auto Sequence Generation (${reqRes.body.data.request_number})`);
 
       console.log('\n🎉 ALL ENTERPRISE API TESTS PASSED CLEANLY WITH ZERO ERRORS!\n');

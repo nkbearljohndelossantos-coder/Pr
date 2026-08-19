@@ -3,10 +3,10 @@ const departmentRepository = require('../repositories/departmentRepository');
 const emailService = require('./emailService');
 const logger = require('../utils/logger');
 
-const generateRequestNumber = (deptCode, seq) => {
+const generateRequestNumber = (seq) => {
   const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   const seqStr = String(seq).padStart(5, '0');
-  return `REQ-${deptCode.toUpperCase()}-${dateStr}-${seqStr}`;
+  return `REQ-${dateStr}-${seqStr}`;
 };
 
 const parseNum = (val) => {
@@ -63,9 +63,9 @@ class RequestService {
       }
     }
 
-    const totalCount = await requestRepository.countAll({ department_id: dept.id });
+    const totalCount = await requestRepository.countAll({});
     const newSeq = (totalCount || 0) + 1;
-    const requestNumber = generateRequestNumber(dept.code, newSeq);
+    const requestNumber = generateRequestNumber(newSeq);
 
     // Calculate item total cost with comma stripping
     let items = [];
