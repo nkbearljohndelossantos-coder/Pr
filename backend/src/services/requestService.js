@@ -13,9 +13,37 @@ const parseNum = (val) => {
   if (val === undefined || val === null || val === '') return 0;
   if (typeof val === 'number') return isNaN(val) ? 0 : val;
 
-  let str = String(val).trim();
-  if (str.includes(',')) {
-    str = str.replace(/,/g, '');
+  let str = String(val).trim().replace(/[₱$€\s]/g, '');
+  if (!str) return 0;
+
+  const lastCommaIndex = str.lastIndexOf(',');
+  const lastDotIndex = str.lastIndexOf('.');
+  const dotCount = (str.match(/\./g) || []).length;
+
+  if (lastCommaIndex !== -1 && lastDotIndex !== -1) {
+    if (lastCommaIndex > lastDotIndex) {
+      str = str.replace(/\./g, '').replace(/,/g, '.');
+    } else {
+      str = str.replace(/,/g, '');
+    }
+  } else if (lastCommaIndex !== -1) {
+    const afterLastComma = str.substring(lastCommaIndex + 1);
+    if (afterLastComma.length === 2 || afterLastComma.length === 1) {
+      const beforeLastComma = str.substring(0, lastCommaIndex).replace(/,/g, '');
+      str = beforeLastComma + '.' + afterLastComma;
+    } else {
+      str = str.replace(/,/g, '');
+    }
+  } else if (lastDotIndex !== -1) {
+    if (dotCount > 1) {
+      const afterLastDot = str.substring(lastDotIndex + 1);
+      if (afterLastDot.length === 2 || afterLastDot.length === 1) {
+        const beforeLastDot = str.substring(0, lastDotIndex).replace(/\./g, '');
+        str = beforeLastDot + '.' + afterLastDot;
+      } else {
+        str = str.replace(/\./g, '');
+      }
+    }
   }
 
   const num = parseFloat(str);
