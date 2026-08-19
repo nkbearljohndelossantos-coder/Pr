@@ -110,11 +110,21 @@ class EmailService {
     return fromEmail;
   }
 
+  parseRecipients(raw) {
+    if (!raw) return ['boss@company.com'];
+    if (Array.isArray(raw)) {
+      return raw.map(e => String(e).trim()).filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+    }
+    const items = String(raw).split(/[\s,;]+/).map(e => e.trim()).filter(Boolean);
+    const valid = items.filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+    return valid.length > 0 ? valid : [String(raw).trim()];
+  }
+
   async sendTestEmail(targetEmail) {
     await this.loadSavedSettings();
 
     const rawTarget = targetEmail || this.customApproverEmail || process.env.APPROVER_EMAIL || env.APPROVER_EMAIL || 'boss@company.com';
-    const toRecipients = Array.isArray(rawTarget) ? rawTarget : rawTarget.split(',').map(e => e.trim()).filter(Boolean);
+    const toRecipients = this.parseRecipients(rawTarget);
     const siteUrl = process.env.SITE_URL || 'https://pr.nkbmanufacturing.com';
     const subject = '🧪 [TEST] NKB ERP Purchase Requisition Email Notification Test';
 
@@ -449,9 +459,7 @@ class EmailService {
       </html>
     `;
 
-    const toRecipients = Array.isArray(approverEmail)
-      ? approverEmail
-      : (approverEmail || '').split(',').map(e => e.trim()).filter(Boolean);
+    const toRecipients = this.parseRecipients(approverEmail);
 
     if (this.transporter) {
       try {
