@@ -104,12 +104,11 @@ class EmailService {
   }
 
   getFromAddress() {
-    const authUser = this.currentAuthUser || process.env.SMTP_USER || env.SMTP_USER;
-    let fromEmail = this.customSmtpFrom;
-    if (!fromEmail || (authUser && !fromEmail.includes(authUser))) {
-      fromEmail = `"NKB Manufacturing Requisition System" <${authUser || 'notifications@nkbmanufacturing.com'}>`;
+    const authUser = (this.currentAuthUser || process.env.SMTP_USER || env.SMTP_USER || '').trim();
+    if (authUser) {
+      return `"NKB Manufacturing Requisition System" <${authUser}>`;
     }
-    return fromEmail;
+    return this.customSmtpFrom || `"NKB ERP System" <notifications@nkbmanufacturing.com>`;
   }
 
   parseRecipients(raw) {
@@ -127,8 +126,15 @@ class EmailService {
       throw new Error('SMTP credentials (Host, User, Password) are not configured. Please fill in the SMTP form fields and save settings.');
     }
 
+    const authUser = (this.currentAuthUser || process.env.SMTP_USER || env.SMTP_USER || '').trim();
+    const finalOptions = {
+      ...mailOptions,
+      sender: authUser || undefined,
+      replyTo: authUser || undefined
+    };
+
     try {
-      return await this.transporter.sendMail(mailOptions);
+      return await this.transporter.sendMail(finalOptions);
     } catch (primaryErr) {
       const host = this.currentHost || process.env.SMTP_HOST || env.SMTP_HOST;
       const user = this.currentAuthUser || process.env.SMTP_USER || env.SMTP_USER;
@@ -145,7 +151,7 @@ class EmailService {
             auth: { user, pass },
             tls: { rejectUnauthorized: false }
           });
-          const info = await fallbackTransporter.sendMail(mailOptions);
+          const info = await fallbackTransporter.sendMail(finalOptions);
           this.transporter = fallbackTransporter;
           this.currentPort = altPort;
           return info;
