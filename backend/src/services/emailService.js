@@ -64,6 +64,8 @@ class EmailService {
     }
     const pass = this.currentPass || process.env.SMTP_PASS || env.SMTP_PASS;
 
+    this.currentAuthUser = user;
+
     if (host && user && pass) {
       try {
         this.transporter = nodemailer.createTransport({
@@ -99,10 +101,20 @@ class EmailService {
     return null;
   }
 
+  getFromAddress() {
+    const authUser = this.currentAuthUser || process.env.SMTP_USER || env.SMTP_USER;
+    let fromEmail = this.customSmtpFrom;
+    if (!fromEmail || (authUser && !fromEmail.includes(authUser))) {
+      fromEmail = `"NKB Manufacturing Requisition System" <${authUser || 'notifications@nkbmanufacturing.com'}>`;
+    }
+    return fromEmail;
+  }
+
   async sendTestEmail(targetEmail) {
     await this.loadSavedSettings();
 
-    const toEmail = targetEmail || this.customApproverEmail || process.env.APPROVER_EMAIL || env.APPROVER_EMAIL || 'boss@company.com';
+    const rawTarget = targetEmail || this.customApproverEmail || process.env.APPROVER_EMAIL || env.APPROVER_EMAIL || 'boss@company.com';
+    const toRecipients = Array.isArray(rawTarget) ? rawTarget : rawTarget.split(',').map(e => e.trim()).filter(Boolean);
     const siteUrl = process.env.SITE_URL || 'https://pr.nkbmanufacturing.com';
     const subject = '🧪 [TEST] NKB ERP Purchase Requisition Email Notification Test';
 
@@ -110,7 +122,7 @@ class EmailService {
       return {
         success: false,
         simulated: true,
-        recipient: toEmail,
+        recipient: toRecipients.join(', '),
         error: 'SMTP credentials (Host, User, Password) are not configured. Please fill in the SMTP form fields and save settings.'
       };
     }
@@ -135,7 +147,7 @@ class EmailService {
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0; background: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0;">
           <tr>
             <td style="padding: 10px; font-weight: bold; color: #64748b; font-size: 13px;">Target Approver Email:</td>
-            <td style="padding: 10px; font-weight: bold; color: #0f172a; font-size: 13px;">${toEmail}</td>
+            <td style="padding: 10px; font-weight: bold; color: #0f172a; font-size: 13px;">${toRecipients.join(', ')}</td>
           </tr>
           <tr>
             <td style="padding: 10px; font-weight: bold; color: #64748b; font-size: 13px;">System Date & Time:</td>
@@ -150,23 +162,23 @@ class EmailService {
     `;
 
     try {
-      const fromEmail = this.customSmtpFrom || process.env.SMTP_FROM || env.SMTP_FROM || `"NKB ERP System" <${process.env.SMTP_USER || 'notifications@nkbmanufacturing.com'}>`;
+      const fromEmail = this.getFromAddress();
       const info = await this.transporter.sendMail({
         from: fromEmail,
-        to: toEmail,
+        to: toRecipients,
         subject,
         html: htmlContent,
         attachments: testMailAttachments
       });
 
-      logger.info(`Test Email sent successfully to ${toEmail}. Message ID: ${info.messageId}`);
+      logger.info(`Test Email sent successfully to ${toRecipients.join(', ')}. Message ID: ${info.messageId}`);
       return {
         success: true,
         messageId: info.messageId,
-        recipient: toEmail
+        recipient: toRecipients.join(', ')
       };
     } catch (err) {
-      logger.error(`SMTP Test Email Error to ${toEmail}: ${err.message}`);
+      logger.error(`SMTP Test Email Error to ${toRecipients.join(', ')}: ${err.message}`);
       let userFriendlyError = err.message;
       if (err.message.includes('535') || err.message.includes('Username and Password not accepted') || err.message.includes('Invalid login')) {
         userFriendlyError = 'Gmail Authentication Failed (535 Error). Please verify your 16-character Gmail App Password (not your normal Gmail login password).';
@@ -437,25 +449,29 @@ class EmailService {
       </html>
     `;
 
+    const toRecipients = Array.isArray(approverEmail)
+      ? approverEmail
+      : (approverEmail || '').split(',').map(e => e.trim()).filter(Boolean);
+
     if (this.transporter) {
       try {
-        const fromEmail = this.customSmtpFrom || process.env.SMTP_FROM || env.SMTP_FROM || `"NKB ERP System" <${process.env.SMTP_USER || 'notifications@nkbmanufacturing.com'}>`;
+        const fromEmail = this.getFromAddress();
         const mailOptions = {
           from: fromEmail,
-          to: approverEmail,
+          to: toRecipients,
           subject,
           html: htmlContent,
           attachments: mailAttachments
         };
         const info = await this.transporter.sendMail(mailOptions);
-        logger.info(`Approval Notification Email sent to ${approverEmail} with logo branding and ${userUploadedCount} physical file attachment(s) for Request ${requestData.request_number}. Message ID: ${info.messageId}`);
+        logger.info(`Approval Notification Email sent to ${toRecipients.join(', ')} with logo branding and ${userUploadedCount} physical file attachment(s) for Request ${requestData.request_number}. Message ID: ${info.messageId}`);
         return { success: true, messageId: info.messageId, attachmentCount: userUploadedCount };
       } catch (err) {
-        logger.error(`Failed to send email to ${approverEmail}: ${err.message}`);
+        logger.error(`Failed to send email to ${toRecipients.join(', ')}: ${err.message}`);
         return { success: false, error: err.message };
       }
     } else {
-      logger.info(`[SIMULATED EMAIL NOTIFICATION] To: ${approverEmail} | Subject: ${subject} | Attachments: ${userUploadedCount} file(s)`);
+      logger.info(`[SIMULATED EMAIL NOTIFICATION] To: ${toRecipients.join(', ')} | Subject: ${subject} | Attachments: ${userUploadedCount} file(s)`);
       logger.info(`[SIMULATED EMAIL CONTENT] Direct Approve Link: ${approveUrl} | Direct Decline Link: ${declineUrl}`);
       return { success: true, simulated: true, attachmentCount: userUploadedCount };
     }
