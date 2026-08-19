@@ -99,13 +99,13 @@ export default function CreateRequestPage() {
 
   const getValidItems = () => {
     return items.filter(
-      (i) => (i.item_description && i.item_description.trim() !== '') || Number(i.estimated_cost) > 0 || (i.remarks && i.remarks.trim() !== '')
+      (i) => (i.item_description && i.item_description.trim() !== '') || parseNum(i.estimated_cost) > 0 || (i.remarks && i.remarks.trim() !== '')
     );
   };
 
   const getValidSubscriptions = () => {
     return subscriptions.filter(
-      (s) => (s.item_description && s.item_description.trim() !== '') || Number(s.estimated_cost) > 0 || (s.remarks && s.remarks.trim() !== '')
+      (s) => (s.item_description && s.item_description.trim() !== '') || parseNum(s.estimated_cost) > 0 || (s.remarks && s.remarks.trim() !== '')
     );
   };
 
@@ -188,8 +188,30 @@ export default function CreateRequestPage() {
 
     setSubmitting(true);
     try {
-      const validItems = getValidItems().map((i) => ({ ...i, item_type: 'item' }));
-      const validSubs = getValidSubscriptions().map((s) => ({ ...s, item_type: 'subscription' }));
+      const validItems = getValidItems().map((i) => {
+        const q = parseNum(i.quantity) || 1;
+        const c = parseNum(i.estimated_cost);
+        return {
+          ...i,
+          quantity: q,
+          estimated_cost: c,
+          total_cost: q * c,
+          item_type: 'item'
+        };
+      });
+
+      const validSubs = getValidSubscriptions().map((s) => {
+        const q = parseNum(s.quantity) || 1;
+        const c = parseNum(s.estimated_cost);
+        return {
+          ...s,
+          quantity: q,
+          estimated_cost: c,
+          total_cost: q * c,
+          item_type: 'subscription'
+        };
+      });
+
       const allItemsCombined = [...validItems, ...validSubs];
 
       const formData = new FormData();
