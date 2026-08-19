@@ -64,6 +64,8 @@ class EmailService {
     }
     const pass = this.currentPass || process.env.SMTP_PASS || env.SMTP_PASS;
 
+    this.currentHost = host;
+    this.currentPort = port;
     this.currentAuthUser = user;
 
     if (host && user && pass) {
@@ -120,6 +122,41 @@ class EmailService {
     return valid.length > 0 ? valid : [String(raw).trim()];
   }
 
+  async sendWithFallback(mailOptions) {
+    if (!this.transporter) {
+      throw new Error('SMTP credentials (Host, User, Password) are not configured. Please fill in the SMTP form fields and save settings.');
+    }
+
+    try {
+      return await this.transporter.sendMail(mailOptions);
+    } catch (primaryErr) {
+      const host = this.currentHost || process.env.SMTP_HOST || env.SMTP_HOST;
+      const user = this.currentAuthUser || process.env.SMTP_USER || env.SMTP_USER;
+      const pass = this.currentPass || process.env.SMTP_PASS || env.SMTP_PASS;
+      const primaryPort = this.currentPort || 587;
+      const altPort = primaryPort === 465 ? 587 : 465;
+
+      if (host && user && pass && (primaryErr.code === 'ETIMEDOUT' || primaryErr.code === 'ECONNREFUSED' || (primaryErr.message && primaryErr.message.toLowerCase().includes('timeout')))) {
+        try {
+          const fallbackTransporter = nodemailer.createTransport({
+            host,
+            port: altPort,
+            secure: altPort === 465,
+            auth: { user, pass },
+            tls: { rejectUnauthorized: false }
+          });
+          const info = await fallbackTransporter.sendMail(mailOptions);
+          this.transporter = fallbackTransporter;
+          this.currentPort = altPort;
+          return info;
+        } catch (altErr) {
+          throw primaryErr;
+        }
+      }
+      throw primaryErr;
+    }
+  }
+
   async sendTestEmail(targetEmail) {
     await this.loadSavedSettings();
 
@@ -173,7 +210,7 @@ class EmailService {
 
     try {
       const fromEmail = this.getFromAddress();
-      const info = await this.transporter.sendMail({
+      const info = await this.sendWithFallback({
         from: fromEmail,
         to: toRecipients,
         subject,
@@ -190,8 +227,8 @@ class EmailService {
     } catch (err) {
       logger.error(`SMTP Test Email Error to ${toRecipients.join(', ')}: ${err.message}`);
       let userFriendlyError = err.message;
-      if (err.message.includes('535') || err.message.includes('Username and Password not accepted') || err.message.includes('Invalid login')) {
-        userFriendlyError = 'Gmail Authentication Failed (535 Error). Please verify your 16-character Gmail App Password (not your normal Gmail login password).';
+      if (err.message.includes('535') || err.message.includes('Username and Password not accepted') || err.message.includes('Invalid login') || err.message.includes('5.7.8')) {
+        userFriendlyError = 'Authentication Failed (535 Error): Email or Password is not accepted by the mail server. Please double-check your email password.';
       } else if (err.message.includes('ETIMEDOUT') || err.message.includes('ECONNREFUSED')) {
         userFriendlyError = `Connection timeout to mail server. Please verify SMTP Host and Port (587 or 465).`;
       }
@@ -471,7 +508,7 @@ class EmailService {
           html: htmlContent,
           attachments: mailAttachments
         };
-        const info = await this.transporter.sendMail(mailOptions);
+        const info = await this.sendWithFallback(mailOptions);
         logger.info(`Approval Notification Email sent to ${toRecipients.join(', ')} with logo branding and ${userUploadedCount} physical file attachment(s) for Request ${requestData.request_number}. Message ID: ${info.messageId}`);
         return { success: true, messageId: info.messageId, attachmentCount: userUploadedCount };
       } catch (err) {
