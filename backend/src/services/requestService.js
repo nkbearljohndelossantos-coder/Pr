@@ -258,7 +258,21 @@ class RequestService {
     if (!req) throw new Error('Request not found.');
 
     await requestRepository.updateStatus(id, status, remarks, user.id);
-    return await requestRepository.findById(id);
+    const updated = await requestRepository.findById(id);
+
+    if (updated) {
+      if (status === 'Submitted') {
+        emailService.sendApprovalNotification(updated).catch(err => {
+          logger.error('Failed to send approval notification email:', err.message);
+        });
+      } else if (status === 'Approved' || status === 'Rejected') {
+        emailService.sendDecisionNotification(updated, status, remarks).catch(err => {
+          logger.error('Failed to send status decision email:', err.message);
+        });
+      }
+    }
+
+    return updated;
   }
 }
 

@@ -9,7 +9,8 @@ import {
   ArrowLeft, 
   CheckCheck,
   ZoomIn,
-  Pencil
+  Pencil,
+  Send
 } from 'lucide-react';
 import RequestStatusStepper from '../components/RequestStatusStepper';
 import ConfirmModal from '../components/ConfirmModal';
@@ -133,7 +134,17 @@ export default function RequestDetailPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Print PDF Button */}
+          {/* Edit & Submit for Approval Buttons */}
+          {request.status === 'Draft' && (
+            <button
+              onClick={() => handleStatusUpdate('Submitted')}
+              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
+            >
+              <Send className="w-4 h-4" />
+              <span>Submit for Approval</span>
+            </button>
+          )}
+
           {request.status !== 'Approved' && (
             <button
               onClick={() => navigate(`/requests/${id}/edit`)}
