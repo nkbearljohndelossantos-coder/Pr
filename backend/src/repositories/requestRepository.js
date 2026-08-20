@@ -232,9 +232,12 @@ class RequestRepository {
     );
 
     return {
-      status_counts: statusRows,
-      department_counts: deptRows,
-      recent_requests: recentRows
+      status_counts: statusRows || [],
+      department_counts: deptRows || [],
+      recent_requests: recentRows || [],
+      statusCounts: statusRows || [],
+      departmentBreakdown: deptRows || [],
+      recentRequests: recentRows || []
     };
   }
 }

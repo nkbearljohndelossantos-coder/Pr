@@ -945,7 +945,7 @@ const db = {
       const countsMap = {};
       reqs.forEach(r => countsMap[r.status] = (countsMap[r.status] || 0) + 1);
       const rows = Object.keys(countsMap).map(status => ({ status, count: countsMap[status] }));
-      return [[rows]];
+      return [rows];
     }
 
     if (upper.includes('GROUP BY D.ID')) {
@@ -958,7 +958,7 @@ const db = {
         department_code: d.code,
         count: countsMap[d.id] || 0
       }));
-      return [[rows]];
+      return [rows];
     }
 
     // 5. MASTER DROPDOWNS

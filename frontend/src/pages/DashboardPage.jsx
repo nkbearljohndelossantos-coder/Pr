@@ -44,27 +44,30 @@ export default function DashboardPage() {
     }
   };
 
+  const rawStatusCounts = metrics?.statusCounts || metrics?.status_counts || [];
+  const rawDeptBreakdown = metrics?.departmentBreakdown || metrics?.department_counts || [];
+  const rawRecentRequests = metrics?.recentRequests || metrics?.recent_requests || [];
+
   const getStatusCount = (statusName) => {
-    if (!metrics || !metrics.statusCounts) return 0;
-    const found = metrics.statusCounts.find((s) => s.status === statusName);
-    return found ? found.count : 0;
+    const found = rawStatusCounts.find((s) => s.status === statusName);
+    return found ? Number(found.count) : 0;
   };
 
-  const totalRequests = metrics?.statusCounts?.reduce((acc, curr) => acc + curr.count, 0) || 0;
+  const totalRequests = rawStatusCounts.reduce((acc, curr) => acc + Number(curr.count || 0), 0);
   const pendingRequests = getStatusCount('Submitted') + getStatusCount('Under Review');
   const approvedRequests = getStatusCount('Approved');
   const rejectedRequests = getStatusCount('Rejected');
   const completedRequests = getStatusCount('Completed');
 
-  const deptChartData = metrics?.departmentBreakdown?.map((d) => ({
-    name: d.department_code,
-    count: d.count
-  })) || [];
+  const deptChartData = rawDeptBreakdown.map((d) => ({
+    name: d.department_code || d.code || d.name || 'Dept',
+    count: Number(d.count || 0)
+  }));
 
-  const statusPieData = metrics?.statusCounts?.map((s) => ({
+  const statusPieData = rawStatusCounts.map((s) => ({
     name: s.status,
-    value: s.count
-  })) || [];
+    value: Number(s.count || 0)
+  }));
 
   return (
     <div className="space-y-6">
@@ -236,8 +239,8 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {metrics?.recentRequests && metrics.recentRequests.length > 0 ? (
-                metrics.recentRequests.map((req) => (
+              {rawRecentRequests && rawRecentRequests.length > 0 ? (
+                rawRecentRequests.map((req) => (
                   <tr
                     key={req.id}
                     onClick={() => navigate(`/requests/${req.id}`)}
