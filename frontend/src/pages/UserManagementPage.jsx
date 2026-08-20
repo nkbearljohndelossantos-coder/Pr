@@ -168,6 +168,20 @@ export default function UserManagementPage() {
     window.print();
   };
 
+  const [visiblePasswords, setVisiblePasswords] = useState({});
+
+  const togglePasswordVisibility = (userId) => {
+    setVisiblePasswords(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
+  };
+
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text);
+    addToast(`${label} copied to clipboard!`, 'info');
+  };
+
   const columns = [
     { 
       header: 'Full Name', 
@@ -176,7 +190,7 @@ export default function UserManagementPage() {
       render: (r) => (
         <div>
           <span className="font-bold text-slate-800 block">{r.full_name}</span>
-          <span className="text-[10px] text-slate-400 font-mono">ID: #{r.id}</span>
+          <span className="text-[10px] text-slate-400 font-mono">User ID: #{r.id}</span>
         </div>
       ) 
     },
@@ -184,7 +198,53 @@ export default function UserManagementPage() {
       header: 'Username', 
       key: 'username', 
       sortable: true, 
-      render: (r) => <span className="font-mono text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{r.username}</span> 
+      render: (r) => (
+        <div className="flex items-center gap-1.5">
+          <span className="font-mono text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 text-xs">
+            {r.username}
+          </span>
+          <button
+            type="button"
+            onClick={() => copyToClipboard(r.username, 'Username')}
+            className="text-slate-400 hover:text-blue-600 print:hidden"
+            title="Copy Username"
+          >
+            📋
+          </button>
+        </div>
+      ) 
+    },
+    {
+      header: 'Access Password',
+      key: 'temp_password',
+      render: (r) => {
+        const pass = r.temp_password || (r.username === 'admin' ? 'admin123' : r.username === 'boss' ? 'boss123' : 'dept123');
+        const isVisible = Boolean(visiblePasswords[r.id]);
+
+        return (
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200">
+              {isVisible ? pass : '••••••••'}
+            </span>
+            <button
+              type="button"
+              onClick={() => togglePasswordVisibility(r.id)}
+              className="text-slate-400 hover:text-slate-700 print:hidden"
+              title={isVisible ? 'Hide Password' : 'Show Password'}
+            >
+              {isVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => copyToClipboard(pass, 'Password')}
+              className="text-slate-400 hover:text-amber-600 print:hidden"
+              title="Copy Password"
+            >
+              📋
+            </button>
+          </div>
+        );
+      }
     },
     {
       header: 'Role Access Level',
@@ -196,7 +256,7 @@ export default function UserManagementPage() {
           r.role === 'executive' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
           'bg-slate-100 text-slate-700 border border-slate-300'
         }`}>
-          {r.role === 'admin' ? '🛡️ SYSTEM ADMIN' : r.role === 'executive' ? '👔 EXECUTIVE (APPROVER)' : '🏢 DEPARTMENT USER'}
+          {r.role === 'admin' ? '🛡️ SYSTEM ADMIN' : r.role === 'executive' ? '👔 EXECUTIVE' : '🏢 DEPARTMENT'}
         </span>
       )
     },
@@ -204,7 +264,7 @@ export default function UserManagementPage() {
       header: 'Department', 
       key: 'department_name', 
       render: (r) => (
-        <span className="font-medium text-slate-700">
+        <span className="font-medium text-slate-700 text-xs">
           {r.department_name || (r.role === 'admin' ? 'System Infrastructure' : 'Executive Management')}
         </span>
       ) 
@@ -312,32 +372,65 @@ export default function UserManagementPage() {
           <h3 className="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5">
             <span>🏢 3. Department User</span>
           </h3>
-          <p className="text-[11px] text-slate-500 mt-1">Operational accounts: departmental purchase requisition creation, cost estimation, file attachments, and tracking.</p>
+          <p className="text-[11px] text-slate-500 mt-1">Operational accounts: departmental purchase requisition creation, cost estimation, file attachments, and status tracking.</p>
         </div>
       </div>
 
-      {/* Printable Master Roster Header (Visible only when printing) */}
-      <div className="hidden print:block mb-4 p-4 border-b-2 border-slate-900 text-center">
-        <h2 className="text-lg font-black tracking-wide uppercase text-slate-900">NKB MANUFACTURING & ENTERPRISE PROCUREMENT ERP</h2>
-        <h3 className="text-sm font-bold text-slate-700">Official User Credentials & Security Access Roster</h3>
-        <p className="text-[10px] text-slate-500 mt-1">Generated by IT Security Division on {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()} — STRICTLY CONFIDENTIAL</p>
+      {/* Printable Master Roster (Visible only when printing) */}
+      <div className="hidden print:block mb-6">
+        <div className="p-4 border-b-2 border-slate-900 text-center mb-4">
+          <h2 className="text-xl font-black tracking-wider uppercase text-slate-900">NKB MANUFACTURING ENTERPRISE ERP</h2>
+          <h3 className="text-sm font-bold text-slate-800 uppercase mt-1">OFFICIAL USER CREDENTIALS & SECURITY ACCESS ROSTER</h3>
+          <p className="text-[10px] text-slate-600 mt-1 font-mono">Portal URL: https://pr.nkbmanufacturing.com/ | Generated: {new Date().toLocaleString()} | STRICTLY CONFIDENTIAL</p>
+        </div>
+
+        <table className="w-full border-collapse border border-slate-400 text-xs">
+          <thead>
+            <tr className="bg-slate-100 border-b border-slate-400 font-bold text-slate-900">
+              <th className="border border-slate-400 p-2 text-center w-8">#</th>
+              <th className="border border-slate-400 p-2 text-left">Full Name</th>
+              <th className="border border-slate-400 p-2 text-left">Username</th>
+              <th className="border border-slate-400 p-2 text-left">Access Password</th>
+              <th className="border border-slate-400 p-2 text-left">Role Access</th>
+              <th className="border border-slate-400 p-2 text-left">Department</th>
+              <th className="border border-slate-400 p-2 text-left">Signature / Acknowledgment</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u, idx) => {
+              const pass = u.temp_password || (u.username === 'admin' ? 'admin123' : u.username === 'boss' ? 'boss123' : 'dept123');
+              return (
+                <tr key={u.id} className="border-b border-slate-300">
+                  <td className="border border-slate-400 p-2 text-center font-bold">{idx + 1}</td>
+                  <td className="border border-slate-400 p-2 font-bold text-slate-900">{u.full_name}</td>
+                  <td className="border border-slate-400 p-2 font-mono font-bold text-blue-800">{u.username}</td>
+                  <td className="border border-slate-400 p-2 font-mono font-bold text-amber-900 bg-amber-50/50">{pass}</td>
+                  <td className="border border-slate-400 p-2 uppercase font-semibold text-[10px]">{u.role}</td>
+                  <td className="border border-slate-400 p-2 text-slate-700">{u.department_name || 'System Level'}</td>
+                  <td className="border border-slate-400 p-2 text-center w-36"></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        <div className="mt-8 pt-4 border-t border-slate-400 text-[10px] text-slate-600">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <p className="font-bold text-slate-900">Issued By: IT Security Administrator</p>
+              <p className="mt-8 border-t border-slate-400 w-52 text-center pt-1">Authorized Signature</p>
+            </div>
+            <div>
+              <p className="font-bold text-slate-900">Approved By: Executive Management</p>
+              <p className="mt-8 border-t border-slate-400 w-52 text-center pt-1">Executive Signature</p>
+            </div>
+          </div>
+          <p className="text-center italic">This document contains sensitive enterprise login credentials. Store securely and destroy/archive in compliance with IT security policy.</p>
+        </div>
       </div>
 
-      <DataTable columns={columns} data={users} totalCount={users.length} loading={loading} />
-
-      {/* Printable Master Roster Footer (Visible only when printing) */}
-      <div className="hidden print:block mt-8 pt-4 border-t border-slate-300 text-[10px] text-slate-500">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <p className="font-bold text-slate-800">Prepared By: IT Administrator</p>
-            <p className="mt-8 border-t border-slate-400 w-48 text-center pt-1">Authorized Signature</p>
-          </div>
-          <div>
-            <p className="font-bold text-slate-800">Approved By: Executive Management</p>
-            <p className="mt-8 border-t border-slate-400 w-48 text-center pt-1">Authorized Signature</p>
-          </div>
-        </div>
-        <p className="text-center italic">This document contains confidential enterprise credentials and system authorization scopes. Unauthorized copying is strictly prohibited.</p>
+      <div className="print:hidden">
+        <DataTable columns={columns} data={users} totalCount={users.length} loading={loading} />
       </div>
 
       {/* DEDICATED CHANGE PASSWORD MODAL */}
@@ -468,14 +561,27 @@ export default function UserManagementPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-2 bg-slate-50 border border-slate-200 rounded">
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
                   <span className="text-[10px] text-slate-500 font-bold uppercase block">Employee / User Name:</span>
                   <strong className="text-slate-900 text-sm">{selectedUser?.full_name}</strong>
                 </div>
 
-                <div className="p-2 bg-slate-50 border border-slate-200 rounded">
-                  <span className="text-[10px] text-slate-500 font-bold uppercase block">Assigned Username:</span>
-                  <strong className="text-blue-700 font-mono text-sm">{selectedUser?.username}</strong>
+                <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+                  <span className="text-[10px] text-blue-700 font-bold uppercase block">Assigned Username:</span>
+                  <strong className="text-blue-800 font-mono text-base">{selectedUser?.username}</strong>
+                </div>
+
+                <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg col-span-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] text-amber-800 font-bold uppercase block">🔑 Login Access Password:</span>
+                    <span className="text-[10px] text-amber-600 font-semibold">(Case-Sensitive)</span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between">
+                    <strong className="text-amber-900 font-mono text-base tracking-wider bg-white px-3 py-1 rounded border border-amber-300">
+                      {selectedUser?.temp_password || (selectedUser?.username === 'admin' ? 'admin123' : selectedUser?.username === 'boss' ? 'boss123' : 'dept123')}
+                    </strong>
+                    <span className="text-[10px] text-slate-500 italic">Please change after 1st login if required</span>
+                  </div>
                 </div>
 
                 <div className="p-2 bg-slate-50 border border-slate-200 rounded">
@@ -495,10 +601,10 @@ export default function UserManagementPage() {
                   <span>Security & Compliance Notice:</span>
                 </p>
                 <p className="text-[10px] leading-relaxed">
-                  1. Keep login credentials strictly confidential. Never share passwords.
+                  1. Keep login credentials strictly confidential. Never share passwords with unauthorized personnel.
                 </p>
                 <p className="text-[10px] leading-relaxed">
-                  2. Portal URL: <strong className="text-blue-700">https://pr.nkbmanufacturing.com/</strong>
+                  2. Official ERP Portal URL: <strong className="text-blue-700 font-mono">https://pr.nkbmanufacturing.com/</strong>
                 </p>
               </div>
 

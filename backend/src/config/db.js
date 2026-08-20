@@ -173,15 +173,15 @@ const loadStore = () => {
 
       if (!store.users || store.users.length < 9) {
         store.users = [
-          { id: 1, username: 'admin', password_hash: adminHash, role: 'admin', department_id: null, full_name: 'System Administrator (IT)', email: 'admin@company.com', is_active: 1, is_deleted: 0 },
-          { id: 2, username: 'boss', password_hash: bossHash, role: 'executive', department_id: null, full_name: 'Executive Administrator', email: 'boss@company.com', is_active: 1, is_deleted: 0 },
-          { id: 3, username: 'it_dept', password_hash: deptHash, role: 'department', department_id: 1, full_name: 'Information Technology Dept', email: 'it@company.com', is_active: 1, is_deleted: 0 },
-          { id: 4, username: 'hr_dept', password_hash: deptHash, role: 'department', department_id: 2, full_name: 'Human Resources Dept', email: 'hr@company.com', is_active: 1, is_deleted: 0 },
-          { id: 5, username: 'acct_dept', password_hash: deptHash, role: 'department', department_id: 3, full_name: 'Accounting Dept', email: 'acct@company.com', is_active: 1, is_deleted: 0 },
-          { id: 6, username: 'purch_dept', password_hash: deptHash, role: 'department', department_id: 4, full_name: 'Purchasing Dept', email: 'purch@company.com', is_active: 1, is_deleted: 0 },
-          { id: 7, username: 'prod_dept', password_hash: deptHash, role: 'department', department_id: 5, full_name: 'Production Dept', email: 'prod@company.com', is_active: 1, is_deleted: 0 },
-          { id: 8, username: 'wh_dept', password_hash: deptHash, role: 'department', department_id: 6, full_name: 'Warehouse Dept', email: 'wh@company.com', is_active: 1, is_deleted: 0 },
-          { id: 9, username: 'qa_dept', password_hash: deptHash, role: 'department', department_id: 7, full_name: 'Quality Assurance Dept', email: 'qa@company.com', is_active: 1, is_deleted: 0 }
+          { id: 1, username: 'admin', password_hash: adminHash, temp_password: 'admin123', role: 'admin', department_id: null, full_name: 'System Administrator (IT)', email: 'admin@company.com', is_active: 1, is_deleted: 0 },
+          { id: 2, username: 'boss', password_hash: bossHash, temp_password: 'boss123', role: 'executive', department_id: null, full_name: 'Executive Administrator', email: 'boss@company.com', is_active: 1, is_deleted: 0 },
+          { id: 3, username: 'it_dept', password_hash: deptHash, temp_password: 'dept123', role: 'department', department_id: 1, full_name: 'Information Technology Dept', email: 'it@company.com', is_active: 1, is_deleted: 0 },
+          { id: 4, username: 'hr_dept', password_hash: deptHash, temp_password: 'dept123', role: 'department', department_id: 2, full_name: 'Human Resources Dept', email: 'hr@company.com', is_active: 1, is_deleted: 0 },
+          { id: 5, username: 'acct_dept', password_hash: deptHash, temp_password: 'dept123', role: 'department', department_id: 3, full_name: 'Accounting Dept', email: 'acct@company.com', is_active: 1, is_deleted: 0 },
+          { id: 6, username: 'purch_dept', password_hash: deptHash, temp_password: 'dept123', role: 'department', department_id: 4, full_name: 'Purchasing Dept', email: 'purch@company.com', is_active: 1, is_deleted: 0 },
+          { id: 7, username: 'prod_dept', password_hash: deptHash, temp_password: 'dept123', role: 'department', department_id: 5, full_name: 'Production Dept', email: 'prod@company.com', is_active: 1, is_deleted: 0 },
+          { id: 8, username: 'wh_dept', password_hash: deptHash, temp_password: 'dept123', role: 'department', department_id: 6, full_name: 'Warehouse Dept', email: 'wh@company.com', is_active: 1, is_deleted: 0 },
+          { id: 9, username: 'qa_dept', password_hash: deptHash, temp_password: 'dept123', role: 'department', department_id: 7, full_name: 'Quality Assurance Dept', email: 'qa@company.com', is_active: 1, is_deleted: 0 }
         ];
       }
 
@@ -404,6 +404,10 @@ const ensureMysqlTablesExist = async () => {
     try { await pool.query(`ALTER TABLE request_items ADD COLUMN item_type VARCHAR(50) DEFAULT 'item'`); } catch(e) {}
     try { await pool.query(`ALTER TABLE requests ADD COLUMN total_estimated_cost DECIMAL(15,2) DEFAULT 0.00`); } catch(e) {}
     try { await pool.query(`ALTER TABLE requests ADD COLUMN status VARCHAR(50) DEFAULT 'Submitted'`); } catch(e) {}
+    try { await pool.query(`ALTER TABLE users ADD COLUMN temp_password VARCHAR(255) DEFAULT 'dept123'`); } catch(e) {}
+    try { await pool.query(`UPDATE users SET temp_password = 'admin123' WHERE username = 'admin' AND (temp_password IS NULL OR temp_password = '')`); } catch(e) {}
+    try { await pool.query(`UPDATE users SET temp_password = 'boss123' WHERE username = 'boss' AND (temp_password IS NULL OR temp_password = '')`); } catch(e) {}
+    try { await pool.query(`UPDATE users SET temp_password = 'dept123' WHERE username LIKE '%_dept' AND (temp_password IS NULL OR temp_password = '')`); } catch(e) {}
 
     // Auto-repair past requests that had 0.00 total estimated cost
     try {

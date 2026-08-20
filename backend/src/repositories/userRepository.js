@@ -32,23 +32,47 @@ class UserRepository {
   }
 
   async findAll() {
-    const [rows] = await db.query(
-      `SELECT u.id, u.username, u.role, u.full_name, u.email, u.is_active, u.created_at, d.name as department_name, d.code as department_code
-       FROM users u
-       LEFT JOIN departments d ON u.department_id = d.id
-       WHERE u.is_deleted = 0
-       ORDER BY u.created_at DESC`
-    );
-    return rows;
+    try {
+      const [rows] = await db.query(
+        `SELECT u.id, u.username, u.role, u.full_name, u.email, u.is_active, u.temp_password, u.created_at, d.name as department_name, d.code as department_code
+         FROM users u
+         LEFT JOIN departments d ON u.department_id = d.id
+         WHERE u.is_deleted = 0
+         ORDER BY u.created_at DESC`
+      );
+      return (rows || []).map(r => ({
+        ...r,
+        temp_password: r.temp_password || (r.username === 'admin' ? 'admin123' : r.username === 'boss' ? 'boss123' : 'dept123')
+      }));
+    } catch(e) {
+      const [rows] = await db.query(
+        `SELECT u.id, u.username, u.role, u.full_name, u.email, u.is_active, u.created_at, d.name as department_name, d.code as department_code
+         FROM users u
+         LEFT JOIN departments d ON u.department_id = d.id
+         WHERE u.is_deleted = 0
+         ORDER BY u.created_at DESC`
+      );
+      return (rows || []).map(r => ({
+        ...r,
+        temp_password: (r.username === 'admin' ? 'admin123' : r.username === 'boss' ? 'boss123' : 'dept123')
+      }));
+    }
   }
 
-  async updateUser(id, { username, full_name, email, role, password_hash, is_active }) {
+  async updateUser(id, { username, full_name, email, role, password_hash, temp_password, is_active }) {
     const activeVal = is_active !== undefined ? (is_active ? 1 : 0) : null;
     if (password_hash) {
-      await db.query(
-        `UPDATE users SET username = COALESCE(?, username), full_name = COALESCE(?, full_name), email = COALESCE(?, email), role = COALESCE(?, role), password_hash = ?, is_active = COALESCE(?, is_active) WHERE id = ?`,
-        [username ? username.trim() : null, full_name ? full_name.trim() : null, email ? email.trim() : null, role || null, password_hash, activeVal, id]
-      );
+      try {
+        await db.query(
+          `UPDATE users SET username = COALESCE(?, username), full_name = COALESCE(?, full_name), email = COALESCE(?, email), role = COALESCE(?, role), password_hash = ?, temp_password = ?, is_active = COALESCE(?, is_active) WHERE id = ?`,
+          [username ? username.trim() : null, full_name ? full_name.trim() : null, email ? email.trim() : null, role || null, password_hash, temp_password || null, activeVal, id]
+        );
+      } catch (e) {
+        await db.query(
+          `UPDATE users SET username = COALESCE(?, username), full_name = COALESCE(?, full_name), email = COALESCE(?, email), role = COALESCE(?, role), password_hash = ?, is_active = COALESCE(?, is_active) WHERE id = ?`,
+          [username ? username.trim() : null, full_name ? full_name.trim() : null, email ? email.trim() : null, role || null, password_hash, activeVal, id]
+        );
+      }
     } else {
       await db.query(
         `UPDATE users SET username = COALESCE(?, username), full_name = COALESCE(?, full_name), email = COALESCE(?, email), role = COALESCE(?, role), is_active = COALESCE(?, is_active) WHERE id = ?`,

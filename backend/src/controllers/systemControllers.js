@@ -299,8 +299,10 @@ class UserController {
       const { username, full_name, email, role, password } = req.body;
 
       let hash = null;
+      let tempPassword = null;
       if (password && password.trim() !== '') {
-        hash = await bcrypt.hash(password.trim(), 10);
+        tempPassword = password.trim();
+        hash = await bcrypt.hash(tempPassword, 10);
       }
 
       await userRepository.updateUser(id, {
@@ -308,7 +310,8 @@ class UserController {
         full_name,
         email,
         role,
-        password_hash: hash
+        password_hash: hash,
+        temp_password: tempPassword
       });
 
       return successResponse(res, 'User credentials updated successfully');
