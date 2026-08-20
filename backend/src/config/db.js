@@ -235,6 +235,19 @@ const loadStore = () => {
         saveStore();
       }
 
+      // Auto-repair past requests that have total_estimated_cost = 0
+      if (store.requests && store.request_items) {
+        let repaired = false;
+        for (const req of store.requests) {
+          const reqItems = store.request_items.filter(i => i.request_id === req.id && !i.is_deleted);
+          if (reqItems.length > 0 && (!req.total_estimated_cost || Number(req.total_estimated_cost) === 0)) {
+            req.total_estimated_cost = reqItems.reduce((sum, item) => sum + (Number(item.total_cost) || (Number(item.quantity) * Number(item.estimated_cost))), 0);
+            repaired = true;
+          }
+        }
+        if (repaired) saveStore();
+      }
+
       logger.info(`Enterprise Database Engine Loaded Successfully (${store.requests.length} requests persisted).`);
       return;
     } catch (e) {
@@ -386,6 +399,27 @@ const ensureMysqlTablesExist = async () => {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+
+    // Auto-migrate missing columns if older schema exists
+    try { await pool.query(`ALTER TABLE request_items ADD COLUMN item_type VARCHAR(50) DEFAULT 'item'`); } catch(e) {}
+    try { await pool.query(`ALTER TABLE requests ADD COLUMN total_estimated_cost DECIMAL(15,2) DEFAULT 0.00`); } catch(e) {}
+    try { await pool.query(`ALTER TABLE requests ADD COLUMN status VARCHAR(50) DEFAULT 'Submitted'`); } catch(e) {}
+
+    // Auto-repair past requests that had 0.00 total estimated cost
+    try {
+      await pool.query(`
+        UPDATE requests r
+        SET total_estimated_cost = (
+          SELECT COALESCE(SUM(ri.total_cost), 0)
+          FROM request_items ri
+          WHERE ri.request_id = r.id AND ri.is_deleted = 0
+        )
+        WHERE (r.total_estimated_cost IS NULL OR r.total_estimated_cost = 0)
+        AND EXISTS (
+          SELECT 1 FROM request_items ri WHERE ri.request_id = r.id AND ri.is_deleted = 0
+        )
+      `);
+    } catch(e) {}
 
     logger.info('Hostinger MySQL Schema Tables Verified & Created Successfully.');
   } catch (err) {
