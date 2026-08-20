@@ -456,6 +456,38 @@ export default function CreateRequestPage() {
           <DynamicSubscriptionRows subscriptions={subscriptions} onChange={setSubscriptions} />
         </div>
 
+        {/* Section 4.5: Live Combined Grand Total Valuation Bar */}
+        {(() => {
+          const liveTotal = [...items, ...subscriptions].reduce((sum, item) => {
+            const q = parseNum(item.quantity) || (item.item_description?.trim() ? 1 : 0);
+            const c = parseNum(item.estimated_cost);
+            return sum + q * c;
+          }, 0);
+
+          return (
+            <div className="card-erp p-5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-4 border-l-4 border-l-amber-500 shadow-md rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-300 flex items-center justify-center font-bold text-lg">
+                  ₱
+                </div>
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block">
+                    Live Combined Grand Total Valuation
+                  </span>
+                  <span className="text-[11px] text-slate-300">
+                    Physical Items ({getValidItems().length}) + SaaS Subscriptions ({getValidSubscriptions().length})
+                  </span>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-black font-mono tracking-tight text-emerald-400">
+                  {formatCurrency(liveTotal)}
+                </span>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Section 5: Attachments */}
         <div className="card-erp p-6 space-y-4">
           {existingAttachments.length > 0 && (
