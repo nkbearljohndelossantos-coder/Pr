@@ -60,23 +60,30 @@ class UserRepository {
   }
 
   async updateUser(id, { username, full_name, email, role, password_hash, temp_password, is_active }) {
-    const activeVal = is_active !== undefined ? (is_active ? 1 : 0) : null;
+    const userId = Number(id);
+    const user = await this.findById(userId);
+    const newUsername = username ? username.trim() : (user ? user.username : null);
+    const newFullName = full_name ? full_name.trim() : (user ? user.full_name : null);
+    const newEmail = email !== undefined ? (email ? email.trim() : '') : (user ? user.email : '');
+    const newRole = role || (user ? user.role : 'department');
+    const activeVal = is_active !== undefined ? (is_active ? 1 : 0) : 1;
+
     if (password_hash) {
       try {
         await db.query(
-          `UPDATE users SET username = COALESCE(?, username), full_name = COALESCE(?, full_name), email = COALESCE(?, email), role = COALESCE(?, role), password_hash = ?, temp_password = ?, is_active = COALESCE(?, is_active) WHERE id = ?`,
-          [username ? username.trim() : null, full_name ? full_name.trim() : null, email ? email.trim() : null, role || null, password_hash, temp_password || null, activeVal, id]
+          `UPDATE users SET username = ?, full_name = ?, email = ?, role = ?, password_hash = ?, temp_password = ?, is_active = ? WHERE id = ?`,
+          [newUsername, newFullName, newEmail, newRole, password_hash, temp_password || null, activeVal, userId]
         );
       } catch (e) {
         await db.query(
-          `UPDATE users SET username = COALESCE(?, username), full_name = COALESCE(?, full_name), email = COALESCE(?, email), role = COALESCE(?, role), password_hash = ?, is_active = COALESCE(?, is_active) WHERE id = ?`,
-          [username ? username.trim() : null, full_name ? full_name.trim() : null, email ? email.trim() : null, role || null, password_hash, activeVal, id]
+          `UPDATE users SET username = ?, full_name = ?, email = ?, role = ?, password_hash = ?, is_active = ? WHERE id = ?`,
+          [newUsername, newFullName, newEmail, newRole, password_hash, activeVal, userId]
         );
       }
     } else {
       await db.query(
-        `UPDATE users SET username = COALESCE(?, username), full_name = COALESCE(?, full_name), email = COALESCE(?, email), role = COALESCE(?, role), is_active = COALESCE(?, is_active) WHERE id = ?`,
-        [username ? username.trim() : null, full_name ? full_name.trim() : null, email ? email.trim() : null, role || null, activeVal, id]
+        `UPDATE users SET username = ?, full_name = ?, email = ?, role = ?, is_active = ? WHERE id = ?`,
+        [newUsername, newFullName, newEmail, newRole, activeVal, userId]
       );
     }
   }

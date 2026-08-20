@@ -460,15 +460,24 @@ const syncJsonToMysql = async () => {
       );
     }
 
-    // 2. Sync Users
+    // 2. Sync Users (Only insert missing users, never overwrite existing roles or passwords)
     for (const u of store.users) {
       if (!u || u.is_deleted) continue;
-      await pool.query(
-        `INSERT INTO users (id, username, password_hash, role, department_id, full_name, email, is_active, created_at, updated_at, is_deleted)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
-         ON DUPLICATE KEY UPDATE full_name=VALUES(full_name), role=VALUES(role)`,
-        [u.id, u.username, u.password_hash, u.role, u.department_id || null, u.full_name, u.email || '', u.is_active || 1, toMysqlDatetime(u.created_at), toMysqlDatetime(u.updated_at)]
-      );
+      try {
+        await pool.query(
+          `INSERT INTO users (id, username, password_hash, temp_password, role, department_id, full_name, email, is_active, created_at, updated_at, is_deleted)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+           ON DUPLICATE KEY UPDATE is_deleted=0`,
+          [u.id, u.username, u.password_hash, u.temp_password || 'dept123', u.role, u.department_id || null, u.full_name, u.email || '', u.is_active || 1, toMysqlDatetime(u.created_at), toMysqlDatetime(u.updated_at)]
+        );
+      } catch (e) {
+        await pool.query(
+          `INSERT INTO users (id, username, password_hash, role, department_id, full_name, email, is_active, created_at, updated_at, is_deleted)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+           ON DUPLICATE KEY UPDATE is_deleted=0`,
+          [u.id, u.username, u.password_hash, u.role, u.department_id || null, u.full_name, u.email || '', u.is_active || 1, toMysqlDatetime(u.created_at), toMysqlDatetime(u.updated_at)]
+        );
+      }
     }
 
     // 3. Sync Requests
@@ -782,16 +791,17 @@ const db = {
     }
 
     // UPDATE & DELETE USERS
-    if (upper.includes('UPDATE USERS SET')) {
+    if (upper.includes('UPDATE USERS SET') || upper.includes('UPDATE USERS')) {
       const targetId = Number(params[params.length - 1]);
-      const user = store.users.find(u => u.id === targetId);
+      const user = store.users.find(u => Number(u.id) === targetId);
       if (user) {
-        if (params[0]) user.username = params[0];
-        if (params[1]) user.full_name = params[1];
-        if (params[2]) user.email = params[2];
+        if (params[0]) user.username = params[0].trim();
+        if (params[1]) user.full_name = params[1].trim();
+        if (params[2] !== undefined && params[2] !== null) user.email = params[2].trim();
         if (params[3]) user.role = params[3];
-        if (upper.includes('PASSWORD_HASH') && params[4]) {
-          user.password_hash = params[4];
+        if (upper.includes('PASSWORD_HASH')) {
+          if (params[4]) user.password_hash = params[4];
+          if (params[5]) user.temp_password = params[5];
         }
         user.updated_at = new Date().toISOString();
         saveStore();
