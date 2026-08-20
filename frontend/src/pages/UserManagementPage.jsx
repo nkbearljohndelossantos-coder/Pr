@@ -164,8 +164,27 @@ export default function UserManagementPage() {
     }
   };
 
+  const [printMode, setPrintMode] = useState('roster'); // 'roster', 'cards', or 'slip'
+
   const handlePrintRoster = () => {
-    window.print();
+    setPrintMode('roster');
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  };
+
+  const handlePrintCards = () => {
+    setPrintMode('cards');
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  };
+
+  const handlePrintSingleSlip = () => {
+    setPrintMode('slip');
+    setTimeout(() => {
+      window.print();
+    }, 150);
   };
 
   const [visiblePasswords, setVisiblePasswords] = useState({});
@@ -331,25 +350,74 @@ export default function UserManagementPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Banner & Print Master Roster Button */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      {/* Dynamic Print CSS for 1-Page A4 Precision */}
+      <style>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 6mm 8mm;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+          }
+          body * {
+            visibility: hidden !important;
+          }
+          #print-a4-container, #print-a4-container * {
+            visibility: visible !important;
+          }
+          #print-a4-container {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+          }
+          .no-print, nav, aside, header {
+            display: none !important;
+          }
+        }
+      `}</style>
+
+      {/* Top Banner & A4 Print Buttons */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4 print:hidden">
         <div>
           <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <ShieldCheck className="w-6 h-6 text-blue-600" />
             <span>User & Role-Based Access Control (RBAC)</span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            System Admin Security Control Center for User Credentials, Password Resets, Role Hierarchy, and Access Slip Printing
+            System Admin Security Center for User Credentials, Passwords, Role Hierarchy, and 1-Page A4 Access Sheet Printing
           </p>
         </div>
 
-        <div className="flex items-center gap-2 print:hidden">
+        <div className="flex items-center gap-2">
+          {/* Button 1: Print A4 Master Roster */}
           <button
             onClick={handlePrintRoster}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
+            className="flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
+            title="Print entire credentials roster on 1 single A4 page"
           >
             <Printer className="w-4 h-4 text-emerald-400" />
-            <span>Print Credentials Roster</span>
+            <span>Print 1-Page A4 Roster</span>
+          </button>
+
+          {/* Button 2: Print 9 Cut-out Handover Cards on 1 A4 */}
+          <button
+            onClick={handlePrintCards}
+            className="flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
+            title="Print 9 cut-out credential cards on 1 single A4 sheet"
+          >
+            <FileText className="w-4 h-4 text-amber-300" />
+            <span>Print 9-in-1 Cutout Cards (A4)</span>
           </button>
         </div>
       </div>
@@ -376,59 +444,186 @@ export default function UserManagementPage() {
         </div>
       </div>
 
-      {/* Printable Master Roster (Visible only when printing) */}
-      <div className="hidden print:block mb-6">
-        <div className="p-4 border-b-2 border-slate-900 text-center mb-4">
-          <h2 className="text-xl font-black tracking-wider uppercase text-slate-900">NKB MANUFACTURING ENTERPRISE ERP</h2>
-          <h3 className="text-sm font-bold text-slate-800 uppercase mt-1">OFFICIAL USER CREDENTIALS & SECURITY ACCESS ROSTER</h3>
-          <p className="text-[10px] text-slate-600 mt-1 font-mono">Portal URL: https://pr.nkbmanufacturing.com/ | Generated: {new Date().toLocaleString()} | STRICTLY CONFIDENTIAL</p>
-        </div>
-
-        <table className="w-full border-collapse border border-slate-400 text-xs">
-          <thead>
-            <tr className="bg-slate-100 border-b border-slate-400 font-bold text-slate-900">
-              <th className="border border-slate-400 p-2 text-center w-8">#</th>
-              <th className="border border-slate-400 p-2 text-left">Full Name</th>
-              <th className="border border-slate-400 p-2 text-left">Username</th>
-              <th className="border border-slate-400 p-2 text-left">Access Password</th>
-              <th className="border border-slate-400 p-2 text-left">Role Access</th>
-              <th className="border border-slate-400 p-2 text-left">Department</th>
-              <th className="border border-slate-400 p-2 text-left">Signature / Acknowledgment</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u, idx) => {
-              const pass = u.temp_password || (u.username === 'admin' ? 'admin123' : u.username === 'boss' ? 'boss123' : 'dept123');
-              return (
-                <tr key={u.id} className="border-b border-slate-300">
-                  <td className="border border-slate-400 p-2 text-center font-bold">{idx + 1}</td>
-                  <td className="border border-slate-400 p-2 font-bold text-slate-900">{u.full_name}</td>
-                  <td className="border border-slate-400 p-2 font-mono font-bold text-blue-800">{u.username}</td>
-                  <td className="border border-slate-400 p-2 font-mono font-bold text-amber-900 bg-amber-50/50">{pass}</td>
-                  <td className="border border-slate-400 p-2 uppercase font-semibold text-[10px]">{u.role}</td>
-                  <td className="border border-slate-400 p-2 text-slate-700">{u.department_name || 'System Level'}</td>
-                  <td className="border border-slate-400 p-2 text-center w-36"></td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-
-        <div className="mt-8 pt-4 border-t border-slate-400 text-[10px] text-slate-600">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <p className="font-bold text-slate-900">Issued By: IT Security Administrator</p>
-              <p className="mt-8 border-t border-slate-400 w-52 text-center pt-1">Authorized Signature</p>
+      {/* DEDICATED PRINT CONTAINER: 100% SIZED FOR 1 SINGLE A4 PAGE */}
+      <div id="print-a4-container" className="hidden print:block">
+        {/* VIEW 1: MASTER CREDENTIALS ROSTER (1 A4 SHEET) */}
+        {printMode === 'roster' && (
+          <div className="p-2 bg-white text-black" style={{ maxHeight: '280mm' }}>
+            {/* A4 Letterhead */}
+            <div className="border-b-2 border-black pb-2 mb-3 text-center">
+              <div className="flex justify-between items-center text-[9px] text-gray-600 font-mono mb-1">
+                <span>NKB MANUFACTURING IT SECURITY</span>
+                <span>CONFIDENTIAL & PROPRIETARY</span>
+                <span>PAGE 1 OF 1</span>
+              </div>
+              <h2 className="text-base font-black tracking-wider uppercase">NKB MANUFACTURING ENTERPRISE PROCUREMENT ERP</h2>
+              <h3 className="text-xs font-bold uppercase tracking-tight text-gray-800 mt-0.5">OFFICIAL USER CREDENTIALS & SECURITY ACCESS ROSTER (A4)</h3>
+              <p className="text-[9px] text-gray-600 mt-0.5">Portal: <strong>https://pr.nkbmanufacturing.com/</strong> | Date: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</p>
             </div>
-            <div>
-              <p className="font-bold text-slate-900">Approved By: Executive Management</p>
-              <p className="mt-8 border-t border-slate-400 w-52 text-center pt-1">Executive Signature</p>
+
+            {/* Compact A4 Table */}
+            <table className="w-full border-collapse border border-black text-[10px] my-2">
+              <thead>
+                <tr className="bg-gray-200 border-b border-black font-bold">
+                  <th className="border border-black p-1 text-center w-6">#</th>
+                  <th className="border border-black p-1 text-left">Full Name</th>
+                  <th className="border border-black p-1 text-left">Username</th>
+                  <th className="border border-black p-1 text-left bg-amber-100">Access Password</th>
+                  <th className="border border-black p-1 text-left">Role Access</th>
+                  <th className="border border-black p-1 text-left">Department</th>
+                  <th className="border border-black p-1 text-left w-28">Received By / Signature</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u, idx) => {
+                  const pass = u.temp_password || (u.username === 'admin' ? 'admin123' : u.username === 'boss' ? 'boss123' : 'dept123');
+                  return (
+                    <tr key={u.id} className="border-b border-gray-400">
+                      <td className="border border-black p-1 text-center font-bold">{idx + 1}</td>
+                      <td className="border border-black p-1 font-bold">{u.full_name}</td>
+                      <td className="border border-black p-1 font-mono font-bold text-blue-900">{u.username}</td>
+                      <td className="border border-black p-1 font-mono font-bold text-amber-950 bg-amber-50">{pass}</td>
+                      <td className="border border-black p-1 uppercase font-semibold text-[9px]">{u.role}</td>
+                      <td className="border border-black p-1 text-gray-800">{u.department_name || 'System Level'}</td>
+                      <td className="border border-black p-1 text-center"></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            {/* A4 Security Notice & Signatures Block */}
+            <div className="mt-3 pt-2 border-t border-black text-[9px]">
+              <p className="font-bold text-gray-800 mb-1">
+                🔒 Security Policy Notice: All credentials are for authorized enterprise personnel only. Users must change default passwords upon initial deployment.
+              </p>
+              <div className="flex justify-between items-end mt-6 pt-2">
+                <div className="text-center w-52">
+                  <div className="border-t border-black pt-1 font-bold text-[9px]">IT Security Administrator</div>
+                  <div className="text-[8px] text-gray-500">Prepared & Handed Over</div>
+                </div>
+                <div className="text-center w-52">
+                  <div className="border-t border-black pt-1 font-bold text-[9px]">Executive Management</div>
+                  <div className="text-[8px] text-gray-500">Approved & Authorized</div>
+                </div>
+              </div>
             </div>
           </div>
-          <p className="text-center italic">This document contains sensitive enterprise login credentials. Store securely and destroy/archive in compliance with IT security policy.</p>
-        </div>
+        )}
+
+        {/* VIEW 2: 9 CUT-OUT HANDOVER CARDS ON 1 SINGLE A4 SHEET */}
+        {printMode === 'cards' && (
+          <div className="p-2 bg-white text-black" style={{ maxHeight: '285mm' }}>
+            <div className="border-b border-black pb-1 mb-2 text-center">
+              <span className="text-[8px] font-mono text-gray-500">NKB MANUFACTURING ERP — 9-IN-1 CUT-OUT SECURITY ACCESS SLIPS (A4 SHEET)</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 text-[9px]">
+              {users.slice(0, 9).map((u) => {
+                const pass = u.temp_password || (u.username === 'admin' ? 'admin123' : u.username === 'boss' ? 'boss123' : 'dept123');
+                return (
+                  <div key={u.id} className="border-2 border-dashed border-gray-400 p-2 rounded bg-white flex flex-col justify-between" style={{ minHeight: '82mm' }}>
+                    <div>
+                      <div className="border-b border-gray-300 pb-1 mb-1 text-center">
+                        <span className="font-bold text-[9px] uppercase tracking-tight block">NKB PROCUREMENT ERP</span>
+                        <span className="text-[8px] text-gray-600 block">User Access Credential Card</span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <div>
+                          <span className="text-[8px] text-gray-500 block font-bold">NAME:</span>
+                          <strong className="text-[10px] text-black block truncate">{u.full_name}</strong>
+                        </div>
+
+                        <div className="bg-gray-100 p-1 rounded border border-gray-300">
+                          <span className="text-[8px] text-blue-900 font-bold block">USERNAME:</span>
+                          <strong className="text-[11px] font-mono text-blue-900 block">{u.username}</strong>
+                        </div>
+
+                        <div className="bg-amber-50 p-1 rounded border border-amber-300">
+                          <span className="text-[8px] text-amber-900 font-bold block">PASSWORD:</span>
+                          <strong className="text-[11px] font-mono text-amber-950 block">{pass}</strong>
+                        </div>
+
+                        <div className="flex justify-between text-[8px] text-gray-700">
+                          <span>Role: <strong className="uppercase">{u.role}</strong></span>
+                          <span>Dept: <strong>{u.department_code || 'IT'}</strong></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-300 pt-1 mt-1 text-[7px] text-gray-500 text-center">
+                      <span>URL: pr.nkbmanufacturing.com</span>
+                      <div className="border-t border-gray-400 mt-3 pt-0.5 font-bold text-[7px]">Received Signature</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* VIEW 3: INDIVIDUAL SINGLE SLIP (FITS ON 1 A4) */}
+        {printMode === 'slip' && selectedUser && (
+          <div className="p-6 bg-white text-black max-w-lg mx-auto border-2 border-black rounded-lg mt-8">
+            <div className="text-center border-b-2 border-black pb-3 mb-4">
+              <span className="text-xs font-black uppercase tracking-widest text-blue-900 block">NKB MANUFACTURING ENTERPRISE ERP</span>
+              <h2 className="text-sm font-black uppercase text-black mt-1">OFFICIAL USER ACCESS CREDENTIAL SLIP</h2>
+              <span className="text-[10px] text-gray-600">Issued by IT Security Division — STRICTLY CONFIDENTIAL</span>
+            </div>
+
+            <div className="space-y-3 text-xs mb-6">
+              <div className="p-2.5 bg-gray-100 border border-gray-300 rounded">
+                <span className="text-[10px] text-gray-500 font-bold block uppercase">Employee Name:</span>
+                <strong className="text-sm text-black">{selectedUser.full_name}</strong>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-2.5 bg-blue-50 border border-blue-300 rounded">
+                  <span className="text-[10px] text-blue-900 font-bold block uppercase">Assigned Username:</span>
+                  <strong className="text-base font-mono text-blue-950">{selectedUser.username}</strong>
+                </div>
+
+                <div className="p-2.5 bg-amber-50 border border-amber-300 rounded">
+                  <span className="text-[10px] text-amber-900 font-bold block uppercase">Access Password:</span>
+                  <strong className="text-base font-mono text-amber-950">
+                    {selectedUser.temp_password || (selectedUser.username === 'admin' ? 'admin123' : selectedUser.username === 'boss' ? 'boss123' : 'dept123')}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-2 bg-gray-50 border border-gray-200 rounded">
+                  <span className="text-[10px] text-gray-500 font-bold block uppercase">Role Level:</span>
+                  <strong className="uppercase text-xs">{selectedUser.role}</strong>
+                </div>
+                <div className="p-2 bg-gray-50 border border-gray-200 rounded">
+                  <span className="text-[10px] text-gray-500 font-bold block uppercase">Department:</span>
+                  <strong className="text-xs">{selectedUser.department_name || 'System Level'}</strong>
+                </div>
+              </div>
+
+              <div className="p-3 bg-gray-50 border border-gray-300 rounded text-[10px] space-y-1">
+                <p className="font-bold">🌐 Access Portal URL: <strong className="text-blue-900">https://pr.nkbmanufacturing.com/</strong></p>
+                <p className="text-gray-600">Please keep login credentials confidential. Never share your password with anyone.</p>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-end pt-6 border-t border-black text-[10px]">
+              <div className="text-center w-40">
+                <div className="border-t border-black pt-1 font-bold">IT Security Officer</div>
+                <div className="text-[8px] text-gray-500">Authorized Signature</div>
+              </div>
+              <div className="text-center w-40">
+                <div className="border-t border-black pt-1 font-bold">Account Holder</div>
+                <div className="text-[8px] text-gray-500">Received & Acknowledged</div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* Screen Data Table */}
       <div className="print:hidden">
         <DataTable columns={columns} data={users} totalCount={users.length} loading={loading} />
       </div>
