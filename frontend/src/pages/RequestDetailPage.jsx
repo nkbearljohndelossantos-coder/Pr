@@ -109,6 +109,10 @@ export default function RequestDetailPage() {
 
   const canApproveOrReject = user?.role === 'admin' || user?.role === 'executive';
 
+  const displayTotalCost = (request.items && request.items.length > 0 && (!request.total_estimated_cost || Number(request.total_estimated_cost) === 0))
+    ? request.items.reduce((sum, item) => sum + (Number(item.total_cost) || (Number(item.quantity) * Number(item.estimated_cost))), 0)
+    : (Number(request.total_estimated_cost) || 0);
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Top Header Action Bar */}
@@ -243,7 +247,7 @@ export default function RequestDetailPage() {
 
           <div>
             <span className="text-slate-400 block font-medium">Total Estimated Cost</span>
-            <span className="font-bold text-emerald-600 text-sm font-mono">{formatCurrency(request.total_estimated_cost)}</span>
+            <span className="font-bold text-emerald-600 text-sm font-mono">{formatCurrency(displayTotalCost)}</span>
           </div>
         </div>
 
@@ -372,7 +376,7 @@ export default function RequestDetailPage() {
 
             <div className="card-erp p-4 bg-slate-50 flex justify-between items-center text-xs font-bold text-slate-800">
               <span>COMBINED GRAND TOTAL ESTIMATED COST:</span>
-              <span className="text-base text-blue-600 font-mono">{formatCurrency(request.total_estimated_cost)}</span>
+              <span className="text-base text-blue-600 font-mono">{formatCurrency(displayTotalCost)}</span>
             </div>
           </>
         );

@@ -506,6 +506,33 @@ export default function CreateRequestPage() {
 
           <AttachmentUploader files={files} onFilesChange={setFiles} />
         </div>
+
+        {/* Bottom Form Action Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+          <div className="text-xs text-slate-500">
+            Click <strong className="text-blue-600">Submit Request</strong> to dispatch notifications to Executive Approver immediately.
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => handleFormSubmit('Draft')}
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 shadow-2xs disabled:opacity-50 cursor-pointer"
+            >
+              <Save className="w-4 h-4 text-slate-500" />
+              <span>Save as Draft</span>
+            </button>
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => handleFormSubmit('Submitted')}
+              className="flex items-center gap-1.5 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+            >
+              <Send className="w-4 h-4" />
+              <span>{submitting ? 'Submitting Request...' : (isEditMode ? 'Update & Submit for Approval' : 'Submit Requisition Request')}</span>
+            </button>
+          </div>
+        </div>
       </form>
     </div>
   );

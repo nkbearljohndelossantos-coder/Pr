@@ -1,11 +1,13 @@
 const db = require('../config/db');
 
 class RequestRepository {
-  async create({ request_number, department_id, prepared_by, position, required_date, purpose, business_justification, priority, created_by }) {
+  async create({ request_number, department_id, prepared_by, position, required_date, purpose, business_justification, priority, status, total_estimated_cost, created_by }) {
+    const statusVal = status === 'Submitted' ? 'Submitted' : 'Draft';
+    const costVal = Number(total_estimated_cost) || 0.00;
     const [res] = await db.query(
-      `INSERT INTO requests (request_number, department_id, prepared_by, position, required_date, purpose, business_justification, priority, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [request_number, department_id, prepared_by, position, required_date, purpose, business_justification, priority, created_by || null]
+      `INSERT INTO requests (request_number, department_id, prepared_by, position, required_date, purpose, business_justification, priority, status, total_estimated_cost, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [request_number, department_id, prepared_by, position, required_date, purpose, business_justification, priority, statusVal, costVal, created_by || null]
     );
     return res.insertId;
   }
@@ -55,6 +57,11 @@ class RequestRepository {
 
     request.items = items;
     request.attachments = attachments;
+
+    if ((!request.total_estimated_cost || Number(request.total_estimated_cost) === 0) && items && items.length > 0) {
+      request.total_estimated_cost = items.reduce((sum, item) => sum + (Number(item.total_cost) || (Number(item.quantity) * Number(item.estimated_cost))), 0);
+    }
+
     return request;
   }
 
@@ -91,6 +98,9 @@ class RequestRepository {
       const [attachments] = await db.query(`SELECT * FROM attachments WHERE request_id = ? AND is_deleted = 0`, [row.id]);
       row.items = items;
       row.attachments = attachments;
+      if ((!row.total_estimated_cost || Number(row.total_estimated_cost) === 0) && items && items.length > 0) {
+        row.total_estimated_cost = items.reduce((sum, item) => sum + (Number(item.total_cost) || (Number(item.quantity) * Number(item.estimated_cost))), 0);
+      }
     }
 
     return rows;
