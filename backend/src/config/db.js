@@ -777,6 +777,31 @@ const db = {
       return [{ affectedRows: 1 }];
     }
 
+    // UPDATE & DELETE USERS
+    if (upper.includes('UPDATE USERS SET')) {
+      const targetId = Number(params[params.length - 1]);
+      const user = store.users.find(u => u.id === targetId);
+      if (user) {
+        if (params[0]) user.username = params[0];
+        if (params[1]) user.full_name = params[1];
+        if (params[2]) user.email = params[2];
+        if (params[3]) user.role = params[3];
+        if (upper.includes('PASSWORD_HASH') && params[4]) {
+          user.password_hash = params[4];
+        }
+        user.updated_at = new Date().toISOString();
+        saveStore();
+      }
+      return [{ affectedRows: 1 }];
+    }
+
+    if (upper.includes('DELETE FROM USERS WHERE ID = ?')) {
+      const targetId = Number(params[0]);
+      store.users = store.users.filter(u => u.id !== targetId);
+      saveStore();
+      return [{ affectedRows: 1 }];
+    }
+
     // 4. REQUESTS Queries
     if (upper.includes('INSERT INTO REQUESTS')) {
       const newId = store.requests.length > 0 ? Math.max(...store.requests.map(r => r.id)) + 1 : 1;
