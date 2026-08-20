@@ -65,6 +65,10 @@ export default function RequestDetailPage() {
   };
 
   const handleStatusUpdate = async (status) => {
+    if (status === 'Submitted' && displayTotalCost <= 0) {
+      addToast('Strict Submission Restriction: Cannot submit a request with ₱0.00 Total Cost. Please click "Edit Request" and add items with valid non-zero prices first.', 'error');
+      return;
+    }
     try {
       const res = await requestApi.updateStatus(id, { status, remarks: approvalNotes });
       if (res.data.success) {

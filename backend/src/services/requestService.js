@@ -108,7 +108,7 @@ class RequestService {
     }
 
     if (!items || items.length === 0) {
-      throw new Error('Please add at least 1 Item or 1 Subscription to submit a requisition request.');
+      throw new Error('Strict Requisition Requirement: Please add at least 1 Item or 1 Subscription before submitting.');
     }
 
     let totalEstimatedCost = 0;
@@ -127,6 +127,10 @@ class RequestService {
         item_type: item.item_type || 'item'
       };
     });
+
+    if (totalEstimatedCost <= 0) {
+      throw new Error('Strict Costing Restriction: Requisitions with ₱0.00 Total Estimated Cost are prohibited. Please enter valid non-zero item prices.');
+    }
 
     const requestId = await requestRepository.create({
       request_number: requestNumber,
@@ -246,6 +250,10 @@ class RequestService {
       }
     }
 
+    if (data.status === 'Submitted' && totalEstimatedCost <= 0) {
+      throw new Error('Strict Costing Restriction: Cannot submit a requisition with ₱0.00 Total Cost. Please add items with valid prices.');
+    }
+
     await requestRepository.update(id, {
       department_id: newDeptId,
       prepared_by: data.prepared_by || existing.prepared_by,
@@ -264,7 +272,7 @@ class RequestService {
     if (data.remove_attachment_ids) {
       let removeIds = [];
       if (typeof data.remove_attachment_ids === 'string') {
-        try { removeIds = JSON.parse(data.remove_attachment_ids); } catch (e) {}
+        try { removeIds = JSON.parse(data.remove_attachment_ids); } catch(e) { removeIds = []; }
       } else if (Array.isArray(data.remove_attachment_ids)) {
         removeIds = data.remove_attachment_ids;
       }
@@ -273,9 +281,8 @@ class RequestService {
       }
     }
 
-    // 2. If new files are uploaded, replace old attachments with newly uploaded ones!
+    // 2. Save newly added attachments
     if (files && files.length > 0) {
-      await requestRepository.deleteAttachmentsByRequestId(id);
       for (const file of files) {
         await requestRepository.addAttachment({
           request_id: Number(id),
@@ -289,10 +296,10 @@ class RequestService {
     }
 
     const updatedReq = await requestRepository.findById(id);
-    if (updatedReq && updatedReq.status === 'Submitted') {
-      emailService.sendApprovalNotification(updatedReq).then((res) => {
-        logger.info(`Live approval notification dispatched for updated request #${updatedReq.request_number} (Status: ${res?.success ? 'Delivered' : 'Failed'})`);
-      }).catch((err) => {
+
+    // Fire approval notification if status is Submitted
+    if (data.status === 'Submitted' || updatedReq.status === 'Submitted') {
+      emailService.sendApprovalNotification(updatedReq, 'Submitted').catch(err => {
         logger.error('Failed to trigger background approval email notification:', err.message);
       });
     }
@@ -323,6 +330,16 @@ class RequestService {
   async updateRequestStatus(id, user, status, remarks) {
     const req = await requestRepository.findById(id);
     if (!req) throw new Error('Request not found.');
+
+    if (status === 'Submitted') {
+      const items = req.items || [];
+      const total = (Number(req.total_estimated_cost) > 0)
+        ? Number(req.total_estimated_cost)
+        : items.reduce((sum, i) => sum + (Number(i.total_cost) || (Number(i.quantity) * Number(i.estimated_cost))), 0);
+      if (items.length === 0 || total <= 0) {
+        throw new Error('Strict Submission Restriction: Cannot submit a requisition with ₱0.00 Total Estimated Cost. Please edit the request and add items with non-zero prices first.');
+      }
+    }
 
     await requestRepository.updateStatus(id, status, remarks, user.id);
     const updated = await requestRepository.findById(id);

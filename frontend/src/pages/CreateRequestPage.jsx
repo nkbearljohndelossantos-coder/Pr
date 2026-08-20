@@ -134,7 +134,13 @@ export default function CreateRequestPage() {
     const validSubs = getValidSubscriptions();
 
     if (validItems.length === 0 && validSubs.length === 0) {
-      addToast('Requisition Requirement: Please add at least ONE Physical Item row OR ONE Subscription row.', 'error');
+      addToast('Strict Requisition Restriction: You must add at least 1 Physical Item or 1 Subscription with an Item Description and Price before submitting.', 'error');
+      return false;
+    }
+
+    const calculatedTotal = [...validItems, ...validSubs].reduce((sum, i) => sum + (parseNum(i.quantity) || 1) * parseNum(i.estimated_cost), 0);
+    if (calculatedTotal <= 0) {
+      addToast('Strict Zero-Cost Restriction: Cannot submit a requisition with ₱0.00 Total Estimated Cost. Please enter the valid price/unit rate for your items.', 'error');
       return false;
     }
 
