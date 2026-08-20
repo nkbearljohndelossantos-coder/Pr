@@ -959,13 +959,20 @@ const db = {
 
     if (upper.includes('GROUP BY D.ID')) {
       const countsMap = {};
+      const spendMap = {};
       store.requests.filter(r => !r.is_deleted).forEach(r => {
         countsMap[r.department_id] = (countsMap[r.department_id] || 0) + 1;
+        const reqItems = store.request_items.filter(i => i.request_id === r.id && !i.is_deleted);
+        const total = (r.total_estimated_cost && Number(r.total_estimated_cost) > 0)
+          ? Number(r.total_estimated_cost)
+          : reqItems.reduce((sum, item) => sum + (Number(item.total_cost) || (Number(item.quantity) * Number(item.estimated_cost))), 0);
+        spendMap[r.department_id] = (spendMap[r.department_id] || 0) + total;
       });
       const rows = store.departments.map(d => ({
         department_name: d.name,
         department_code: d.code,
-        count: countsMap[d.id] || 0
+        count: countsMap[d.id] || 0,
+        total_spend: spendMap[d.id] || 0
       }));
       return [rows];
     }

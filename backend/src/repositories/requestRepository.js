@@ -201,26 +201,82 @@ class RequestRepository {
   }
 
   async getDashboardMetrics(department_id = null) {
-    let whereClause = `WHERE is_deleted = 0`;
+    let whereClause = `WHERE r.is_deleted = 0`;
     const params = [];
     if (department_id) {
-      whereClause += ` AND department_id = ?`;
+      whereClause += ` AND r.department_id = ?`;
       params.push(department_id);
     }
 
     const [statusRows] = await db.query(
-      `SELECT status, COUNT(*) as count FROM requests ${whereClause} GROUP BY status`,
+      `SELECT status, COUNT(*) as count FROM requests WHERE is_deleted = 0 ${department_id ? 'AND department_id = ?' : ''} GROUP BY status`,
       params
     );
 
     const [deptRows] = await db.query(
-      `SELECT d.name as department_name, d.code as department_code, COUNT(r.id) as count 
-       FROM requests r 
-       JOIN departments d ON r.department_id = d.id 
-       WHERE r.is_deleted = 0 
+      `SELECT d.name as department_name, d.code as department_code, COUNT(r.id) as count, COALESCE(SUM(r.total_estimated_cost), 0) as total_spend 
+       FROM departments d
+       LEFT JOIN requests r ON r.department_id = d.id AND r.is_deleted = 0
        GROUP BY d.id`,
       []
     );
+
+    const [allReqs] = await db.query(
+      `SELECT r.*, d.name as department_name, d.code as department_code 
+       FROM requests r 
+       LEFT JOIN departments d ON r.department_id = d.id 
+       ${whereClause}`,
+      params
+    );
+
+    let totalRequestedCost = 0;
+    let approvedCost = 0;
+    let pendingCost = 0;
+    let rejectedCost = 0;
+    let physicalItemsCost = 0;
+    let subscriptionsCost = 0;
+
+    const deptSpendMap = {};
+
+    for (const req of (allReqs || [])) {
+      const [items] = await db.query(`SELECT * FROM request_items WHERE request_id = ? AND is_deleted = 0`, [req.id]);
+      req.items = items || [];
+
+      let reqTotal = Number(req.total_estimated_cost) || 0;
+      let calculatedSum = 0;
+
+      for (const item of req.items) {
+        const itemTotal = Number(item.total_cost) || (Number(item.quantity) * Number(item.estimated_cost)) || 0;
+        calculatedSum += itemTotal;
+        if (item.item_type === 'subscription') {
+          subscriptionsCost += itemTotal;
+        } else {
+          physicalItemsCost += itemTotal;
+        }
+      }
+
+      if (reqTotal <= 0) {
+        reqTotal = calculatedSum;
+        req.total_estimated_cost = calculatedSum;
+      }
+
+      totalRequestedCost += reqTotal;
+      if (req.status === 'Approved' || req.status === 'Completed') {
+        approvedCost += reqTotal;
+      } else if (req.status === 'Submitted' || req.status === 'Under Review') {
+        pendingCost += reqTotal;
+      } else if (req.status === 'Rejected') {
+        rejectedCost += reqTotal;
+      }
+
+      const dCode = req.department_code || 'DEPT';
+      deptSpendMap[dCode] = (deptSpendMap[dCode] || 0) + reqTotal;
+    }
+
+    const enhancedDeptRows = (deptRows || []).map(d => ({
+      ...d,
+      total_spend: deptSpendMap[d.department_code] !== undefined ? deptSpendMap[d.department_code] : (Number(d.total_spend) || 0)
+    }));
 
     const [recentRows] = await db.query(
       `SELECT r.*, d.name as department_name, d.code as department_code 
@@ -231,20 +287,37 @@ class RequestRepository {
       []
     );
 
-    for (const row of recentRows) {
+    for (const row of (recentRows || [])) {
       const [items] = await db.query(`SELECT * FROM request_items WHERE request_id = ? AND is_deleted = 0`, [row.id]);
-      row.items = items;
+      row.items = items || [];
       if ((!row.total_estimated_cost || Number(row.total_estimated_cost) === 0) && items && items.length > 0) {
         row.total_estimated_cost = items.reduce((sum, item) => sum + (Number(item.total_cost) || (Number(item.quantity) * Number(item.estimated_cost))), 0);
       }
     }
 
+    const financialSummary = {
+      total_requested_cost: totalRequestedCost,
+      approved_cost: approvedCost,
+      pending_cost: pendingCost,
+      rejected_cost: rejectedCost,
+      physical_items_cost: physicalItemsCost,
+      subscriptions_cost: subscriptionsCost,
+      totalRequestedCost,
+      approvedCost,
+      pendingCost,
+      rejectedCost,
+      physicalItemsCost,
+      subscriptionsCost
+    };
+
     return {
       status_counts: statusRows || [],
-      department_counts: deptRows || [],
+      department_counts: enhancedDeptRows || [],
       recent_requests: recentRows || [],
+      financial_summary: financialSummary,
+      financialSummary,
       statusCounts: statusRows || [],
-      departmentBreakdown: deptRows || [],
+      departmentBreakdown: enhancedDeptRows || [],
       recentRequests: recentRows || []
     };
   }
