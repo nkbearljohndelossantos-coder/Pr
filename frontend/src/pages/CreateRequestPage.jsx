@@ -8,7 +8,7 @@ import EmployeeSelect from '../components/EmployeeSelect';
 import { requestApi, systemApi } from '../services/systemApi';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
-import { parseNum } from '../utils/numberFormat';
+import { parseNum, formatCurrency } from '../utils/numberFormat';
 
 export default function CreateRequestPage() {
   const { user } = useAuth();
