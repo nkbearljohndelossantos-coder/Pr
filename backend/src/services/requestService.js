@@ -137,7 +137,7 @@ class RequestService {
       purpose: data.purpose,
       business_justification: data.business_justification || '',
       priority: data.priority || 'Normal',
-      status: data.status === 'Submitted' ? 'Submitted' : 'Draft',
+      status: data.status === 'Draft' ? 'Draft' : 'Submitted',
       total_estimated_cost: totalEstimatedCost,
       created_by: user?.id || null
     });
