@@ -149,7 +149,11 @@ export default function RequestListPage() {
       sortable: true,
       render: (row) => (
         <span className="font-semibold text-slate-800 font-mono">
-          {formatCurrency(row.total_estimated_cost)}
+          {formatCurrency(
+            (row.items && row.items.length > 0 && (!row.total_estimated_cost || Number(row.total_estimated_cost) === 0))
+              ? row.items.reduce((sum, i) => sum + (Number(i.total_cost) || (Number(i.quantity) * Number(i.estimated_cost))), 0)
+              : (Number(row.total_estimated_cost) || 0)
+          )}
         </span>
       )
     },

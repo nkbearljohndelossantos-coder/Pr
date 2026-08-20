@@ -247,9 +247,9 @@ export default function DashboardPage() {
                     className="hover:bg-slate-50 cursor-pointer transition-colors"
                   >
                     <td className="px-4 py-3 font-bold text-blue-600">{req.request_number}</td>
-                    <td className="px-4 py-3 font-medium text-slate-700">{req.department_name}</td>
+                    <td className="px-4 py-3 font-medium text-slate-700">{req.department_name || req.department_code || 'General'}</td>
                     <td className="px-4 py-3 text-slate-600">{req.prepared_by}</td>
-                    <td className="px-4 py-3 text-slate-500">{req.required_date}</td>
+                    <td className="px-4 py-3 text-slate-500">{req.required_date ? req.required_date.split('T')[0] : 'N/A'}</td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
                         {req.priority}
@@ -261,7 +261,11 @@ export default function DashboardPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-slate-800 font-mono">
-                      {formatCurrency(req.total_estimated_cost)}
+                      {formatCurrency(
+                        (req.items && req.items.length > 0 && (!req.total_estimated_cost || Number(req.total_estimated_cost) === 0))
+                          ? req.items.reduce((sum, i) => sum + (Number(i.total_cost) || (Number(i.quantity) * Number(i.estimated_cost))), 0)
+                          : (Number(req.total_estimated_cost) || 0)
+                      )}
                     </td>
                   </tr>
                 ))

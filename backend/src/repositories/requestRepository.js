@@ -223,13 +223,21 @@ class RequestRepository {
     );
 
     const [recentRows] = await db.query(
-      `SELECT r.*, d.code as department_code 
+      `SELECT r.*, d.name as department_name, d.code as department_code 
        FROM requests r 
        LEFT JOIN departments d ON r.department_id = d.id 
        WHERE r.is_deleted = 0 
        ORDER BY r.created_at DESC LIMIT 5`,
       []
     );
+
+    for (const row of recentRows) {
+      const [items] = await db.query(`SELECT * FROM request_items WHERE request_id = ? AND is_deleted = 0`, [row.id]);
+      row.items = items;
+      if ((!row.total_estimated_cost || Number(row.total_estimated_cost) === 0) && items && items.length > 0) {
+        row.total_estimated_cost = items.reduce((sum, item) => sum + (Number(item.total_cost) || (Number(item.quantity) * Number(item.estimated_cost))), 0);
+      }
+    }
 
     return {
       status_counts: statusRows || [],

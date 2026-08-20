@@ -836,7 +836,16 @@ const db = {
 
       const enriched = list.map(r => {
         const dept = store.departments.find(d => d.id === r.department_id);
-        return { ...r, department_name: dept?.name || 'Department', department_code: dept?.code || 'DEPT' };
+        const reqItems = store.request_items.filter(i => i.request_id === r.id && !i.is_deleted);
+        const total = (r.total_estimated_cost && Number(r.total_estimated_cost) > 0)
+          ? Number(r.total_estimated_cost)
+          : reqItems.reduce((sum, item) => sum + (Number(item.total_cost) || (Number(item.quantity) * Number(item.estimated_cost))), 0);
+        return {
+          ...r,
+          total_estimated_cost: total,
+          department_name: dept?.name || r.department_name || 'Department',
+          department_code: dept?.code || r.department_code || 'DEPT'
+        };
       });
 
       return [enriched];
