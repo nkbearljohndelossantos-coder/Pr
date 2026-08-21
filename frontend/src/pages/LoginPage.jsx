@@ -25,11 +25,6 @@ export default function LoginPage() {
     }
   };
 
-  const fillQuickAccount = (u, p) => {
-    setUsername(u);
-    setPassword(p);
-  };
-
   return (
     <main className="bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-900 min-h-screen flex flex-col items-center justify-center px-4 py-8 md:p-8">
       <div className="grid items-center gap-x-10 gap-y-12 max-w-6xl w-full lg:grid-cols-2">
@@ -51,41 +46,6 @@ export default function LoginPage() {
           <p className="text-sm lg:text-base mt-4 text-slate-200 leading-relaxed font-normal">
             Immerse yourself in a hassle-free requisition and approval journey. Effortlessly submit, track, and manage your department's requests with NKB Enterprise System.
           </p>
-
-          {/* Quick Demo Accounts Selection */}
-          <div className="mt-8 pt-6 border-t border-slate-700/60">
-            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">
-              ⚡ One-Click Demo Login Roles:
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => fillQuickAccount('admin', 'admin123')}
-                className="p-2.5 bg-slate-800/80 hover:bg-blue-600/80 border border-slate-700 rounded-lg text-left transition-all group"
-              >
-                <p className="text-xs font-bold text-white group-hover:text-amber-300">System Admin</p>
-                <p className="text-[10px] text-slate-400 group-hover:text-slate-100">admin</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => fillQuickAccount('boss', 'boss123')}
-                className="p-2.5 bg-slate-800/80 hover:bg-blue-600/80 border border-slate-700 rounded-lg text-left transition-all group"
-              >
-                <p className="text-xs font-bold text-white group-hover:text-amber-300">Executive Boss</p>
-                <p className="text-[10px] text-slate-400 group-hover:text-slate-100">boss</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => fillQuickAccount('it_dept', 'password123')}
-                className="p-2.5 bg-slate-800/80 hover:bg-blue-600/80 border border-slate-700 rounded-lg text-left transition-all group"
-              >
-                <p className="text-xs font-bold text-white group-hover:text-amber-300">IT Department</p>
-                <p className="text-[10px] text-slate-400 group-hover:text-slate-100">it_dept</p>
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Right Side: Login Card Form */}

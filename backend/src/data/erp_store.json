@@ -1,0 +1,388 @@
+{
+  "departments": [
+    {
+      "id": 1,
+      "code": "IT",
+      "name": "Information Technology Department",
+      "username": "it_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 2,
+      "code": "HR",
+      "name": "Human Resources Department",
+      "username": "hr_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 3,
+      "code": "ACCT",
+      "name": "Accounting Department",
+      "username": "acct_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 4,
+      "code": "PURCH",
+      "name": "Purchasing Department",
+      "username": "purch_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 5,
+      "code": "PROD",
+      "name": "Production Department",
+      "username": "prod_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 6,
+      "code": "WH",
+      "name": "Warehouse Department",
+      "username": "wh_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 7,
+      "code": "QA",
+      "name": "Quality Assurance Department",
+      "username": "qa_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "seq_counter": 0,
+      "is_active": 1,
+      "is_deleted": 0
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password_hash": "$2a$10$Ye3QpGJIBQfS2upcDd1Kkul7FKbGDARFlw9oZqPt3BgVb95o42FW.",
+      "role": "admin",
+      "department_id": null,
+      "full_name": "System Administrator (IT)",
+      "email": "admin@company.com",
+      "is_active": 1,
+      "is_deleted": 0,
+      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImRlcGFydG1lbnRfaWQiOm51bGwsImRlcGFydG1lbnRfY29kZSI6IkRFUFQiLCJkZXBhcnRtZW50X25hbWUiOiJTeXN0ZW0gQWRtaW5pc3RyYXRvciAoSVQpIiwiZnVsbF9uYW1lIjoiU3lzdGVtIEFkbWluaXN0cmF0b3IgKElUKSIsImlhdCI6MTc4NzI4MjI0NywiZXhwIjoxNzg3ODg3MDQ3fQ.PwLJQ1vJzl32ziXxXeAxhPMTc02OyNj4_Kh9pQAnQDc"
+    },
+    {
+      "id": 2,
+      "username": "boss",
+      "password_hash": "$2a$10$xiBZACdNgPuPg8tGv3UEGequoLvLZ6wgbiIAO9j8K47WDpY.ndNHO",
+      "role": "executive",
+      "department_id": null,
+      "full_name": "Executive Administrator",
+      "email": "boss@company.com",
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 3,
+      "username": "it_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "role": "department",
+      "department_id": 1,
+      "full_name": "Information Technology Dept",
+      "email": "it@company.com",
+      "is_active": 1,
+      "is_deleted": 0,
+      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJpdF9kZXB0Iiwicm9sZSI6ImRlcGFydG1lbnQiLCJkZXBhcnRtZW50X2lkIjoxLCJkZXBhcnRtZW50X2NvZGUiOiJJVCIsImRlcGFydG1lbnRfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwYXJ0bWVudCIsImZ1bGxfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwdCIsImlhdCI6MTc4NzI4MjI0NywiZXhwIjoxNzg3ODg3MDQ3fQ.HeT5qrDaqarR9wCNscb9JpP2_2-pyHB4fDO00dj_x9k"
+    },
+    {
+      "id": 4,
+      "username": "hr_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "role": "department",
+      "department_id": 2,
+      "full_name": "Human Resources Dept",
+      "email": "hr@company.com",
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 5,
+      "username": "acct_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "role": "department",
+      "department_id": 3,
+      "full_name": "Accounting Dept",
+      "email": "acct@company.com",
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 6,
+      "username": "purch_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "role": "department",
+      "department_id": 4,
+      "full_name": "Purchasing Dept",
+      "email": "purch@company.com",
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 7,
+      "username": "prod_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "role": "department",
+      "department_id": 5,
+      "full_name": "Production Dept",
+      "email": "prod@company.com",
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 8,
+      "username": "wh_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "role": "department",
+      "department_id": 6,
+      "full_name": "Warehouse Dept",
+      "email": "wh@company.com",
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 9,
+      "username": "qa_dept",
+      "password_hash": "$2a$10$S1agcNbjJ6oNFv3jYmN4uOueZv7ofo6mnduz625qtSIUYS.obVQ7e",
+      "role": "department",
+      "department_id": 7,
+      "full_name": "Quality Assurance Dept",
+      "email": "qa@company.com",
+      "is_active": 1,
+      "is_deleted": 0
+    }
+  ],
+  "requests": [
+    {
+      "id": 1,
+      "request_number": "REQ-IT-20260813-00001",
+      "department_id": 1,
+      "prepared_by": "IT Department Staff",
+      "position": "IT Specialist",
+      "required_date": "2026-08-20",
+      "purpose": "Hostinger VPS KVM4 Server Infrastructure Renewal & Upgrade",
+      "business_justification": "Production server hosting renewal for enterprise applications.",
+      "priority": "Normal",
+      "status": "Submitted",
+      "total_estimated_cost": 20133.12,
+      "created_by": 1,
+      "created_at": "2026-08-21T03:17:04.884Z",
+      "updated_at": "2026-08-21T03:17:04.884Z",
+      "is_deleted": 0
+    },
+    {
+      "id": 2,
+      "request_number": "REQ-20260821-00002",
+      "department_id": 1,
+      "prepared_by": "Alex Vance",
+      "position": "IT Infrastructure Specialist",
+      "required_date": "2026-08-15",
+      "purpose": "Server Upgrade Components for Enterprise ERP Deployment",
+      "business_justification": "High performance database node expansion",
+      "priority": "High",
+      "status": "Submitted",
+      "total_estimated_cost": 3580,
+      "created_by": 3,
+      "revision_number": 1,
+      "remarks": "",
+      "created_at": "2026-08-21T03:17:27.972Z",
+      "updated_at": "2026-08-21T03:17:27.972Z",
+      "is_deleted": 0
+    }
+  ],
+  "request_items": [
+    {
+      "id": 1,
+      "request_id": 1,
+      "item_description": "Hostinger VPS KVM4 Subscription Plan",
+      "quantity": 1,
+      "unit": "24_MONTHS",
+      "estimated_cost": 20133.12,
+      "total_cost": 20133.12,
+      "remarks": "Renewal Date: Nov 2026",
+      "item_type": "subscription",
+      "created_at": "2026-08-21T03:17:04.884Z"
+    },
+    {
+      "id": 2,
+      "request_id": 2,
+      "item_description": "Dell PowerEdge R750 RAM Module 64GB",
+      "quantity": 4,
+      "unit": "PCS",
+      "estimated_cost": 450,
+      "total_cost": 1800,
+      "remarks": "",
+      "item_type": "item",
+      "is_deleted": 0
+    },
+    {
+      "id": 3,
+      "request_id": 2,
+      "item_description": "Samsung Enterprise 3.84TB NVMe SSD",
+      "quantity": 2,
+      "unit": "PCS",
+      "estimated_cost": 890,
+      "total_cost": 1780,
+      "remarks": "",
+      "item_type": "item",
+      "is_deleted": 0
+    }
+  ],
+  "attachments": [
+    {
+      "id": 1,
+      "request_id": 1,
+      "original_name": "Hostinger_VPS_Renewal_Quotation.pdf",
+      "filename": "1786083247-Hostinger_VPS_Renewal_Quotation.pdf",
+      "file_path": "uploads/1786083247-Hostinger_VPS_Renewal_Quotation.pdf",
+      "file_type": "application/pdf",
+      "file_size": 102400,
+      "uploaded_at": "2026-08-21T03:17:04.884Z",
+      "is_deleted": 0
+    }
+  ],
+  "master_dropdowns": [
+    {
+      "id": 1,
+      "category": "unit_of_measure",
+      "code": "PCS",
+      "label": "Pieces (PCS)",
+      "sort_order": 1,
+      "is_active": 1
+    },
+    {
+      "id": 2,
+      "category": "unit_of_measure",
+      "code": "BOX",
+      "label": "Boxes (BOX)",
+      "sort_order": 2,
+      "is_active": 1
+    },
+    {
+      "id": 3,
+      "category": "unit_of_measure",
+      "code": "SET",
+      "label": "Sets (SET)",
+      "sort_order": 3,
+      "is_active": 1
+    },
+    {
+      "id": 4,
+      "category": "unit_of_measure",
+      "code": "LOT",
+      "label": "Lots (LOT)",
+      "sort_order": 4,
+      "is_active": 1
+    },
+    {
+      "id": 5,
+      "category": "unit_of_measure",
+      "code": "KG",
+      "label": "Kilograms (KG)",
+      "sort_order": 5,
+      "is_active": 1
+    },
+    {
+      "id": 6,
+      "category": "unit_of_measure",
+      "code": "SUBSCRIPTION",
+      "label": "Subscription (SUB)",
+      "sort_order": 6,
+      "is_active": 1
+    },
+    {
+      "id": 7,
+      "category": "unit_of_measure",
+      "code": "MONTHLY_SUB",
+      "label": "Monthly Subscription",
+      "sort_order": 7,
+      "is_active": 1
+    },
+    {
+      "id": 8,
+      "category": "unit_of_measure",
+      "code": "ANNUAL_SUB",
+      "label": "Annual Subscription",
+      "sort_order": 8,
+      "is_active": 1
+    },
+    {
+      "id": 9,
+      "category": "unit_of_measure",
+      "code": "LICENSE",
+      "label": "Software License",
+      "sort_order": 9,
+      "is_active": 1
+    },
+    {
+      "id": 10,
+      "category": "priority",
+      "code": "Low",
+      "label": "Low Priority",
+      "sort_order": 1,
+      "is_active": 1
+    },
+    {
+      "id": 11,
+      "category": "priority",
+      "code": "Normal",
+      "label": "Normal Priority",
+      "sort_order": 2,
+      "is_active": 1
+    },
+    {
+      "id": 12,
+      "category": "priority",
+      "code": "High",
+      "label": "High Priority",
+      "sort_order": 3,
+      "is_active": 1
+    },
+    {
+      "id": 13,
+      "category": "priority",
+      "code": "Urgent",
+      "label": "Urgent Priority",
+      "sort_order": 4,
+      "is_active": 1
+    }
+  ],
+  "notifications": [
+    {
+      "id": 1,
+      "user_id": null,
+      "department_id": 1,
+      "title": "New Request Created",
+      "message": "Request REQ-20260821-00002 created by Alex Vance.",
+      "type": "info",
+      "is_read": 0,
+      "created_at": "2026-08-21T03:17:28.023Z"
+    }
+  ],
+  "audit_logs": [],
+  "backups": [],
+  "employees": [],
+  "system_settings": []
+}
