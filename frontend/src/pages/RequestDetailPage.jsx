@@ -632,26 +632,61 @@ export default function RequestDetailPage() {
           </tfoot>
         </table>
 
+        {/* Supporting Image Attachments & Quotation Photos Block */}
+        {(() => {
+          const imageAttachments = (request?.attachments || []).filter(att => 
+            att.file_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(att.original_name || att.filename)
+          );
+
+          if (imageAttachments.length === 0) return null;
+
+          return (
+            <div className="my-3 pt-2 border-t border-black page-break-inside-avoid">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-black mb-1.5 flex items-center justify-between">
+                <span>Attached Product Photos & Quotation Proofs ({imageAttachments.length}):</span>
+                <span className="text-[8px] text-gray-500 font-mono">SUPPORTING EVIDENCE</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {imageAttachments.map((img, idx) => {
+                  const previewUrl = img.filename?.startsWith('/') ? img.filename : `/uploads/${img.filename}`;
+                  return (
+                    <div key={img.id || idx} className="border border-black p-1 rounded bg-white text-center">
+                      <img 
+                        src={previewUrl} 
+                        alt={img.original_name || `Attachment ${idx + 1}`} 
+                        className="w-full h-24 object-contain mx-auto"
+                      />
+                      <p className="text-[7.5px] font-semibold text-gray-800 truncate mt-1">
+                        {img.original_name || img.filename}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Signatures Block */}
-        <div className="mt-6 pt-3 border-t-2 border-black text-[9px]">
+        <div className="mt-4 pt-2 border-t-2 border-black text-[9px] page-break-inside-avoid">
           <div className="grid grid-cols-3 gap-6 text-center">
             <div>
-              <div className="text-gray-600 font-semibold mb-6">Prepared & Requested By:</div>
+              <div className="text-gray-600 font-semibold mb-5">Prepared & Requested By:</div>
               <div className="border-t border-black pt-1 font-bold text-black">{request?.prepared_by}</div>
               <div className="text-[8px] text-gray-500">Requisitioner</div>
             </div>
             <div>
-              <div className="text-gray-600 font-semibold mb-6">Verified & Endorsed By:</div>
+              <div className="text-gray-600 font-semibold mb-5">Verified & Endorsed By:</div>
               <div className="border-t border-black pt-1 font-bold text-black">Department Head</div>
               <div className="text-[8px] text-gray-500">Department Supervisor</div>
             </div>
             <div>
-              <div className="text-gray-600 font-semibold mb-6">Approved For Procurement By:</div>
+              <div className="text-gray-600 font-semibold mb-5">Approved For Procurement By:</div>
               <div className="border-t border-black pt-1 font-bold text-black">Executive Management</div>
               <div className="text-[8px] text-gray-500">Authorized Signatory</div>
             </div>
           </div>
-          <p className="text-[8px] text-gray-500 text-center italic mt-6">
+          <p className="text-[8px] text-gray-500 text-center italic mt-4">
             NKB Manufacturing Corp. • Enterprise ERP System • Generated electronically on {new Date().toLocaleString()}
           </p>
         </div>

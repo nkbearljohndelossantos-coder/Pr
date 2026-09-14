@@ -222,11 +222,58 @@ class PdfService {
         doc.text('Department Head / Supervisor', 220, y);
         doc.text('Executive / Managing Director', 400, y);
 
+        // Supporting Photo Attachments Section
+        if (request.attachments && request.attachments.length > 0) {
+          const imageAttachments = request.attachments.filter(a => 
+            (a.file_type && a.file_type.startsWith('image/')) || 
+            (a.file_name && a.file_name.match(/\.(png|jpg|jpeg|webp|gif)$/i)) ||
+            (a.original_name && a.original_name.match(/\.(png|jpg|jpeg|webp|gif)$/i))
+          );
+
+          if (imageAttachments.length > 0) {
+            doc.addPage({ size: 'A4', margin: 40 });
+            doc.font('Helvetica-Bold').fontSize(12).fillColor('#1E293B').text('ATTACHED SUPPORTING PHOTOS & QUOTATIONS', 40, 40);
+            doc.moveTo(40, 55).lineTo(555, 55).strokeColor('#CBD5E1').stroke();
+
+            let imgY = 65;
+            for (const att of imageAttachments) {
+              const safeFilename = path.basename(att.file_name || att.stored_name || att.file_path || att.filename || '');
+              const possiblePaths = [
+                path.join(process.cwd(), 'uploads', safeFilename),
+                path.join(process.cwd(), 'public/uploads', safeFilename),
+                path.join(process.cwd(), 'backend/uploads', safeFilename),
+                path.join(process.cwd(), 'backend/public/uploads', safeFilename),
+                path.join(__dirname, '../uploads', safeFilename),
+                path.join(__dirname, '../../uploads', safeFilename)
+              ];
+
+              for (const p of possiblePaths) {
+                if (fs.existsSync(p) && fs.statSync(p).isFile()) {
+                  try {
+                    if (imgY + 180 > 750) {
+                      doc.addPage({ size: 'A4', margin: 40 });
+                      imgY = 40;
+                    }
+                    doc.font('Helvetica-Bold').fontSize(8).fillColor('#334155').text(att.original_name || safeFilename, 40, imgY);
+                    doc.image(p, 40, imgY + 12, { fit: [515, 170], align: 'center', valign: 'center' });
+                    imgY += 195;
+                  } catch (e) {}
+                  break;
+                }
+              }
+            }
+          }
+        }
+
         doc.end();
       } catch (err) {
         reject(err);
       }
     });
+  }
+
+  async generateRequestPdf(request) {
+    return this.generateRequisitionPdf(request);
   }
 }
 
