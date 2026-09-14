@@ -82,7 +82,8 @@ export default function RequestDetailPage() {
   };
 
   const handlePrintPdf = () => {
-    const pdfUrl = `/api/requests/${id}/pdf`;
+    const token = localStorage.getItem('erp_token');
+    const pdfUrl = `/api/requests/${id}/pdf?token=${encodeURIComponent(token || '')}`;
     window.open(pdfUrl, '_blank');
   };
 

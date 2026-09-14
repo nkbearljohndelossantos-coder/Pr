@@ -4,8 +4,10 @@ const { errorResponse } = require('../utils/response');
 const HTTP_STATUS = require('../constants/httpCodes');
 
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const authHeader = req.headers['authorization'] || req.headers['x-access-token'];
+  let token = (authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : authHeader) 
+    || req.query?.token 
+    || req.query?.access_token;
 
   if (!token) {
     return errorResponse(res, 'Access denied. No token provided.', ['Unauthorized'], HTTP_STATUS.UNAUTHORIZED);
@@ -21,3 +23,4 @@ const authenticateToken = (req, res, next) => {
 };
 
 module.exports = { authenticateToken };
+
