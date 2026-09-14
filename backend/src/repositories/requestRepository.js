@@ -31,13 +31,31 @@ class RequestRepository {
     }
   }
 
-  async addAttachment({ request_id, original_name, filename, file_path, file_type, file_size }) {
-    const [res] = await db.query(
-      `INSERT INTO attachments (request_id, original_name, filename, file_path, file_type, file_size)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [request_id, original_name, filename, file_path, file_type, file_size]
-    );
-    return res.insertId;
+  async addAttachment({ request_id, original_name, filename, file_path, file_type, file_size, file_data }) {
+    const fs = require('fs');
+    let b64 = file_data || null;
+    if (!b64 && file_path && fs.existsSync(file_path)) {
+      try {
+        const buf = fs.readFileSync(file_path);
+        b64 = buf.toString('base64');
+      } catch (e) {}
+    }
+
+    try {
+      const [res] = await db.query(
+        `INSERT INTO attachments (request_id, original_name, filename, file_path, file_type, file_size, file_data)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [request_id, original_name, filename, file_path, file_type, file_size, b64]
+      );
+      return res.insertId;
+    } catch (e) {
+      const [res] = await db.query(
+        `INSERT INTO attachments (request_id, original_name, filename, file_path, file_type, file_size)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [request_id, original_name, filename, file_path, file_type, file_size]
+      );
+      return res.insertId;
+    }
   }
 
   async findById(id) {

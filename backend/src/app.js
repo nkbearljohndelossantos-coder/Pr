@@ -77,8 +77,8 @@ try {
   });
 } catch (e) {}
 
-// Universal Fail-Safe Route for Upload Files (eliminates 404 on any upload file)
-app.get('/uploads/:filename', (req, res) => {
+// Universal Fail-Safe & Database Auto-Recovery Route for Upload Files
+app.get('/uploads/:filename', async (req, res) => {
   const safeFilename = path.basename(req.params.filename);
   const possiblePaths = [
     path.join(env.UPLOAD_DIR, safeFilename),
@@ -94,8 +94,49 @@ app.get('/uploads/:filename', (req, res) => {
 
   for (const p of possiblePaths) {
     if (fs.existsSync(p)) {
-      return res.sendFile(p);
+      try {
+        const stats = fs.statSync(p);
+        if (stats.size > 0) {
+          return res.sendFile(p);
+        }
+      } catch (e) {}
     }
+  }
+
+  // Database Auto-Recovery: Retrieve binary image from MySQL or JSON DB
+  try {
+    const db = require('./config/db');
+    const [rows] = await db.query(
+      `SELECT file_data, file_type, original_name FROM attachments WHERE filename = ? OR filename LIKE ? LIMIT 1`,
+      [safeFilename, `%${safeFilename}`]
+    );
+
+    if (rows && rows.length > 0 && rows[0].file_data) {
+      let rawBase64 = rows[0].file_data;
+      if (rawBase64.includes(';base64,')) {
+        rawBase64 = rawBase64.split(';base64,')[1];
+      }
+      const buffer = Buffer.from(rawBase64, 'base64');
+
+      // Restore back to disk cache across upload locations
+      possiblePaths.forEach(dest => {
+        try {
+          const dir = path.dirname(dest);
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+          if (!fs.existsSync(dest) || fs.statSync(dest).size === 0) {
+            fs.writeFileSync(dest, buffer);
+          }
+        } catch (writeErr) {}
+      });
+
+      if (rows[0].file_type) {
+        res.setHeader('Content-Type', rows[0].file_type);
+      }
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      return res.send(buffer);
+    }
+  } catch (recoverErr) {
+    logger.warn('Attachment auto-recovery notice:', recoverErr.message);
   }
 
   return res.status(404).json({ success: false, message: `Upload file '${safeFilename}' not found on server.` });

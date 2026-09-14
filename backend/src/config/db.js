@@ -375,10 +375,15 @@ const ensureMysqlTablesExist = async () => {
         file_path TEXT NOT NULL,
         file_type VARCHAR(100),
         file_size INT,
+        file_data LONGTEXT,
         uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         is_deleted TINYINT DEFAULT 0
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+
+    try {
+      await pool.query(`ALTER TABLE attachments ADD COLUMN file_data LONGTEXT`);
+    } catch (e) {}
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS master_dropdowns (
@@ -872,7 +877,8 @@ const db = {
         file_path: params[3],
         file_type: params[4],
         file_size: params[5],
-        uploaded_at: params[6] || new Date().toISOString(),
+        file_data: params[6] || null,
+        uploaded_at: new Date().toISOString(),
         is_deleted: 0
       };
       store.attachments.push(att);
@@ -930,6 +936,11 @@ const db = {
     }
 
     if (upper.includes('SELECT') && upper.includes('FROM ATTACHMENTS')) {
+      if (upper.includes('WHERE FILENAME = ?') || upper.includes('WHERE FILENAME LIKE ?')) {
+        const fn = params[0];
+        const match = store.attachments.find(a => (a.filename === fn || a.filename?.includes(fn) || a.original_name === fn) && !a.is_deleted);
+        return [match ? [match] : []];
+      }
       const atts = store.attachments.filter(a => a.request_id === Number(params[0]) && !a.is_deleted);
       return [atts];
     }
