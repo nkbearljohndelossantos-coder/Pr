@@ -15,6 +15,7 @@ import {
 import RequestStatusStepper from '../components/RequestStatusStepper';
 import ConfirmModal from '../components/ConfirmModal';
 import FilePreviewModal from '../components/FilePreviewModal';
+import api from '../services/api';
 import { requestApi } from '../services/systemApi';
 import { STATUS_COLORS } from '../constants/status';
 import { useAuth } from '../context/AuthContext';
@@ -30,6 +31,7 @@ export default function RequestDetailPage() {
 
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [approvalNotes, setApprovalNotes] = useState('');
   const [actionModal, setActionModal] = useState({ open: false, targetStatus: '' });
   const [previewFile, setPreviewFile] = useState(null);
@@ -54,37 +56,57 @@ export default function RequestDetailPage() {
     setLoading(true);
     try {
       const res = await requestApi.getById(id);
-      if (res.data.success) {
+      if (res.data?.success) {
         setRequest(res.data.data);
       }
     } catch (err) {
-      addToast(err.response?.data?.message || 'Failed to load request details.', 'error');
+      addToast('Failed to load requisition details.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleStatusUpdate = async (status) => {
-    if (status === 'Submitted' && displayTotalCost <= 0) {
-      addToast('Strict Submission Restriction: Cannot submit a request with ₱0.00 Total Cost. Please click "Edit Request" and add items with valid non-zero prices first.', 'error');
-      return;
-    }
     try {
-      const res = await requestApi.updateStatus(id, { status, remarks: approvalNotes });
-      if (res.data.success) {
-        addToast(status === 'Submitted' ? `Request submitted for Executive Approval! Notification email dispatched to Approver.` : `Request status updated to '${status}' successfully!`, 'success');
-        setRequest(res.data.data);
-        setApprovalNotes('');
-      }
+      await requestApi.updateStatus(id, {
+        status,
+        remarks: approvalNotes
+      });
+      addToast(`Requisition marked as ${status} successfully.`, 'success');
+      setActionModal({ open: false, targetStatus: '' });
+      setApprovalNotes('');
+      fetchRequestDetails();
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to update status.', 'error');
     }
   };
 
-  const handlePrintPdf = () => {
-    const token = localStorage.getItem('erp_token');
-    const pdfUrl = `/api/requests/${id}/pdf?token=${encodeURIComponent(token || '')}`;
-    window.open(pdfUrl, '_blank');
+  const handlePrintPdf = async () => {
+    try {
+      setDownloadingPdf(true);
+      const res = await api.get(`/requests/${id}/pdf`, { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const blobUrl = window.URL.createObjectURL(blob);
+      const printWindow = window.open(blobUrl, '_blank');
+      if (!printWindow) {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `${request?.request_number || 'Requisition'}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      addToast('Official PDF Requisition generated successfully.', 'success');
+    } catch (err) {
+      // Direct high-resolution print fallback
+      window.print();
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  const handleDirectPrint = () => {
+    window.print();
   };
 
   if (loading) {
@@ -164,12 +186,25 @@ export default function RequestDetailPage() {
             </button>
           )}
 
+          {/* Direct Browser A4 Print Button */}
+          <button
+            onClick={handleDirectPrint}
+            className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold shadow-sm transition-all"
+            title="Print 1-Page A4 Purchase Requisition Voucher"
+          >
+            <Printer className="w-4 h-4 text-emerald-400" />
+            <span>Print Requisition (A4)</span>
+          </button>
+
+          {/* Download Server PDF Button */}
           <button
             onClick={handlePrintPdf}
-            className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-50 shadow-2xs"
+            disabled={downloadingPdf}
+            className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-50 shadow-2xs transition-all disabled:opacity-60"
+            title="Download Server Rendered PDF"
           >
-            <Printer className="w-4 h-4 text-blue-600" />
-            <span>Print Request PDF</span>
+            <Download className="w-4 h-4 text-blue-600" />
+            <span>{downloadingPdf ? 'Generating PDF...' : 'Download PDF'}</span>
           </button>
 
           {/* Admin & Executive Approval Action Buttons */}
@@ -480,6 +515,147 @@ export default function RequestDetailPage() {
         confirmText={`Yes, ${actionModal.targetStatus}`}
         type={actionModal.targetStatus === 'Rejected' ? 'danger' : 'primary'}
       />
+
+      {/* Dynamic Print CSS for 1-Page A4 Precision */}
+      <style>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 6mm 8mm;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+          }
+          body * {
+            visibility: hidden !important;
+          }
+          #print-requisition-voucher, #print-requisition-voucher * {
+            visibility: visible !important;
+          }
+          #print-requisition-voucher {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+          }
+          .no-print, nav, aside, header {
+            display: none !important;
+          }
+        }
+      `}</style>
+
+      {/* DEDICATED 1-PAGE A4 PURCHASE REQUISITION VOUCHER */}
+      <div id="print-requisition-voucher" className="hidden print:block p-3 bg-white text-black" style={{ maxHeight: '280mm' }}>
+        {/* Header Letterhead */}
+        <div className="border-b-2 border-black pb-2 mb-3 text-center">
+          <div className="flex justify-between items-center text-[9px] text-gray-600 font-mono mb-1">
+            <span>NKB MANUFACTURING ENTERPRISE ERP</span>
+            <span className="font-bold uppercase tracking-wider text-black">OFFICIAL PROCUREMENT VOUCHER</span>
+            <span>PAGE 1 OF 1</span>
+          </div>
+          <h1 className="text-lg font-black tracking-wider uppercase">PURCHASE REQUISITION SLIP</h1>
+          <p className="text-[10px] text-gray-700 font-mono mt-0.5">
+            REQ NUMBER: <strong className="text-black font-bold">{request?.request_number}</strong> | Date: {request?.created_at ? new Date(request.created_at).toLocaleDateString() : new Date().toLocaleDateString()} | Status: <strong className="uppercase">{request?.status}</strong>
+          </p>
+        </div>
+
+        {/* Metadata Table */}
+        <div className="grid grid-cols-2 gap-2 text-[10px] mb-3 border border-black p-2 rounded">
+          <div>
+            <span className="text-gray-500 font-bold block text-[8px] uppercase">Department / Division:</span>
+            <strong className="text-black text-[11px]">{request?.department_name} ({request?.department_code || 'DEPT'})</strong>
+          </div>
+          <div>
+            <span className="text-gray-500 font-bold block text-[8px] uppercase">Requested By:</span>
+            <strong className="text-black text-[11px]">{request?.prepared_by} — {request?.position || 'Staff'}</strong>
+          </div>
+          <div className="col-span-2 pt-1 border-t border-gray-300">
+            <span className="text-gray-500 font-bold block text-[8px] uppercase">Purpose of Purchase:</span>
+            <span className="text-black font-semibold text-[10px]">{request?.purpose}</span>
+          </div>
+          {request?.business_justification && (
+            <div className="col-span-2 pt-1 border-t border-gray-300">
+              <span className="text-gray-500 font-bold block text-[8px] uppercase">Business Justification:</span>
+              <span className="text-gray-800 text-[9px] italic">{request.business_justification}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Items Table */}
+        <table className="w-full border-collapse border border-black text-[9px] my-2">
+          <thead>
+            <tr className="bg-gray-200 border-b border-black font-bold text-black">
+              <th className="border border-black p-1 text-center w-6">#</th>
+              <th className="border border-black p-1 text-left">Item Description & Specifications</th>
+              <th className="border border-black p-1 text-center w-12">Qty</th>
+              <th className="border border-black p-1 text-center w-14">Unit</th>
+              <th className="border border-black p-1 text-right w-24">Estimated Unit Cost</th>
+              <th className="border border-black p-1 text-right w-24">Total Amount (₱)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(request?.items || []).map((item, idx) => {
+              const lineTotal = Number(item.total_cost) || (Number(item.quantity) * Number(item.estimated_cost));
+              return (
+                <tr key={item.id || idx} className="border-b border-gray-400">
+                  <td className="border border-black p-1 text-center font-bold">{idx + 1}</td>
+                  <td className="border border-black p-1 font-semibold">
+                    {item.item_description}
+                    {item.remarks && <span className="block text-[8px] text-gray-500 italic">Note: {item.remarks}</span>}
+                  </td>
+                  <td className="border border-black p-1 text-center font-bold">{formatQuantity(item.quantity)}</td>
+                  <td className="border border-black p-1 text-center uppercase">{item.unit || 'Unit'}</td>
+                  <td className="border border-black p-1 text-right font-mono">{formatCurrency(item.estimated_cost)}</td>
+                  <td className="border border-black p-1 text-right font-mono font-bold bg-gray-50">{formatCurrency(lineTotal)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="bg-gray-200 font-bold text-[10px] border-t-2 border-black">
+              <td colSpan={5} className="border border-black p-1.5 text-right uppercase tracking-wider">
+                Combined Grand Total Estimated Cost:
+              </td>
+              <td className="border border-black p-1.5 text-right font-mono font-black text-black">
+                {formatCurrency(displayTotalCost)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+
+        {/* Signatures Block */}
+        <div className="mt-6 pt-3 border-t-2 border-black text-[9px]">
+          <div className="grid grid-cols-3 gap-6 text-center">
+            <div>
+              <div className="text-gray-600 font-semibold mb-6">Prepared & Requested By:</div>
+              <div className="border-t border-black pt-1 font-bold text-black">{request?.prepared_by}</div>
+              <div className="text-[8px] text-gray-500">Requisitioner</div>
+            </div>
+            <div>
+              <div className="text-gray-600 font-semibold mb-6">Verified & Endorsed By:</div>
+              <div className="border-t border-black pt-1 font-bold text-black">Department Head</div>
+              <div className="text-[8px] text-gray-500">Department Supervisor</div>
+            </div>
+            <div>
+              <div className="text-gray-600 font-semibold mb-6">Approved For Procurement By:</div>
+              <div className="border-t border-black pt-1 font-bold text-black">Executive Management</div>
+              <div className="text-[8px] text-gray-500">Authorized Signatory</div>
+            </div>
+          </div>
+          <p className="text-[8px] text-gray-500 text-center italic mt-6">
+            NKB Manufacturing Corp. • Enterprise ERP System • Generated electronically on {new Date().toLocaleString()}
+          </p>
+        </div>
+      </div>
 
       {/* File Lightbox Preview Modal */}
       <FilePreviewModal
