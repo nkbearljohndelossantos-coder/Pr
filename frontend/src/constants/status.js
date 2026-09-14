@@ -4,6 +4,7 @@ export const REQUEST_STATUS = {
   UNDER_REVIEW: 'Under Review',
   APPROVED: 'Approved',
   REJECTED: 'Rejected',
+  CANCELLED: 'Cancelled',
   COMPLETED: 'Completed',
   CLOSED: 'Closed'
 };
@@ -14,6 +15,7 @@ export const STATUS_COLORS = {
   [REQUEST_STATUS.UNDER_REVIEW]: 'bg-purple-50 text-purple-700 border-purple-200',
   [REQUEST_STATUS.APPROVED]: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   [REQUEST_STATUS.REJECTED]: 'bg-rose-50 text-rose-700 border-rose-200',
+  [REQUEST_STATUS.CANCELLED]: 'bg-amber-50 text-amber-800 border-amber-300',
   [REQUEST_STATUS.COMPLETED]: 'bg-cyan-50 text-cyan-700 border-cyan-200',
   [REQUEST_STATUS.CLOSED]: 'bg-gray-100 text-gray-600 border-gray-300'
 };

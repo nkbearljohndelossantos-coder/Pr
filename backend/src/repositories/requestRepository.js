@@ -84,17 +84,24 @@ class RequestRepository {
   }
 
   async findAll(filters = {}) {
-    const { department_id, status, search, page = 1, limit = 20 } = filters;
+    const { department_id, user_id, username, full_name, status, search, page = 1, limit = 20 } = filters;
     let query = `SELECT r.*, d.name as department_name, d.code as department_code 
                  FROM requests r 
                  LEFT JOIN departments d ON r.department_id = d.id 
                  WHERE r.is_deleted = 0`;
     const params = [];
 
-    if (department_id) {
+    if (department_id && (user_id || username || full_name)) {
+      query += ` AND (r.department_id = ? OR r.created_by = ? OR r.prepared_by LIKE ? OR r.prepared_by LIKE ?)`;
+      params.push(department_id, user_id || 0, `%${username || ''}%`, `%${full_name || ''}%`);
+    } else if (department_id) {
       query += ` AND r.department_id = ?`;
       params.push(department_id);
+    } else if (user_id) {
+      query += ` AND (r.created_by = ? OR r.prepared_by LIKE ?)`;
+      params.push(user_id, `%${username || ''}%`);
     }
+
     if (status) {
       query += ` AND r.status = ?`;
       params.push(status);
@@ -125,14 +132,21 @@ class RequestRepository {
   }
 
   async countAll(filters = {}) {
-    const { department_id, status, search } = filters;
+    const { department_id, user_id, username, full_name, status, search } = filters;
     let query = `SELECT COUNT(*) as count FROM requests r WHERE r.is_deleted = 0`;
     const params = [];
 
-    if (department_id) {
+    if (department_id && (user_id || username || full_name)) {
+      query += ` AND (r.department_id = ? OR r.created_by = ? OR r.prepared_by LIKE ? OR r.prepared_by LIKE ?)`;
+      params.push(department_id, user_id || 0, `%${username || ''}%`, `%${full_name || ''}%`);
+    } else if (department_id) {
       query += ` AND r.department_id = ?`;
       params.push(department_id);
+    } else if (user_id) {
+      query += ` AND (r.created_by = ? OR r.prepared_by LIKE ?)`;
+      params.push(user_id, `%${username || ''}%`);
     }
+
     if (status) {
       query += ` AND r.status = ?`;
       params.push(status);

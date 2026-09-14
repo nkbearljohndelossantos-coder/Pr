@@ -12,7 +12,7 @@ router.get('/', (req, res, next) => requestController.list(req, res, next));
 router.get('/dashboard', (req, res, next) => requestController.getDashboard(req, res, next));
 router.get('/:id', (req, res, next) => requestController.getById(req, res, next));
 router.put('/:id', upload.array('attachments', 10), mirrorUploadedFiles, (req, res, next) => requestController.update(req, res, next));
-router.put('/:id/status', isExecOrAdmin, (req, res, next) => requestController.updateStatus(req, res, next));
+router.put('/:id/status', (req, res, next) => requestController.updateStatus(req, res, next));
 router.get('/:id/pdf', (req, res, next) => requestController.printPdf(req, res, next));
 
 module.exports = router;

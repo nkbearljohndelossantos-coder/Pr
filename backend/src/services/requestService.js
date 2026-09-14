@@ -180,12 +180,18 @@ class RequestService {
     const existing = await requestRepository.findById(id);
     if (!existing) throw new Error('Request not found.');
 
-    if (user.role === 'department' && user.department_id !== existing.department_id) {
-      throw new Error('Access denied. You can only edit requests from your own department.');
+    if (user.role === 'department') {
+      const isOwner = existing.department_id === user.department_id ||
+                      existing.created_by === user.id ||
+                      (existing.prepared_by && user.username && existing.prepared_by.toLowerCase().includes(user.username.toLowerCase())) ||
+                      (existing.prepared_by && user.full_name && existing.prepared_by.toLowerCase().includes(user.full_name.toLowerCase()));
+      if (!isOwner) {
+        throw new Error('Access denied. You can only edit requests from your own department.');
+      }
     }
 
-    if (existing.status === 'Approved') {
-      throw new Error('Cannot edit a request that has already been approved.');
+    if (existing.status === 'Approved' || existing.status === 'Completed') {
+      throw new Error('Cannot edit a request that has already been approved or completed.');
     }
 
     let newDeptId = existing.department_id;
@@ -228,30 +234,27 @@ class RequestService {
     let totalEstimatedCost = existing.total_estimated_cost;
     if (items && items.length > 0) {
       totalEstimatedCost = 0;
-      const itemsToInsert = items.map((item) => {
+      await requestRepository.deleteItemsByRequestId(id);
+      for (const item of items) {
         const qty = parseNum(item.quantity) || 1;
         const cost = parseNum(item.estimated_cost);
-        const total = qty * cost;
-        totalEstimatedCost += total;
-        return {
+        const lineTotal = qty * cost;
+        totalEstimatedCost += lineTotal;
+        await requestRepository.addItem({
+          request_id: Number(id),
           item_description: item.item_description,
           quantity: qty,
           unit: item.unit || 'PCS',
           estimated_cost: cost,
-          total_cost: total,
+          total_cost: lineTotal,
           remarks: item.remarks || '',
           item_type: item.item_type || 'item'
-        };
-      });
-
-      await requestRepository.deleteItemsByRequestId(id);
-      for (const item of itemsToInsert) {
-        await requestRepository.addItem({ request_id: Number(id), ...item });
+        });
       }
     }
 
-    if (data.status === 'Submitted' && totalEstimatedCost <= 0) {
-      throw new Error('Strict Costing Restriction: Cannot submit a requisition with ₱0.00 Total Cost. Please add items with valid prices.');
+    if (totalEstimatedCost <= 0) {
+      throw new Error('Strict Costing Restriction: Requisitions with ₱0.00 Total Cost cannot be updated. Please enter non-zero item prices.');
     }
 
     await requestRepository.update(id, {
@@ -310,9 +313,14 @@ class RequestService {
     const req = await requestRepository.findById(id);
     if (!req) throw new Error('Request not found.');
 
-    // Department accounts can only view their own department requests
-    if (user.role === 'department' && user.department_id !== req.department_id) {
-      throw new Error('Access denied. You can only view requests from your own department.');
+    if (user.role === 'department') {
+      const isOwner = req.department_id === user.department_id ||
+                      req.created_by === user.id ||
+                      (req.prepared_by && user.username && req.prepared_by.toLowerCase().includes(user.username.toLowerCase())) ||
+                      (req.prepared_by && user.full_name && req.prepared_by.toLowerCase().includes(user.full_name.toLowerCase()));
+      if (!isOwner) {
+        throw new Error('Access denied. You can only view requests from your own department.');
+      }
     }
 
     return req;
@@ -321,6 +329,9 @@ class RequestService {
   async listRequests(user, filters) {
     if (user.role === 'department') {
       filters.department_id = user.department_id;
+      filters.user_id = user.id;
+      filters.username = user.username;
+      filters.full_name = user.full_name;
     }
     const data = await requestRepository.findAll(filters);
     const total = await requestRepository.countAll(filters);
@@ -330,6 +341,21 @@ class RequestService {
   async updateRequestStatus(id, user, status, remarks) {
     const req = await requestRepository.findById(id);
     if (!req) throw new Error('Request not found.');
+
+    // Department users can submit, cancel, or draft their own department requests
+    if (user.role === 'department') {
+      const isOwner = req.department_id === user.department_id ||
+                      req.created_by === user.id ||
+                      (req.prepared_by && user.username && req.prepared_by.toLowerCase().includes(user.username.toLowerCase())) ||
+                      (req.prepared_by && user.full_name && req.prepared_by.toLowerCase().includes(user.full_name.toLowerCase()));
+      if (!isOwner) {
+        throw new Error('Access denied. You can only update requests from your own department.');
+      }
+
+      if (!['Submitted', 'Cancelled', 'Draft'].includes(status)) {
+        throw new Error('Access forbidden. Department users can only submit, cancel, or draft their requests.');
+      }
+    }
 
     if (status === 'Submitted') {
       const items = req.items || [];
@@ -351,7 +377,7 @@ class RequestService {
         }).catch(err => {
           logger.error('Failed to send approval notification email:', err.message);
         });
-      } else if (status === 'Approved' || status === 'Rejected') {
+      } else if (status === 'Approved' || status === 'Rejected' || status === 'Cancelled') {
         emailService.sendDecisionNotification(updated, status, remarks).catch(err => {
           logger.error('Failed to send status decision email:', err.message);
         });

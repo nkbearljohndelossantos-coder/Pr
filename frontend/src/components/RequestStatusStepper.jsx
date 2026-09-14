@@ -1,7 +1,26 @@
 import React from 'react';
-import { CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, XCircle, Ban } from 'lucide-react';
 
 export default function RequestStatusStepper({ currentStatus = 'Draft' }) {
+  if (currentStatus === 'Cancelled') {
+    return (
+      <div className="w-full bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
+            <Ban className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wide">Requisition Status: Cancelled</h4>
+            <p className="text-[11px] text-amber-700">This purchase requisition has been cancelled by the department or administrator.</p>
+          </div>
+        </div>
+        <span className="px-2.5 py-1 bg-amber-200 text-amber-900 text-xs font-bold rounded-lg uppercase font-mono">
+          Cancelled
+        </span>
+      </div>
+    );
+  }
+
   const steps = [
     { label: 'Draft', code: 'Draft' },
     { label: 'Submitted', code: 'Submitted' },

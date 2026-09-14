@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { FileText, Plus, Download, Eye, Filter, Pencil } from 'lucide-react';
+import { FileText, Plus, Download, Eye, Filter, Pencil, Ban } from 'lucide-react';
 import DataTable from '../components/DataTable';
+import ConfirmModal from '../components/ConfirmModal';
 import { requestApi, reportApi, departmentApi } from '../services/systemApi';
 import { STATUS_COLORS } from '../constants/status';
 import { useAuth } from '../context/AuthContext';
@@ -96,6 +97,23 @@ export default function RequestListPage() {
     }
   };
 
+  const [cancelModal, setCancelModal] = useState({ open: false, request: null });
+
+  const handleCancelRequest = async () => {
+    if (!cancelModal.request) return;
+    try {
+      await requestApi.updateStatus(cancelModal.request.id, {
+        status: 'Cancelled',
+        remarks: 'Cancelled by user from request management list.'
+      });
+      addToast(`Request #${cancelModal.request.request_number} has been cancelled successfully.`, 'success');
+      setCancelModal({ open: false, request: null });
+      fetchRequests();
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Failed to cancel request.', 'error');
+    }
+  };
+
   const columns = [
     {
       header: 'Request Number',
@@ -170,13 +188,23 @@ export default function RequestListPage() {
             <Eye className="w-4 h-4" />
           </button>
 
-          {row.status !== 'Approved' && (
+          {row.status !== 'Approved' && row.status !== 'Completed' && row.status !== 'Cancelled' && (
             <button
               onClick={() => navigate(`/requests/${row.id}/edit`)}
               className="p-1.5 bg-amber-50 hover:bg-amber-600 hover:text-white text-amber-700 rounded-md transition-colors"
               title="Edit Requisition Request"
             >
               <Pencil className="w-4 h-4" />
+            </button>
+          )}
+
+          {row.status !== 'Approved' && row.status !== 'Completed' && row.status !== 'Cancelled' && (
+            <button
+              onClick={() => setCancelModal({ open: true, request: row })}
+              className="p-1.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 rounded-md transition-colors"
+              title="Cancel Requisition Request"
+            >
+              <Ban className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -285,6 +313,17 @@ export default function RequestListPage() {
         loading={loading}
         onPageChange={(p) => updateParam('page', p)}
         onSearch={(q) => setSearchQuery(q)}
+      />
+
+      {/* Cancel Requisition Confirmation Modal */}
+      <ConfirmModal
+        isOpen={cancelModal.open}
+        onClose={() => setCancelModal({ open: false, request: null })}
+        onConfirm={handleCancelRequest}
+        title="Confirm Request Cancellation"
+        message={`Are you sure you want to cancel requisition #${cancelModal.request?.request_number || ''}? Once cancelled, it will not proceed to purchasing.`}
+        confirmText="Yes, Cancel Request"
+        type="danger"
       />
     </div>
   );

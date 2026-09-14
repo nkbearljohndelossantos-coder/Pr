@@ -10,7 +10,8 @@ import {
   CheckCheck,
   ZoomIn,
   Pencil,
-  Send
+  Send,
+  Ban
 } from 'lucide-react';
 import RequestStatusStepper from '../components/RequestStatusStepper';
 import ConfirmModal from '../components/ConfirmModal';
@@ -165,7 +166,6 @@ export default function RequestDetailPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Edit & Submit for Approval Buttons */}
           {request.status === 'Draft' && (
             <button
               onClick={() => handleStatusUpdate('Submitted')}
@@ -176,13 +176,27 @@ export default function RequestDetailPage() {
             </button>
           )}
 
-          {request.status !== 'Approved' && (
+          {/* Edit Request Button */}
+          {request.status !== 'Approved' && request.status !== 'Completed' && request.status !== 'Cancelled' && (
             <button
               onClick={() => navigate(`/requests/${id}/edit`)}
               className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold shadow-2xs transition-colors"
+              title="Edit Requisition Form"
             >
               <Pencil className="w-4 h-4" />
               <span>Edit Request</span>
+            </button>
+          )}
+
+          {/* Cancel Request Button */}
+          {request.status !== 'Approved' && request.status !== 'Completed' && request.status !== 'Cancelled' && (
+            <button
+              onClick={() => setActionModal({ open: true, targetStatus: 'Cancelled' })}
+              className="flex items-center gap-1.5 px-4 py-2 bg-rose-50 hover:bg-rose-600 border border-rose-200 text-rose-700 hover:text-white rounded-lg text-xs font-bold shadow-2xs transition-colors"
+              title="Cancel this Requisition Request"
+            >
+              <Ban className="w-4 h-4" />
+              <span>Cancel Request</span>
             </button>
           )}
 

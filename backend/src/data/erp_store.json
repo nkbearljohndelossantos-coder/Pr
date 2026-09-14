@@ -5,7 +5,7 @@
       "code": "IT",
       "name": "Information Technology Department",
       "username": "it_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "seq_counter": 0,
       "is_active": 1,
       "is_deleted": 0
@@ -15,7 +15,7 @@
       "code": "HR",
       "name": "Human Resources Department",
       "username": "hr_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "seq_counter": 0,
       "is_active": 1,
       "is_deleted": 0
@@ -25,7 +25,7 @@
       "code": "ACCT",
       "name": "Accounting Department",
       "username": "acct_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "seq_counter": 0,
       "is_active": 1,
       "is_deleted": 0
@@ -35,7 +35,7 @@
       "code": "PURCH",
       "name": "Purchasing Department",
       "username": "purch_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "seq_counter": 0,
       "is_active": 1,
       "is_deleted": 0
@@ -45,7 +45,7 @@
       "code": "PROD",
       "name": "Production Department",
       "username": "prod_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "seq_counter": 0,
       "is_active": 1,
       "is_deleted": 0
@@ -55,7 +55,7 @@
       "code": "WH",
       "name": "Warehouse Department",
       "username": "wh_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "seq_counter": 0,
       "is_active": 1,
       "is_deleted": 0
@@ -65,7 +65,7 @@
       "code": "QA",
       "name": "Quality Assurance Department",
       "username": "qa_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "seq_counter": 0,
       "is_active": 1,
       "is_deleted": 0
@@ -75,19 +75,19 @@
     {
       "id": 1,
       "username": "admin",
-      "password_hash": "$2a$10$pd6K9HhaRR/pDHKQlYb4k.SU6NCS.XAgqqogynIFu1UgzgkX6/3Pa",
+      "password_hash": "$2a$10$X200K1AR6VSGKM/oJ7dLIuK36v/Cmla2UyFHHKsA/nV7iIQtGnf9u",
       "role": "admin",
       "department_id": null,
       "full_name": "System Administrator (IT)",
       "email": "admin@company.com",
       "is_active": 1,
       "is_deleted": 0,
-      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImRlcGFydG1lbnRfaWQiOm51bGwsImRlcGFydG1lbnRfY29kZSI6IkRFUFQiLCJkZXBhcnRtZW50X25hbWUiOiJTeXN0ZW0gQWRtaW5pc3RyYXRvciAoSVQpIiwiZnVsbF9uYW1lIjoiU3lzdGVtIEFkbWluaXN0cmF0b3IgKElUKSIsImlhdCI6MTc4OTM4MTQyNSwiZXhwIjoxNzg5OTg2MjI1fQ.uusuEPAnzyEuzXbJjvlFhQtrZgldXh7h_f6gVqAdLmY"
+      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImRlcGFydG1lbnRfaWQiOm51bGwsImRlcGFydG1lbnRfY29kZSI6IkRFUFQiLCJkZXBhcnRtZW50X25hbWUiOiJTeXN0ZW0gQWRtaW5pc3RyYXRvciAoSVQpIiwiZnVsbF9uYW1lIjoiU3lzdGVtIEFkbWluaXN0cmF0b3IgKElUKSIsImlhdCI6MTc4OTM4MTg3NiwiZXhwIjoxNzg5OTg2Njc2fQ.ysN7lz7Gbd-RJ2DxmoejV8V_ASd75f6UWk-og6oGo7Y"
     },
     {
       "id": 2,
       "username": "boss",
-      "password_hash": "$2a$10$VSbs7wj1WK4PcvhcqiLjQuVdP5YrVx3NUvv0.KK.hw0ZoG2nRiKuq",
+      "password_hash": "$2a$10$uNGLMwZyG7UXHFTL3QSwqeDsgRGxiBPtG0P3SYxKcbJQCabMLUHoC",
       "role": "executive",
       "department_id": null,
       "full_name": "Executive Administrator",
@@ -98,19 +98,19 @@
     {
       "id": 3,
       "username": "it_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "role": "department",
       "department_id": 1,
       "full_name": "Information Technology Dept",
       "email": "it@company.com",
       "is_active": 1,
       "is_deleted": 0,
-      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJpdF9kZXB0Iiwicm9sZSI6ImRlcGFydG1lbnQiLCJkZXBhcnRtZW50X2lkIjoxLCJkZXBhcnRtZW50X2NvZGUiOiJJVCIsImRlcGFydG1lbnRfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwYXJ0bWVudCIsImZ1bGxfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwdCIsImlhdCI6MTc4OTM4MTQyNSwiZXhwIjoxNzg5OTg2MjI1fQ.XPz2yXlUvjJCPICnIUbdnytua7HQNsAMBHlkROb6oLI"
+      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJpdF9kZXB0Iiwicm9sZSI6ImRlcGFydG1lbnQiLCJkZXBhcnRtZW50X2lkIjoxLCJkZXBhcnRtZW50X2NvZGUiOiJJVCIsImRlcGFydG1lbnRfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwYXJ0bWVudCIsImZ1bGxfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwdCIsImlhdCI6MTc4OTM4MTg3NiwiZXhwIjoxNzg5OTg2Njc2fQ.sGwzGfGNtM9oIoaZ3eaURIozmRvJW4Gs4HWpYBGPBqM"
     },
     {
       "id": 4,
       "username": "hr_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "role": "department",
       "department_id": 2,
       "full_name": "Human Resources Dept",
@@ -121,7 +121,7 @@
     {
       "id": 5,
       "username": "acct_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "role": "department",
       "department_id": 3,
       "full_name": "Accounting Dept",
@@ -132,7 +132,7 @@
     {
       "id": 6,
       "username": "purch_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "role": "department",
       "department_id": 4,
       "full_name": "Purchasing Dept",
@@ -143,7 +143,7 @@
     {
       "id": 7,
       "username": "prod_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "role": "department",
       "department_id": 5,
       "full_name": "Production Dept",
@@ -154,7 +154,7 @@
     {
       "id": 8,
       "username": "wh_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "role": "department",
       "department_id": 6,
       "full_name": "Warehouse Dept",
@@ -165,7 +165,7 @@
     {
       "id": 9,
       "username": "qa_dept",
-      "password_hash": "$2a$10$TTEdFZo8Nj3dM7hbJLl55.xiOsWlFgvWG4DTMw.I.5rhjbe9bPWn6",
+      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
       "role": "department",
       "department_id": 7,
       "full_name": "Quality Assurance Dept",
@@ -188,8 +188,8 @@
       "status": "Submitted",
       "total_estimated_cost": 20133.12,
       "created_by": 1,
-      "created_at": "2026-09-14T10:23:44.649Z",
-      "updated_at": "2026-09-14T10:23:44.649Z",
+      "created_at": "2026-09-14T10:31:15.446Z",
+      "updated_at": "2026-09-14T10:31:15.446Z",
       "is_deleted": 0
     },
     {
@@ -207,8 +207,8 @@
       "created_by": 3,
       "revision_number": 1,
       "remarks": "",
-      "created_at": "2026-09-14T10:23:45.503Z",
-      "updated_at": "2026-09-14T10:23:45.503Z",
+      "created_at": "2026-09-14T10:31:16.234Z",
+      "updated_at": "2026-09-14T10:31:16.234Z",
       "is_deleted": 0
     }
   ],
@@ -223,7 +223,7 @@
       "total_cost": 20133.12,
       "remarks": "Renewal Date: Nov 2026",
       "item_type": "subscription",
-      "created_at": "2026-09-14T10:23:44.649Z"
+      "created_at": "2026-09-14T10:31:15.446Z"
     },
     {
       "id": 2,
@@ -259,7 +259,7 @@
       "file_path": "uploads/1786083247-Hostinger_VPS_Renewal_Quotation.pdf",
       "file_type": "application/pdf",
       "file_size": 102400,
-      "uploaded_at": "2026-09-14T10:23:44.649Z",
+      "uploaded_at": "2026-09-14T10:31:15.446Z",
       "is_deleted": 0
     }
   ],
@@ -378,7 +378,7 @@
       "message": "Request REQ-20260914-00002 created by Alex Vance.",
       "type": "info",
       "is_read": 0,
-      "created_at": "2026-09-14T10:23:45.539Z"
+      "created_at": "2026-09-14T10:31:16.267Z"
     }
   ],
   "audit_logs": [],
