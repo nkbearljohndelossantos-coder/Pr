@@ -9,7 +9,8 @@ import {
   Plus, 
   ArrowRight,
   Building2,
-  TrendingUp
+  TrendingUp,
+  Package
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
 import KpiCard from '../components/KpiCard';
@@ -59,6 +60,7 @@ export default function DashboardPage() {
   const totalRequests = rawStatusCounts.reduce((acc, curr) => acc + Number(curr.count || 0), 0);
   const pendingRequests = getStatusCount('Submitted') + getStatusCount('Under Review');
   const approvedRequests = getStatusCount('Approved');
+  const inProcurementRequests = getStatusCount('In Procurement');
   const rejectedRequests = getStatusCount('Rejected');
   const completedRequests = getStatusCount('Completed');
 
@@ -97,6 +99,8 @@ export default function DashboardPage() {
           <p className="text-xs text-slate-500 mt-1">
             {user?.role === 'department' 
               ? `Department Requisition & Financial Control Center (${user?.department_name || user?.department_code})` 
+              : user?.role === 'purchasing'
+              ? 'Purchasing & Procurement Operations — Authorized Orders & Order Fulfillment Center'
               : 'Global Executive ERP Financial Costing & Requisition Approval Dashboard'}
           </p>
         </div>
@@ -177,38 +181,77 @@ export default function DashboardPage() {
           subtext="All Requisitions"
           onClick={() => navigate('/requests')}
         />
-        <KpiCard
-          title="Pending Approvals"
-          value={pendingRequests}
-          icon={Clock}
-          color="amber"
-          subtext="Requires Review"
-          onClick={() => navigate('/requests')}
-        />
-        <KpiCard
-          title="Approved"
-          value={approvedRequests}
-          icon={CheckCircle2}
-          color="emerald"
-          subtext="Authorized Requests"
-          onClick={() => navigate('/requests')}
-        />
-        <KpiCard
-          title="Rejected"
-          value={rejectedRequests}
-          icon={XCircle}
-          color="rose"
-          subtext="Declined Requisitions"
-          onClick={() => navigate('/requests')}
-        />
-        <KpiCard
-          title="Completed"
-          value={completedRequests}
-          icon={CheckCheck}
-          color="purple"
-          subtext="Fulfilled Requests"
-          onClick={() => navigate('/requests')}
-        />
+        {user?.role === 'purchasing' ? (
+          <>
+            <KpiCard
+              title="Ready for PO / Procurement"
+              value={approvedRequests}
+              icon={CheckCircle2}
+              color="emerald"
+              subtext="Approved & Ready to Buy"
+              onClick={() => navigate('/requests?status=Approved')}
+            />
+            <KpiCard
+              title="In Procurement"
+              value={inProcurementRequests}
+              icon={Package}
+              color="indigo"
+              subtext="PO Processing"
+              onClick={() => navigate('/requests?status=In%20Procurement')}
+            />
+            <KpiCard
+              title="Completed Orders"
+              value={completedRequests}
+              icon={CheckCheck}
+              color="purple"
+              subtext="Purchased & Delivered"
+              onClick={() => navigate('/requests?status=Completed')}
+            />
+            <KpiCard
+              title="Pending Sign-off"
+              value={pendingRequests}
+              icon={Clock}
+              color="amber"
+              subtext="Awaiting Executive Approval"
+              onClick={() => navigate('/requests?status=Submitted')}
+            />
+          </>
+        ) : (
+          <>
+            <KpiCard
+              title="Pending Approvals"
+              value={pendingRequests}
+              icon={Clock}
+              color="amber"
+              subtext="Requires Review"
+              onClick={() => navigate('/requests?status=Submitted')}
+            />
+            <KpiCard
+              title="Approved"
+              value={approvedRequests}
+              icon={CheckCircle2}
+              color="emerald"
+              subtext="Authorized Requests"
+              onClick={() => navigate('/requests?status=Approved')}
+            />
+            <KpiCard
+              title="In Procurement"
+              value={inProcurementRequests}
+              icon={Package}
+              color="indigo"
+              subtext="PO Processing"
+              onClick={() => navigate('/requests?status=In%20Procurement')}
+            />
+            <KpiCard
+              title="Completed"
+              value={completedRequests}
+              icon={CheckCheck}
+              color="purple"
+              subtext="Fulfilled Requests"
+              onClick={() => navigate('/requests?status=Completed')}
+            />
+          </>
+        )}
       </div>
 
       {/* SECTION 3: RECHARTS DATA VISUALIZATION */}

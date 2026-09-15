@@ -17,7 +17,8 @@ import {
   Database,
   Layers,
   Sliders,
-  Archive
+  Archive,
+  Package
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -118,6 +119,20 @@ export default function Sidebar() {
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Approved</span>
               </NavLink>
+
+              {(user?.role === 'purchasing' || isAdmin || isExec) && (
+                <NavLink
+                  to="/requests?status=In Procurement"
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
+                      location.search.includes('In%20Procurement') || location.search.includes('In Procurement') ? 'bg-[#2563EB] text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    }`
+                  }
+                >
+                  <Package className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Procurement Queue</span>
+                </NavLink>
+              )}
 
               <NavLink
                 to="/requests?status=Rejected"

@@ -11,7 +11,8 @@ import {
   ZoomIn,
   Pencil,
   Send,
-  Ban
+  Ban,
+  Package
 } from 'lucide-react';
 import RequestStatusStepper from '../components/RequestStatusStepper';
 import ConfirmModal from '../components/ConfirmModal';
@@ -136,6 +137,7 @@ export default function RequestDetailPage() {
   }
 
   const canApproveOrReject = user?.role === 'admin' || user?.role === 'executive';
+  const isPurchasingOrAdmin = user?.role === 'purchasing' || user?.role === 'admin' || user?.role === 'executive';
 
   const displayTotalCost = (request.items && request.items.length > 0 && (!request.total_estimated_cost || Number(request.total_estimated_cost) === 0))
     ? request.items.reduce((sum, item) => sum + (Number(item.total_cost) || (Number(item.quantity) * Number(item.estimated_cost))), 0)
@@ -242,13 +244,37 @@ export default function RequestDetailPage() {
             </>
           )}
 
-          {canApproveOrReject && request.status === 'Approved' && (
+          {/* Purchasing & Procurement Action Buttons */}
+          {isPurchasingOrAdmin && request.status === 'Approved' && (
+            <>
+              <button
+                onClick={() => setActionModal({ open: true, targetStatus: 'In Procurement' })}
+                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
+                title="Issue Purchase Order and start procurement process"
+              >
+                <Package className="w-4 h-4" />
+                <span>Process PO / In Procurement</span>
+              </button>
+
+              <button
+                onClick={() => setActionModal({ open: true, targetStatus: 'Completed' })}
+                className="flex items-center gap-1.5 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
+                title="Mark items as bought, delivered, and completed"
+              >
+                <CheckCheck className="w-4 h-4" />
+                <span>Mark Purchased & Completed</span>
+              </button>
+            </>
+          )}
+
+          {isPurchasingOrAdmin && request.status === 'In Procurement' && (
             <button
-              onClick={() => handleStatusUpdate('Completed')}
-              className="flex items-center gap-1.5 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-xs font-bold shadow-md"
+              onClick={() => setActionModal({ open: true, targetStatus: 'Completed' })}
+              className="flex items-center gap-1.5 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
+              title="Mark items as bought, delivered, and completed"
             >
               <CheckCheck className="w-4 h-4" />
-              <span>Mark Completed</span>
+              <span>Mark Purchased & Completed</span>
             </button>
           )}
         </div>

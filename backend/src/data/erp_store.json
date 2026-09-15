@@ -75,19 +75,21 @@
     {
       "id": 1,
       "username": "admin",
-      "password_hash": "$2a$10$X200K1AR6VSGKM/oJ7dLIuK36v/Cmla2UyFHHKsA/nV7iIQtGnf9u",
+      "password_hash": "$2a$10$p5rRMSOvlcfQW5WXZYe6eO8AI1SLN04J/damYLvcSlusyiHUeWoW.",
+      "temp_password": "admin123",
       "role": "admin",
       "department_id": null,
       "full_name": "System Administrator (IT)",
       "email": "admin@company.com",
       "is_active": 1,
       "is_deleted": 0,
-      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImRlcGFydG1lbnRfaWQiOm51bGwsImRlcGFydG1lbnRfY29kZSI6IkRFUFQiLCJkZXBhcnRtZW50X25hbWUiOiJTeXN0ZW0gQWRtaW5pc3RyYXRvciAoSVQpIiwiZnVsbF9uYW1lIjoiU3lzdGVtIEFkbWluaXN0cmF0b3IgKElUKSIsImlhdCI6MTc4OTM4MTg3NiwiZXhwIjoxNzg5OTg2Njc2fQ.ysN7lz7Gbd-RJ2DxmoejV8V_ASd75f6UWk-og6oGo7Y"
+      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImRlcGFydG1lbnRfaWQiOm51bGwsImRlcGFydG1lbnRfY29kZSI6IkRFUFQiLCJkZXBhcnRtZW50X25hbWUiOiJTeXN0ZW0gQWRtaW5pc3RyYXRvciAoSVQpIiwiZnVsbF9uYW1lIjoiU3lzdGVtIEFkbWluaXN0cmF0b3IgKElUKSIsImlhdCI6MTc4OTQzMDQ0OCwiZXhwIjoxNzkwMDM1MjQ4fQ.Bt-n3cAG7wpkeNfYMLExOKJZfkXNHCZMtVS88HqPfF0"
     },
     {
       "id": 2,
       "username": "boss",
-      "password_hash": "$2a$10$uNGLMwZyG7UXHFTL3QSwqeDsgRGxiBPtG0P3SYxKcbJQCabMLUHoC",
+      "password_hash": "$2a$10$m.ojwW7EvhtQxla6vK2ntehglvCTUEhsA26JjcRwvEN5WMAiaHbNW",
+      "temp_password": "boss123",
       "role": "executive",
       "department_id": null,
       "full_name": "Executive Administrator",
@@ -98,19 +100,21 @@
     {
       "id": 3,
       "username": "it_dept",
-      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
+      "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+      "temp_password": "dept123",
       "role": "department",
       "department_id": 1,
       "full_name": "Information Technology Dept",
       "email": "it@company.com",
       "is_active": 1,
       "is_deleted": 0,
-      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJpdF9kZXB0Iiwicm9sZSI6ImRlcGFydG1lbnQiLCJkZXBhcnRtZW50X2lkIjoxLCJkZXBhcnRtZW50X2NvZGUiOiJJVCIsImRlcGFydG1lbnRfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwYXJ0bWVudCIsImZ1bGxfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwdCIsImlhdCI6MTc4OTM4MTg3NiwiZXhwIjoxNzg5OTg2Njc2fQ.sGwzGfGNtM9oIoaZ3eaURIozmRvJW4Gs4HWpYBGPBqM"
+      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJpdF9kZXB0Iiwicm9sZSI6ImRlcGFydG1lbnQiLCJkZXBhcnRtZW50X2lkIjoxLCJkZXBhcnRtZW50X2NvZGUiOiJJVCIsImRlcGFydG1lbnRfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwYXJ0bWVudCIsImZ1bGxfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwdCIsImlhdCI6MTc4OTQzMDQ0OCwiZXhwIjoxNzkwMDM1MjQ4fQ.jk9Z5ZGnPPYKJ_YqG3_VR8xtAeSDnqGU5h9liT-YtZ8"
     },
     {
       "id": 4,
       "username": "hr_dept",
-      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
+      "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+      "temp_password": "dept123",
       "role": "department",
       "department_id": 2,
       "full_name": "Human Resources Dept",
@@ -121,7 +125,8 @@
     {
       "id": 5,
       "username": "acct_dept",
-      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
+      "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+      "temp_password": "dept123",
       "role": "department",
       "department_id": 3,
       "full_name": "Accounting Dept",
@@ -132,18 +137,20 @@
     {
       "id": 6,
       "username": "purch_dept",
-      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
-      "role": "department",
+      "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+      "temp_password": "dept123",
+      "role": "purchasing",
       "department_id": 4,
-      "full_name": "Purchasing Dept",
-      "email": "purch@company.com",
+      "full_name": "Purchasing & Procurement Dept",
+      "email": "purchasing@company.com",
       "is_active": 1,
       "is_deleted": 0
     },
     {
       "id": 7,
       "username": "prod_dept",
-      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
+      "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+      "temp_password": "dept123",
       "role": "department",
       "department_id": 5,
       "full_name": "Production Dept",
@@ -154,7 +161,8 @@
     {
       "id": 8,
       "username": "wh_dept",
-      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
+      "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+      "temp_password": "dept123",
       "role": "department",
       "department_id": 6,
       "full_name": "Warehouse Dept",
@@ -165,11 +173,24 @@
     {
       "id": 9,
       "username": "qa_dept",
-      "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
+      "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+      "temp_password": "dept123",
       "role": "department",
       "department_id": 7,
       "full_name": "Quality Assurance Dept",
       "email": "qa@company.com",
+      "is_active": 1,
+      "is_deleted": 0
+    },
+    {
+      "id": 10,
+      "username": "purchasing",
+      "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+      "temp_password": "purchasing123",
+      "role": "purchasing",
+      "department_id": 4,
+      "full_name": "Purchasing & Procurement Officer",
+      "email": "purchasing@company.com",
       "is_active": 1,
       "is_deleted": 0
     }
@@ -210,6 +231,25 @@
       "created_at": "2026-09-14T10:31:16.234Z",
       "updated_at": "2026-09-14T10:31:16.234Z",
       "is_deleted": 0
+    },
+    {
+      "id": 3,
+      "request_number": "REQ-20260915-00003",
+      "department_id": 1,
+      "prepared_by": "Alex Vance",
+      "position": "IT Infrastructure Specialist",
+      "required_date": "2026-08-15",
+      "purpose": "Server Upgrade Components for Enterprise ERP Deployment",
+      "business_justification": "High performance database node expansion",
+      "priority": "High",
+      "status": "Submitted",
+      "total_estimated_cost": 3580,
+      "created_by": 3,
+      "revision_number": 1,
+      "remarks": "",
+      "created_at": "2026-09-15T00:00:48.500Z",
+      "updated_at": "2026-09-15T00:00:48.500Z",
+      "is_deleted": 0
     }
   ],
   "request_items": [
@@ -240,6 +280,30 @@
     {
       "id": 3,
       "request_id": 2,
+      "item_description": "Samsung Enterprise 3.84TB NVMe SSD",
+      "quantity": 2,
+      "unit": "PCS",
+      "estimated_cost": 890,
+      "total_cost": 1780,
+      "remarks": "",
+      "item_type": "item",
+      "is_deleted": 0
+    },
+    {
+      "id": 4,
+      "request_id": 3,
+      "item_description": "Dell PowerEdge R750 RAM Module 64GB",
+      "quantity": 4,
+      "unit": "PCS",
+      "estimated_cost": 450,
+      "total_cost": 1800,
+      "remarks": "",
+      "item_type": "item",
+      "is_deleted": 0
+    },
+    {
+      "id": 5,
+      "request_id": 3,
       "item_description": "Samsung Enterprise 3.84TB NVMe SSD",
       "quantity": 2,
       "unit": "PCS",
@@ -379,10 +443,19 @@
       "type": "info",
       "is_read": 0,
       "created_at": "2026-09-14T10:31:16.267Z"
+    },
+    {
+      "id": 2,
+      "user_id": null,
+      "department_id": 1,
+      "title": "New Request Created",
+      "message": "Request REQ-20260915-00003 created by Alex Vance.",
+      "type": "info",
+      "is_read": 0,
+      "created_at": "2026-09-15T00:00:48.565Z"
     }
   ],
   "audit_logs": [],
   "backups": [],
-  "employees": [],
   "system_settings": []
 }

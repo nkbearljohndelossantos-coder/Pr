@@ -273,9 +273,10 @@ export default function UserManagementPage() {
         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
           r.role === 'admin' ? 'bg-purple-100 text-purple-800 border border-purple-300' :
           r.role === 'executive' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
+          r.role === 'purchasing' ? 'bg-indigo-100 text-indigo-800 border border-indigo-300' :
           'bg-slate-100 text-slate-700 border border-slate-300'
         }`}>
-          {r.role === 'admin' ? '🛡️ SYSTEM ADMIN' : r.role === 'executive' ? '👔 EXECUTIVE' : '🏢 DEPARTMENT'}
+          {r.role === 'admin' ? '🛡️ SYSTEM ADMIN' : r.role === 'executive' ? '👔 EXECUTIVE' : r.role === 'purchasing' ? '📦 PURCHASING' : '🏢 DEPARTMENT'}
         </span>
       )
     },
@@ -423,24 +424,30 @@ export default function UserManagementPage() {
       </div>
 
       {/* Role Hierarchy Explanation Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print:hidden">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 print:hidden">
         <div className="card-erp p-4 border-l-4 border-l-purple-600 bg-linear-to-br from-white to-purple-50/30">
           <h3 className="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5">
-            <span>🛡️ 1. System Administrator (IT)</span>
+            <span>🛡️ 1. System Admin</span>
           </h3>
-          <p className="text-[11px] text-slate-500 mt-1">Full master authority: password reset, user provisioning, database backups, audit logs, and security controls.</p>
+          <p className="text-[11px] text-slate-500 mt-1">Full master authority: credentials, backups, audit trail logs, and settings.</p>
         </div>
         <div className="card-erp p-4 border-l-4 border-l-blue-600 bg-linear-to-br from-white to-blue-50/30">
           <h3 className="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5">
-            <span>👔 2. Executive Administrator (Boss)</span>
+            <span>👔 2. Executive (Boss)</span>
           </h3>
-          <p className="text-[11px] text-slate-500 mt-1">Enterprise approval engine: cross-department review, executive valuation dashboards, budget approval/rejection.</p>
+          <p className="text-[11px] text-slate-500 mt-1">Enterprise approval engine: cross-department review and budget approval/rejection.</p>
+        </div>
+        <div className="card-erp p-4 border-l-4 border-l-indigo-600 bg-linear-to-br from-white to-indigo-50/30">
+          <h3 className="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5">
+            <span>📦 3. Purchasing</span>
+          </h3>
+          <p className="text-[11px] text-slate-500 mt-1">Procurement fulfillment: routes all approved requests, issues POs, and marks fulfilled items.</p>
         </div>
         <div className="card-erp p-4 border-l-4 border-l-emerald-600 bg-linear-to-br from-white to-emerald-50/30">
           <h3 className="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5">
-            <span>🏢 3. Department User</span>
+            <span>🏢 4. Department User</span>
           </h3>
-          <p className="text-[11px] text-slate-500 mt-1">Operational accounts: departmental purchase requisition creation, cost estimation, file attachments, and status tracking.</p>
+          <p className="text-[11px] text-slate-500 mt-1">Operational accounts: departmental requisition creation, attachments, and tracking.</p>
         </div>
       </div>
 
@@ -886,6 +893,7 @@ export default function UserManagementPage() {
                   className="w-full px-3 py-1.5 border border-slate-200 rounded focus:ring-2 focus:ring-blue-600 focus:outline-none font-bold"
                 >
                   <option value="department">DEPARTMENT USER</option>
+                  <option value="purchasing">PURCHASING & PROCUREMENT OFFICER</option>
                   <option value="executive">EXECUTIVE (BOSS / APPROVER)</option>
                   <option value="admin">SYSTEM ADMINISTRATOR</option>
                 </select>

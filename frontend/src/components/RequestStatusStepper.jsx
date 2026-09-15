@@ -25,16 +25,16 @@ export default function RequestStatusStepper({ currentStatus = 'Draft' }) {
     { label: 'Draft', code: 'Draft' },
     { label: 'Submitted', code: 'Submitted' },
     { label: 'Under Review', code: 'Under Review' },
-    { label: 'Approved / Rejected', code: 'Approved' },
-    { label: 'Completed', code: 'Completed' },
-    { label: 'Closed', code: 'Closed' }
+    { label: 'Approved', code: 'Approved' },
+    { label: 'In Procurement', code: 'In Procurement' },
+    { label: 'Completed', code: 'Completed' }
   ];
 
   const getStepState = (stepCode, index) => {
     if (currentStatus === 'Rejected' && stepCode === 'Approved') {
       return 'rejected';
     }
-    const statusOrder = ['Draft', 'Submitted', 'Under Review', 'Approved', 'Completed', 'Closed'];
+    const statusOrder = ['Draft', 'Submitted', 'Under Review', 'Approved', 'In Procurement', 'Completed', 'Closed'];
     const currentIndex = statusOrder.indexOf(currentStatus);
     const stepIndex = statusOrder.indexOf(stepCode);
 

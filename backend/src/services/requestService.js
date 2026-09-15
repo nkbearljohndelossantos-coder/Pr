@@ -357,6 +357,15 @@ class RequestService {
       }
     }
 
+    if (user.role === 'purchasing') {
+      if (!['In Procurement', 'Completed'].includes(status)) {
+        throw new Error('Access forbidden. Purchasing officers can only update status to In Procurement or Completed.');
+      }
+      if (!['Approved', 'In Procurement', 'Completed'].includes(req.status)) {
+        throw new Error('Purchasing action can only be processed on Approved or In Procurement requisitions.');
+      }
+    }
+
     if (status === 'Submitted') {
       const items = req.items || [];
       const total = (Number(req.total_estimated_cost) > 0)
