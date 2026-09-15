@@ -70,6 +70,28 @@ export default function RequestDetailPage() {
     }
   };
 
+  const handleReplaceAttachment = async (attId, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setUploadingFiles(true);
+      await api.post(`/requests/${id}/attachments/${attId}/replace`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      addToast('Litrato matagumpay na na-update at permanenteng na-save sa database!', 'success');
+      fetchRequestDetails();
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Failed to update photo.', 'error');
+    } finally {
+      setUploadingFiles(false);
+      e.target.value = '';
+    }
+  };
+
   const actionParam = searchParams.get('action');
 
   useEffect(() => {
@@ -587,7 +609,17 @@ export default function RequestDetailPage() {
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                          <label className="cursor-pointer px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-md text-[11px] font-semibold flex items-center gap-1 transition-colors shadow-2xs">
+                            <Upload className="w-3 h-3 text-amber-700" />
+                            <span>Palitan / I-upload ang Litrato</span>
+                            <input
+                              type="file"
+                              accept="image/*,.pdf"
+                              onChange={(e) => handleReplaceAttachment(att.id, e)}
+                              className="hidden"
+                            />
+                          </label>
                           <button
                             type="button"
                             onClick={() => setPreviewFile(att)}

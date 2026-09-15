@@ -123,6 +123,36 @@ class RequestController {
       next(err);
     }
   }
+
+  async replaceAttachment(req, res, next) {
+    try {
+      const { id, attId } = req.params;
+      const file = req.file;
+      if (!file) {
+        return errorResponse(res, 'No file uploaded for replacement.', ['NoFileProvided'], HTTP_STATUS.BAD_REQUEST);
+      }
+
+      const fs = require('fs');
+      let b64 = null;
+      if (file.path && fs.existsSync(file.path)) {
+        b64 = fs.readFileSync(file.path).toString('base64');
+      }
+
+      await requestRepository.updateAttachment(attId, {
+        original_name: file.originalname,
+        filename: file.filename,
+        file_path: file.path,
+        file_type: file.mimetype,
+        file_size: file.size,
+        file_data: b64
+      });
+
+      const updated = await requestService.getRequestById(id, req.user);
+      return successResponse(res, 'Attachment updated with real photo successfully', updated);
+    } catch (err) {
+      return errorResponse(res, err.message, ['AttachmentReplacementError'], HTTP_STATUS.BAD_REQUEST);
+    }
+  }
 }
 
 module.exports = new RequestController();

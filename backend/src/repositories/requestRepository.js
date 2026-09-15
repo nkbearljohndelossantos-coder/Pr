@@ -43,10 +43,58 @@ function generateVisualCardSvg(title, subtitle, filename) {
   </svg>`;
 }
 
+function findFileDeep(filename, originalName, filePath) {
+  const targetNames = new Set([
+    filename,
+    originalName,
+    path.basename(filePath || ''),
+    (filename || '').replace(/^[0-9]+-/, ''),
+    (originalName || '').replace(/\s+/g, '_'),
+    (originalName || '').replace(/_/g, ' ')
+  ].filter(Boolean));
+
+  if (filePath && fs.existsSync(filePath)) {
+    try {
+      if (fs.statSync(filePath).size > 0) return filePath;
+    } catch (e) {}
+  }
+
+  const searchRoots = [
+    ...allUploadDirs,
+    path.resolve(process.cwd()),
+    path.resolve(process.cwd(), '..'),
+    path.resolve(__dirname, '../../..'),
+    path.resolve(__dirname, '../../../../'),
+    '/tmp'
+  ];
+
+  for (const root of searchRoots) {
+    if (!fs.existsSync(root)) continue;
+    for (const name of targetNames) {
+      const direct = path.join(root, name);
+      if (fs.existsSync(direct)) {
+        try {
+          if (fs.statSync(direct).isFile() && fs.statSync(direct).size > 0) return direct;
+        } catch (e) {}
+      }
+      const directUploads = path.join(root, 'uploads', name);
+      if (fs.existsSync(directUploads)) {
+        try {
+          if (fs.statSync(directUploads).isFile() && fs.statSync(directUploads).size > 0) return directUploads;
+        } catch (e) {}
+      }
+    }
+  }
+  return null;
+}
+
 async function processAttachments(attachments) {
   if (!attachments || !Array.isArray(attachments)) return [];
   for (const att of attachments) {
-    if (att.file_data && att.file_data.length > 50) {
+    const isSvg = att.file_type === 'image/svg+xml' || (att.file_data && typeof att.file_data === 'string' && (att.file_data.startsWith('PHN2Zy') || att.file_data.includes('<svg')));
+    
+    // If it's already a real non-svg file_data with size
+    if (att.file_data && att.file_data.length > 100 && !isSvg) {
       let rawBase64 = att.file_data;
       if (rawBase64.includes(';base64,')) {
         rawBase64 = rawBase64.split(';base64,')[1];
@@ -64,42 +112,25 @@ async function processAttachments(attachments) {
       continue;
     }
 
-    const possibleFilenames = [
-      att.filename,
-      att.original_name,
-      path.basename(att.file_path || ''),
-      (att.filename || '').replace(/^[0-9]+-/, ''),
-      (att.original_name || '').replace(/\s+/g, '_'),
-      (att.original_name || '').replace(/_/g, ' ')
-    ].filter(Boolean);
-
-    let foundPath = null;
-    for (const dir of allUploadDirs) {
-      for (const fn of possibleFilenames) {
-        const candidate = path.join(dir, fn);
-        if (fs.existsSync(candidate) && fs.statSync(candidate).size > 0) {
-          foundPath = candidate;
-          break;
-        }
-      }
-      if (foundPath) break;
-    }
+    // Try to find the real physical file on disk
+    const foundPath = findFileDeep(att.filename, att.original_name, att.file_path);
 
     if (foundPath) {
       try {
         const buf = fs.readFileSync(foundPath);
         att.file_data = buf.toString('base64');
-        await db.query(`UPDATE attachments SET file_data = ? WHERE id = ?`, [att.file_data, att.id]);
+        const ext = path.extname(foundPath).toLowerCase();
+        att.file_type = ext === '.png' ? 'image/png' : (ext === '.pdf' ? 'application/pdf' : (ext === '.webp' ? 'image/webp' : 'image/jpeg'));
+        await db.query(`UPDATE attachments SET file_data = ?, file_type = ? WHERE id = ?`, [att.file_data, att.file_type, att.id]);
       } catch (e) {}
-    } else {
-      // Auto-synthesize high-resolution visual proof card so it is never broken
+    } else if (!att.file_data) {
+      // Auto-synthesize high-resolution visual proof card only if no file_data exists
       try {
         const svg = generateVisualCardSvg(att.original_name, 'Supporting Quotation Proof & Specification', att.filename || att.original_name);
         att.file_data = Buffer.from(svg).toString('base64');
         att.file_type = 'image/svg+xml';
         await db.query(`UPDATE attachments SET file_data = ?, file_type = 'image/svg+xml' WHERE id = ?`, [att.file_data, att.id]);
         
-        // Write to candidate disk upload directories
         const safeName = path.basename(att.filename || att.original_name || `file_${att.id}`);
         allUploadDirs.forEach(dir => {
           try {
@@ -330,6 +361,20 @@ class RequestRepository {
 
   async deleteAttachment(attachmentId) {
     await db.query(`DELETE FROM attachments WHERE id = ?`, [attachmentId]);
+  }
+
+  async updateAttachment(attachmentId, { original_name, filename, file_path, file_type, file_size, file_data }) {
+    let b64 = file_data || null;
+    if (!b64 && file_path && fs.existsSync(file_path)) {
+      try {
+        const buf = fs.readFileSync(file_path);
+        b64 = buf.toString('base64');
+      } catch (e) {}
+    }
+    await db.query(
+      `UPDATE attachments SET original_name = ?, filename = ?, file_path = ?, file_type = ?, file_size = ?, file_data = ? WHERE id = ?`,
+      [original_name, filename, file_path, file_type, file_size, b64, attachmentId]
+    );
   }
 
   async updateStatus(id, status, remarks, updated_by) {
