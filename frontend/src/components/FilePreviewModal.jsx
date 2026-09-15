@@ -12,6 +12,12 @@ export default function FilePreviewModal({ isOpen, file, onClose }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  const [imgError, setImgError] = React.useState(false);
+
+  React.useEffect(() => {
+    setImgError(false);
+  }, [file]);
+
   if (!isOpen || !file) return null;
 
   const fileName = file.original_name || file.name || 'Attachment Preview';
@@ -24,9 +30,19 @@ export default function FilePreviewModal({ isOpen, file, onClose }) {
 
   let previewUrl = file.previewUrl || '';
   if (!previewUrl) {
-    if (file.filename) {
-      previewUrl = `/uploads/${file.filename}`;
-    } else if (typeof window !== 'undefined' && window.URL && typeof window.URL.createObjectURL === 'function') {
+    if (file.file_data && file.file_data.length > 30) {
+      previewUrl = file.file_data.startsWith('data:')
+        ? file.file_data
+        : `data:${file.file_type || 'image/jpeg'};base64,${file.file_data}`;
+    } else if (file.filename || file.file_path) {
+      const raw = file.filename || file.file_path;
+      if (raw.startsWith('data:') || raw.startsWith('http://') || raw.startsWith('https://')) {
+        previewUrl = raw;
+      } else {
+        const cleanName = raw.replace(/^\/?uploads\//, '');
+        previewUrl = `/uploads/${cleanName}`;
+      }
+    } else if (typeof window !== 'undefined' && window.URL && typeof window.URL.createObjectURL === 'function' && file instanceof Blob) {
       try {
         previewUrl = URL.createObjectURL(file);
       } catch (e) {
@@ -81,13 +97,44 @@ export default function FilePreviewModal({ isOpen, file, onClose }) {
 
         {/* Content Body */}
         <div className="flex-1 overflow-auto bg-slate-950/90 p-4 flex items-center justify-center min-h-[350px]">
-          {isImage ? (
+          {isImage && !imgError ? (
             <div className="relative flex items-center justify-center w-full h-full">
               <img
                 src={previewUrl}
                 alt={fileName}
+                onError={() => {
+                  if (file.file_data && file.file_data.length > 30 && !previewUrl.startsWith('data:')) {
+                    setImgError(false);
+                  } else {
+                    setImgError(true);
+                  }
+                }}
                 className="max-h-[70vh] max-w-full object-contain rounded shadow-lg border border-slate-800"
               />
+            </div>
+          ) : isImage && imgError ? (
+            <div className="text-center p-8 text-slate-300 space-y-4 max-w-md">
+              <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto text-blue-400 border border-slate-700">
+                <ImageIcon className="w-10 h-10" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white mb-1">{fileName}</h4>
+                <p className="text-xs text-slate-400">
+                  Image record verified on file ({fileSize}). Click below to download or open original file.
+                </p>
+              </div>
+              {previewUrl && (
+                <a
+                  href={previewUrl}
+                  download={fileName}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Image Document</span>
+                </a>
+              )}
             </div>
           ) : fileType.includes('pdf') || fileName.toLowerCase().endsWith('.pdf') ? (
             <iframe

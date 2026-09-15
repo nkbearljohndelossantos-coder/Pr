@@ -472,7 +472,11 @@ export default function RequestDetailPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {request.attachments.map((att) => {
               const isImg = att.file_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(att.original_name || att.filename);
-              const previewUrl = att.filename?.startsWith('/') ? att.filename : `/uploads/${att.filename}`;
+              const previewUrl = (att.file_data && att.file_data.length > 30)
+                ? (att.file_data.startsWith('data:') ? att.file_data : `data:${att.file_type || 'image/jpeg'};base64,${att.file_data}`)
+                : (att.filename?.startsWith('data:') || att.filename?.startsWith('http')
+                  ? att.filename
+                  : `/uploads/${(att.filename || att.original_name || '').replace(/^\/?uploads\//, '')}`);
 
               return (
                 <div
@@ -487,6 +491,11 @@ export default function RequestDetailPage() {
                       <img
                         src={previewUrl}
                         alt={att.original_name}
+                        onError={(e) => {
+                          if (att.file_data && att.file_data.length > 30 && !previewUrl.startsWith('data:')) {
+                            e.currentTarget.src = att.file_data.startsWith('data:') ? att.file_data : `data:${att.file_type || 'image/jpeg'};base64,${att.file_data}`;
+                          }
+                        }}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
@@ -688,13 +697,20 @@ export default function RequestDetailPage() {
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {imageAttachments.map((img, idx) => {
-                  const previewUrl = img.filename?.startsWith('/') ? img.filename : `/uploads/${img.filename}`;
+                  const previewUrl = img.file_data 
+                    ? (img.file_data.startsWith('data:') ? img.file_data : `data:${img.file_type || 'image/jpeg'};base64,${img.file_data}`)
+                    : (img.filename?.startsWith('/') ? img.filename : `/uploads/${(img.filename || '').replace(/^\/?uploads\//, '')}`);
                   return (
                     <div key={img.id || idx} className="border border-black p-1 rounded bg-white text-center">
                       <img 
                         src={previewUrl} 
                         alt={img.original_name || `Attachment ${idx + 1}`} 
                         className="w-full h-24 object-contain mx-auto"
+                        onError={(e) => {
+                          if (img.file_data && e.target.src !== img.file_data) {
+                            e.target.src = img.file_data.startsWith('data:') ? img.file_data : `data:${img.file_type || 'image/jpeg'};base64,${img.file_data}`;
+                          }
+                        }}
                       />
                       <p className="text-[7.5px] font-semibold text-gray-800 truncate mt-1">
                         {img.original_name || img.filename}

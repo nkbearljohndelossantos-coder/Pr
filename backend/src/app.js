@@ -78,8 +78,11 @@ try {
 } catch (e) {}
 
 // Universal Fail-Safe & Database Auto-Recovery Route for Upload Files
-app.get('/uploads/:filename', async (req, res) => {
-  const safeFilename = path.basename(req.params.filename);
+app.get(['/uploads/:filename', '/uploads/*'], async (req, res) => {
+  const reqFilename = req.params.filename || req.params[0] || req.path.replace(/^\/uploads\//, '');
+  const safeFilename = path.basename(reqFilename);
+  const decodedFilename = decodeURIComponent(safeFilename);
+
   const possiblePaths = [
     path.join(env.UPLOAD_DIR, safeFilename),
     path.join(__dirname, '../uploads', safeFilename),
@@ -107,8 +110,15 @@ app.get('/uploads/:filename', async (req, res) => {
   try {
     const db = require('./config/db');
     const [rows] = await db.query(
-      `SELECT file_data, file_type, original_name FROM attachments WHERE filename = ? OR filename LIKE ? LIMIT 1`,
-      [safeFilename, `%${safeFilename}`]
+      `SELECT file_data, file_type, original_name, filename FROM attachments 
+       WHERE filename = ? 
+          OR filename LIKE ? 
+          OR original_name = ? 
+          OR original_name LIKE ? 
+          OR file_path LIKE ? 
+          OR filename LIKE ? 
+       ORDER BY id DESC LIMIT 1`,
+      [safeFilename, `%${safeFilename}%`, safeFilename, `%${safeFilename}%`, `%${safeFilename}%`, `%${decodedFilename}%`]
     );
 
     if (rows && rows.length > 0 && rows[0].file_data) {
