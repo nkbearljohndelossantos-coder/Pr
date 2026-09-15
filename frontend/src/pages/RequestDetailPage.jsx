@@ -16,6 +16,8 @@ import {
   Eye,
   Maximize2,
   LayoutGrid,
+  Upload,
+  Plus,
   Image as ImageIcon
 } from 'lucide-react';
 import RequestStatusStepper from '../components/RequestStatusStepper';
@@ -42,6 +44,31 @@ export default function RequestDetailPage() {
   const [actionModal, setActionModal] = useState({ open: false, targetStatus: '' });
   const [previewFile, setPreviewFile] = useState(null);
   const [attachmentView, setAttachmentView] = useState('large'); // 'large' | 'grid'
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+
+  const handleAddAttachments = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('attachments', files[i]);
+    }
+
+    try {
+      setUploadingFiles(true);
+      await api.put(`/requests/${id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      addToast('Bagong litrato / attachment matagumpay na na-upload at permanenteng na-save sa database!', 'success');
+      fetchRequestDetails();
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Failed to upload attachments.', 'error');
+    } finally {
+      setUploadingFiles(false);
+      e.target.value = '';
+    }
+  };
 
   const actionParam = searchParams.get('action');
 
@@ -480,36 +507,52 @@ export default function RequestDetailPage() {
             </p>
           </div>
 
-          {request.attachments && request.attachments.length > 0 && (
-            <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
-              <button
-                type="button"
-                onClick={() => setAttachmentView('large')}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 ${
-                  attachmentView === 'large'
-                    ? 'bg-white text-blue-700 shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Tingnan nang buo at malaki ang mga litrato / resibo"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                <span>Malaking Preview (Full View)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setAttachmentView('grid')}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 ${
-                  attachmentView === 'grid'
-                    ? 'bg-white text-blue-700 shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Tingnan sa compact grid"
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span>Grid Cards</span>
-              </button>
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Quick Upload / Re-attach Button */}
+            <label className={`cursor-pointer px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs ${uploadingFiles ? 'opacity-50 pointer-events-none' : ''}`}>
+              <Upload className="w-3.5 h-3.5 text-blue-600" />
+              <span>{uploadingFiles ? 'Ina-upload...' : 'Mag-Attach / Re-upload'}</span>
+              <input
+                type="file"
+                multiple
+                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                onChange={handleAddAttachments}
+                className="hidden"
+                disabled={uploadingFiles}
+              />
+            </label>
+
+            {request.attachments && request.attachments.length > 0 && (
+              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setAttachmentView('large')}
+                  className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 ${
+                    attachmentView === 'large'
+                      ? 'bg-white text-blue-700 shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  title="Tingnan nang buo at malaki ang mga litrato / resibo"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Malaking Preview (Full View)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAttachmentView('grid')}
+                  className={`px-2.5 py-1 rounded-md font-semibold transition-all flex items-center gap-1.5 ${
+                    attachmentView === 'grid'
+                      ? 'bg-white text-blue-700 shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  title="Tingnan sa compact grid"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span>Grid Cards</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {request.attachments && request.attachments.length > 0 ? (
