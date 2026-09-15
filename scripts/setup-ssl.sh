@@ -17,14 +17,13 @@ echo "⏳ Temporarily releasing port 80 for SSL verification..."
 docker compose down 2>/dev/null || true
 fuser -k 80/tcp 2>/dev/null || true
 
-# Obtain Let's Encrypt Certificate
+# Obtain / verify Let's Encrypt Certificate
 echo "📜 Requesting SSL certificate from Let's Encrypt for $DOMAIN..."
-certbot certonly --standalone -d "$DOMAIN" --non-interactive --agree-tos -m "$EMAIL" || {
-    echo "⚠️ Note: Make sure DNS A Record for $DOMAIN points to this VPS IP (187.77.143.211) before issuing SSL."
-}
+certbot certonly --standalone -d "$DOMAIN" --non-interactive --agree-tos -m "$EMAIL" --expand || true
 
-# Restart Docker Stack
-echo "🚀 Restarting Docker Stack with SSL Support..."
+# Rebuild frontend container with new SSL nginx config and start stack
+echo "🚀 Rebuilding Frontend with SSL Support and starting Docker Stack..."
+docker compose build frontend
 docker compose up -d
 
 echo "✅ SSL Configuration Complete! Visit: https://$DOMAIN"
