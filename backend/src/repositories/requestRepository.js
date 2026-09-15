@@ -1,4 +1,60 @@
 const db = require('../config/db');
+const fs = require('fs');
+const path = require('path');
+const { allUploadDirs } = require('../middlewares/uploadMiddleware');
+
+async function processAttachments(attachments) {
+  if (!attachments || !Array.isArray(attachments)) return [];
+  for (const att of attachments) {
+    if (att.file_data && att.file_data.length > 50) {
+      let rawBase64 = att.file_data;
+      if (rawBase64.includes(';base64,')) {
+        rawBase64 = rawBase64.split(';base64,')[1];
+      }
+      const safeName = path.basename(att.filename || att.original_name || `file_${att.id}`);
+      allUploadDirs.forEach(dir => {
+        try {
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+          const target = path.join(dir, safeName);
+          if (!fs.existsSync(target) || fs.statSync(target).size === 0) {
+            fs.writeFileSync(target, Buffer.from(rawBase64, 'base64'));
+          }
+        } catch (e) {}
+      });
+      continue;
+    }
+
+    const possibleFilenames = [
+      att.filename,
+      att.original_name,
+      path.basename(att.file_path || ''),
+      (att.filename || '').replace(/^[0-9]+-/, ''),
+      (att.original_name || '').replace(/\s+/g, '_'),
+      (att.original_name || '').replace(/_/g, ' ')
+    ].filter(Boolean);
+
+    let foundPath = null;
+    for (const dir of allUploadDirs) {
+      for (const fn of possibleFilenames) {
+        const candidate = path.join(dir, fn);
+        if (fs.existsSync(candidate) && fs.statSync(candidate).size > 0) {
+          foundPath = candidate;
+          break;
+        }
+      }
+      if (foundPath) break;
+    }
+
+    if (foundPath) {
+      try {
+        const buf = fs.readFileSync(foundPath);
+        att.file_data = buf.toString('base64');
+        await db.query(`UPDATE attachments SET file_data = ? WHERE id = ?`, [att.file_data, att.id]);
+      } catch (e) {}
+    }
+  }
+  return attachments;
+}
 
 class RequestRepository {
   async create({ request_number, department_id, prepared_by, position, required_date, purpose, business_justification, priority, status, total_estimated_cost, created_by }) {
@@ -32,7 +88,6 @@ class RequestRepository {
   }
 
   async addAttachment({ request_id, original_name, filename, file_path, file_type, file_size, file_data }) {
-    const fs = require('fs');
     let b64 = file_data || null;
     if (!b64 && file_path && fs.existsSync(file_path)) {
       try {
@@ -74,7 +129,7 @@ class RequestRepository {
     const [attachments] = await db.query(`SELECT * FROM attachments WHERE request_id = ? AND is_deleted = 0`, [id]);
 
     request.items = items;
-    request.attachments = attachments;
+    request.attachments = await processAttachments(attachments);
 
     if ((!request.total_estimated_cost || Number(request.total_estimated_cost) === 0) && items && items.length > 0) {
       request.total_estimated_cost = items.reduce((sum, item) => sum + (Number(item.total_cost) || (Number(item.quantity) * Number(item.estimated_cost))), 0);
