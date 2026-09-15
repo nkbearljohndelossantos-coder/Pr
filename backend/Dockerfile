@@ -1,5 +1,5 @@
 # Enterprise ERP Backend Production Dockerfile
-FROM node:20-alpine AS builder
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -7,6 +7,9 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 COPY . .
+
+# Ensure upload and data persistence directories exist
+RUN mkdir -p /app/uploads /app/src/data /app/backups /app/public/uploads
 
 EXPOSE 5000
 

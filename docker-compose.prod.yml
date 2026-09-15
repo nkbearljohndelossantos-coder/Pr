@@ -1,6 +1,25 @@
 version: '3.8'
 
 services:
+  # MySQL 8.0 Enterprise Database Service (Optional container if not using Hostinger external MySQL)
+  # To use containerized MySQL: set DB_HOST=mysql in environment
+  mysql:
+    image: mysql:8.0
+    container_name: nkb_erp_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS:-NkbRootSecretPassword2026}
+      MYSQL_DATABASE: ${DB_NAME:-u335953510_pr_data}
+      MYSQL_USER: ${DB_USER:-u335953510_Request}
+      MYSQL_PASSWORD: ${DB_PASS:-NkbManufacturing2025}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/src/database/hostinger_import.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "3306:3306"
+    networks:
+      - erp_net
+
   backend:
     build:
       context: ./backend
@@ -16,7 +35,7 @@ services:
       - JWT_REFRESH_SECRET=enterprise_erp_jwt_refresh_secret_key_2026
       - JWT_EXPIRES_IN=3650d
       - JWT_REFRESH_EXPIRES_IN=3650d
-      - DB_HOST=${DB_HOST:-host.docker.internal}
+      - DB_HOST=${DB_HOST:-mysql}
       - DB_PORT=${DB_PORT:-3306}
       - DB_USER=${DB_USER:-u335953510_Request}
       - DB_PASS=${DB_PASS:-NkbManufacturing2025}
@@ -30,6 +49,8 @@ services:
       - ./backend/backups:/app/backups
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      - mysql
     networks:
       - erp_net
 
@@ -51,5 +72,6 @@ networks:
     driver: bridge
 
 volumes:
+  mysql_data:
   erp_uploads:
   erp_data:

@@ -1,0 +1,314 @@
+{
+  "export_timestamp": "2026-09-15T01:09:33.642Z",
+  "departments": [
+    [
+      {
+        "id": 1,
+        "code": "IT",
+        "name": "Information Technology Department",
+        "username": "it_dept",
+        "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
+        "seq_counter": 0,
+        "is_active": 1,
+        "is_deleted": 0
+      },
+      {
+        "id": 2,
+        "code": "HR",
+        "name": "Human Resources Department",
+        "username": "hr_dept",
+        "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
+        "seq_counter": 0,
+        "is_active": 1,
+        "is_deleted": 0
+      },
+      {
+        "id": 3,
+        "code": "ACCT",
+        "name": "Accounting Department",
+        "username": "acct_dept",
+        "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
+        "seq_counter": 0,
+        "is_active": 1,
+        "is_deleted": 0
+      },
+      {
+        "id": 4,
+        "code": "PURCH",
+        "name": "Purchasing Department",
+        "username": "purch_dept",
+        "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
+        "seq_counter": 0,
+        "is_active": 1,
+        "is_deleted": 0
+      },
+      {
+        "id": 5,
+        "code": "PROD",
+        "name": "Production Department",
+        "username": "prod_dept",
+        "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
+        "seq_counter": 0,
+        "is_active": 1,
+        "is_deleted": 0
+      },
+      {
+        "id": 6,
+        "code": "WH",
+        "name": "Warehouse Department",
+        "username": "wh_dept",
+        "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
+        "seq_counter": 0,
+        "is_active": 1,
+        "is_deleted": 0
+      },
+      {
+        "id": 7,
+        "code": "QA",
+        "name": "Quality Assurance Department",
+        "username": "qa_dept",
+        "password_hash": "$2a$10$QwshQwatkeiyRMiJ1BiIBeTiJcLVGBJHJtEpL8gS/cutSs/pb1OiC",
+        "seq_counter": 0,
+        "is_active": 1,
+        "is_deleted": 0
+      }
+    ]
+  ],
+  "users": [
+    [
+      {
+        "id": 1,
+        "username": "admin",
+        "password_hash": "$2a$10$p5rRMSOvlcfQW5WXZYe6eO8AI1SLN04J/damYLvcSlusyiHUeWoW.",
+        "temp_password": "admin123",
+        "role": "admin",
+        "department_id": null,
+        "full_name": "System Administrator (IT)",
+        "email": "admin@company.com",
+        "is_active": 1,
+        "is_deleted": 0,
+        "updated_at": "2026-09-15T00:33:30.824Z",
+        "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImRlcGFydG1lbnRfaWQiOm51bGwsImRlcGFydG1lbnRfY29kZSI6IkRFUFQiLCJkZXBhcnRtZW50X25hbWUiOiJTeXN0ZW0gQWRtaW5pc3RyYXRvciAoSVQpIiwiZnVsbF9uYW1lIjoiU3lzdGVtIEFkbWluaXN0cmF0b3IgKElUKSIsImlhdCI6MTc4OTQzMzgzNiwiZXhwIjoxNzkwMDM4NjM2fQ.q-dxt9eVJ4qcm77fL3KTVWN9ciHMT7TF2yFIwrUgTnM"
+      },
+      {
+        "id": 2,
+        "username": "boss",
+        "password_hash": "$2a$10$m.ojwW7EvhtQxla6vK2ntehglvCTUEhsA26JjcRwvEN5WMAiaHbNW",
+        "temp_password": "boss123",
+        "role": "executive",
+        "department_id": null,
+        "full_name": "Executive Administrator",
+        "email": "boss@company.com",
+        "is_active": 1,
+        "is_deleted": 0
+      },
+      {
+        "id": 3,
+        "username": "it_dept",
+        "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+        "temp_password": "dept123",
+        "role": "department",
+        "department_id": 1,
+        "full_name": "Information Technology Dept",
+        "email": "it@company.com",
+        "is_active": 1,
+        "is_deleted": 0,
+        "updated_at": "2026-09-15T00:33:36.180Z",
+        "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJpdF9kZXB0Iiwicm9sZSI6ImRlcGFydG1lbnQiLCJkZXBhcnRtZW50X2lkIjoxLCJkZXBhcnRtZW50X2NvZGUiOiJJVCIsImRlcGFydG1lbnRfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwYXJ0bWVudCIsImZ1bGxfbmFtZSI6IkluZm9ybWF0aW9uIFRlY2hub2xvZ3kgRGVwdCIsImlhdCI6MTc4OTQzMzgzNiwiZXhwIjoxNzkwMDM4NjM2fQ.1v26iC76mliGdYZiYpHOxATYpbwRwf4mG0BSuQb85Vc"
+      },
+      {
+        "id": 4,
+        "username": "hr_dept",
+        "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+        "temp_password": "dept123",
+        "role": "department",
+        "department_id": 2,
+        "full_name": "Human Resources Dept",
+        "email": "hr@company.com",
+        "is_active": 1,
+        "is_deleted": 0
+      },
+      {
+        "id": 5,
+        "username": "acct_dept",
+        "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+        "temp_password": "dept123",
+        "role": "department",
+        "department_id": 3,
+        "full_name": "Accounting Dept",
+        "email": "acct@company.com",
+        "is_active": 1,
+        "is_deleted": 0
+      },
+      {
+        "id": 6,
+        "username": "purch_dept",
+        "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+        "temp_password": "dept123",
+        "role": "purchasing",
+        "department_id": 4,
+        "full_name": "Purchasing & Procurement Dept",
+        "email": "purchasing@company.com",
+        "is_active": 1,
+        "is_deleted": 0
+      },
+      {
+        "id": 7,
+        "username": "prod_dept",
+        "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+        "temp_password": "dept123",
+        "role": "department",
+        "department_id": 5,
+        "full_name": "Production Dept",
+        "email": "prod@company.com",
+        "is_active": 1,
+        "is_deleted": 0
+      },
+      {
+        "id": 8,
+        "username": "wh_dept",
+        "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+        "temp_password": "dept123",
+        "role": "department",
+        "department_id": 6,
+        "full_name": "Warehouse Dept",
+        "email": "wh@company.com",
+        "is_active": 1,
+        "is_deleted": 0
+      },
+      {
+        "id": 9,
+        "username": "qa_dept",
+        "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+        "temp_password": "dept123",
+        "role": "department",
+        "department_id": 7,
+        "full_name": "Quality Assurance Dept",
+        "email": "qa@company.com",
+        "is_active": 1,
+        "is_deleted": 0
+      },
+      {
+        "id": 10,
+        "username": "purchasing",
+        "password_hash": "$2a$10$3j4xYvxh2D2z5pJfafLd9O0a0Jv/BQ86PaSTBqU0/EkbqKz726XRa",
+        "temp_password": "purchasing123",
+        "role": "purchasing",
+        "department_id": 4,
+        "full_name": "Purchasing & Procurement Officer",
+        "email": "purchasing@company.com",
+        "is_active": 1,
+        "is_deleted": 0
+      }
+    ]
+  ],
+  "requests": [],
+  "request_items": [],
+  "attachments": [],
+  "master_dropdowns": [
+    {
+      "id": 1,
+      "category": "unit_of_measure",
+      "code": "PCS",
+      "label": "Pieces (PCS)",
+      "sort_order": 1,
+      "is_active": 1
+    },
+    {
+      "id": 2,
+      "category": "unit_of_measure",
+      "code": "BOX",
+      "label": "Boxes (BOX)",
+      "sort_order": 2,
+      "is_active": 1
+    },
+    {
+      "id": 3,
+      "category": "unit_of_measure",
+      "code": "SET",
+      "label": "Sets (SET)",
+      "sort_order": 3,
+      "is_active": 1
+    },
+    {
+      "id": 4,
+      "category": "unit_of_measure",
+      "code": "LOT",
+      "label": "Lots (LOT)",
+      "sort_order": 4,
+      "is_active": 1
+    },
+    {
+      "id": 5,
+      "category": "unit_of_measure",
+      "code": "KG",
+      "label": "Kilograms (KG)",
+      "sort_order": 5,
+      "is_active": 1
+    },
+    {
+      "id": 6,
+      "category": "unit_of_measure",
+      "code": "SUBSCRIPTION",
+      "label": "Subscription (SUB)",
+      "sort_order": 6,
+      "is_active": 1
+    },
+    {
+      "id": 7,
+      "category": "unit_of_measure",
+      "code": "MONTHLY_SUB",
+      "label": "Monthly Subscription",
+      "sort_order": 7,
+      "is_active": 1
+    },
+    {
+      "id": 8,
+      "category": "unit_of_measure",
+      "code": "ANNUAL_SUB",
+      "label": "Annual Subscription",
+      "sort_order": 8,
+      "is_active": 1
+    },
+    {
+      "id": 9,
+      "category": "unit_of_measure",
+      "code": "LICENSE",
+      "label": "Software License",
+      "sort_order": 9,
+      "is_active": 1
+    },
+    {
+      "id": 10,
+      "category": "priority",
+      "code": "Low",
+      "label": "Low Priority",
+      "sort_order": 1,
+      "is_active": 1
+    },
+    {
+      "id": 11,
+      "category": "priority",
+      "code": "Normal",
+      "label": "Normal Priority",
+      "sort_order": 2,
+      "is_active": 1
+    },
+    {
+      "id": 12,
+      "category": "priority",
+      "code": "High",
+      "label": "High Priority",
+      "sort_order": 3,
+      "is_active": 1
+    },
+    {
+      "id": 13,
+      "category": "priority",
+      "code": "Urgent",
+      "label": "Urgent Priority",
+      "sort_order": 4,
+      "is_active": 1
+    }
+  ]
+}
