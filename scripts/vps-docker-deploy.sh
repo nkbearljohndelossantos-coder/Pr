@@ -31,8 +31,12 @@ git pull origin main
 mkdir -p backend/uploads backend/src/data backend/backups public/uploads
 
 # 4. Stop any old containers or conflicting standalone processes on port 80/5000
-echo "🧹 Stopping conflicting processes or older containers..."
+echo "🧹 Stopping conflicting processes or host web servers on port 80/5000..."
 pm2 stop all 2>/dev/null || true
+systemctl stop apache2 nginx httpd 2>/dev/null || true
+systemctl disable apache2 nginx httpd 2>/dev/null || true
+fuser -k 80/tcp 2>/dev/null || true
+fuser -k 5000/tcp 2>/dev/null || true
 docker compose down 2>/dev/null || true
 
 # 5. Build and launch production Docker stack
