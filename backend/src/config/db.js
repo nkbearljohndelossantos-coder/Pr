@@ -171,7 +171,7 @@ const loadStore = () => {
         ];
       }
 
-      if (!store.users || store.users.length < 10) {
+      if (!store.users || store.users.length === 0) {
         store.users = [
           { id: 1, username: 'admin', password_hash: adminHash, temp_password: 'admin123', role: 'admin', department_id: null, full_name: 'System Administrator (IT)', email: 'admin@company.com', is_active: 1, is_deleted: 0 },
           { id: 2, username: 'boss', password_hash: bossHash, temp_password: 'boss123', role: 'executive', department_id: null, full_name: 'Executive Administrator', email: 'boss@company.com', is_active: 1, is_deleted: 0 },
@@ -539,14 +539,15 @@ const ensureRootUsersExist = async () => {
   const adminHash = await bcrypt.hash('admin123', 10);
   const bossHash = await bcrypt.hash('boss123', 10);
 
-  // 1. Guarantee in JSON store
+  // 1. Guarantee in JSON store (Insert ONLY if not present, never overwrite existing custom role or password)
   if (!store.users) store.users = [];
-  let adminObj = store.users.find(u => u.username === 'admin');
+  let adminObj = store.users.find(u => u.username === 'admin' || u.id === 1);
   if (!adminObj) {
     store.users.unshift({
       id: 1,
       username: 'admin',
       password_hash: adminHash,
+      temp_password: 'admin123',
       role: 'admin',
       department_id: null,
       full_name: 'System Administrator (IT)',
@@ -554,18 +555,15 @@ const ensureRootUsersExist = async () => {
       is_active: 1,
       is_deleted: 0
     });
-  } else {
-    adminObj.is_active = 1;
-    adminObj.is_deleted = 0;
-    adminObj.role = 'admin';
   }
 
-  let bossObj = store.users.find(u => u.username === 'boss');
+  let bossObj = store.users.find(u => u.username === 'boss' || u.id === 2);
   if (!bossObj) {
     store.users.splice(1, 0, {
       id: 2,
       username: 'boss',
       password_hash: bossHash,
+      temp_password: 'boss123',
       role: 'executive',
       department_id: null,
       full_name: 'Executive Administrator',
@@ -573,32 +571,48 @@ const ensureRootUsersExist = async () => {
       is_active: 1,
       is_deleted: 0
     });
-  } else {
-    bossObj.is_active = 1;
-    bossObj.is_deleted = 0;
-    bossObj.role = 'executive';
   }
 
   saveStore();
 
-  // 2. Guarantee in Hostinger MySQL Database
+  // 2. Guarantee in Hostinger MySQL Database (Only insert if not exists, never overwrite existing roles/passwords on server restart)
   if (pool) {
     try {
       await ensureMysqlTablesExist();
-      await pool.query(
-        `INSERT INTO users (id, username, password_hash, role, department_id, full_name, email, is_active, is_deleted)
-         VALUES (1, 'admin', ?, 'admin', NULL, 'System Administrator (IT)', 'admin@company.com', 1, 0)
-         ON DUPLICATE KEY UPDATE is_active = 1, is_deleted = 0, role = 'admin'`,
-        [adminHash]
-      );
+      const [existingUsers] = await pool.query(`SELECT id, username, role FROM users WHERE is_deleted = 0`);
+      const existingUsernames = (existingUsers || []).map(u => (u.username || '').toLowerCase());
 
-      await pool.query(
-        `INSERT INTO users (id, username, password_hash, role, department_id, full_name, email, is_active, is_deleted)
-         VALUES (2, 'boss', ?, 'executive', NULL, 'Executive Administrator', 'boss@company.com', 1, 0)
-         ON DUPLICATE KEY UPDATE is_active = 1, is_deleted = 0, role = 'executive'`,
-        [bossHash]
-      );
-      logger.info('System Admin & Executive Boss root accounts verified and active in Hostinger MySQL.');
+      if (!existingUsernames.includes('admin')) {
+        await pool.query(
+          `INSERT INTO users (id, username, password_hash, temp_password, role, department_id, full_name, email, is_active, is_deleted)
+           VALUES (1, 'admin', ?, 'admin123', 'admin', NULL, 'System Administrator (IT)', 'admin@company.com', 1, 0)
+           ON DUPLICATE KEY UPDATE is_deleted = 0`,
+          [adminHash]
+        );
+      }
+
+      if (!existingUsernames.includes('boss')) {
+        await pool.query(
+          `INSERT INTO users (id, username, password_hash, temp_password, role, department_id, full_name, email, is_active, is_deleted)
+           VALUES (2, 'boss', ?, 'boss123', 'executive', NULL, 'Executive Administrator', 'boss@company.com', 1, 0)
+           ON DUPLICATE KEY UPDATE is_deleted = 0`,
+          [bossHash]
+        );
+      }
+
+      // Sync latest MySQL user states into memory/disk so restart keeps user role edits
+      if (existingUsers && existingUsers.length > 0) {
+        const [allDbUsers] = await pool.query(`SELECT * FROM users WHERE is_deleted = 0`);
+        if (allDbUsers && allDbUsers.length > 0) {
+          store.users = allDbUsers.map(u => ({
+            ...u,
+            temp_password: u.temp_password || (u.username === 'admin' ? 'admin123' : u.username === 'boss' ? 'boss123' : 'dept123')
+          }));
+          saveStore();
+        }
+      }
+
+      logger.info('System Admin & Executive Boss accounts verified in Hostinger MySQL.');
     } catch (e) {
       logger.warn('Notice verifying root accounts in MySQL:', e.message);
     }
@@ -613,6 +627,38 @@ setTimeout(() => {
 // Database Query Engine supporting both Real MySQL and Fail-safe Store Emulator
 const db = {
   query: async (sql, params = []) => {
+    const cleanSql = sql.trim().replace(/\s+/g, ' ');
+    const upper = cleanSql.toUpperCase();
+
+    // Dual-write persistence for User mutations
+    if (upper.includes('UPDATE USERS SET REFRESH_TOKEN')) {
+      const targetId = Number(params[1]);
+      const user = store.users.find(u => Number(u.id) === targetId);
+      if (user) {
+        user.refresh_token = params[0];
+        saveStore();
+      }
+    } else if (upper.includes('UPDATE USERS SET USERNAME') || upper.includes('UPDATE USERS SET FULL_NAME') || upper.includes('UPDATE USERS SET ROLE') || upper.includes('UPDATE USERS SET PASSWORD_HASH')) {
+      const targetId = Number(params[params.length - 1]);
+      const user = store.users.find(u => Number(u.id) === targetId);
+      if (user) {
+        if (params[0]) user.username = params[0].trim();
+        if (params[1]) user.full_name = params[1].trim();
+        if (params[2] !== undefined && params[2] !== null) user.email = params[2].trim();
+        if (params[3]) user.role = params[3];
+        if (upper.includes('PASSWORD_HASH')) {
+          if (params[4]) user.password_hash = params[4];
+          if (params[5]) user.temp_password = params[5];
+        }
+        user.updated_at = new Date().toISOString();
+        saveStore();
+      }
+    } else if (upper.includes('DELETE FROM USERS WHERE ID = ?')) {
+      const targetId = Number(params[0]);
+      store.users = store.users.filter(u => u.id !== targetId);
+      saveStore();
+    }
+
     if (pool) {
       try {
         return await pool.query(sql, params);
@@ -620,9 +666,6 @@ const db = {
         logger.warn(`MySQL connection error (${mysqlErr.message}), executing query via fallback engine.`);
       }
     }
-
-    const cleanSql = sql.trim().replace(/\s+/g, ' ');
-    const upper = cleanSql.toUpperCase();
 
     // 1. SELECT COUNT
     if (upper.includes('COUNT(')) {
@@ -797,7 +840,17 @@ const db = {
     }
 
     // UPDATE & DELETE USERS
-    if (upper.includes('UPDATE USERS SET') || upper.includes('UPDATE USERS')) {
+    if (upper.includes('UPDATE USERS SET REFRESH_TOKEN')) {
+      const targetId = Number(params[1]);
+      const user = store.users.find(u => Number(u.id) === targetId);
+      if (user) {
+        user.refresh_token = params[0];
+        saveStore();
+      }
+      return [{ affectedRows: 1 }];
+    }
+
+    if (upper.includes('UPDATE USERS SET USERNAME') || upper.includes('UPDATE USERS SET FULL_NAME') || upper.includes('UPDATE USERS SET ROLE') || upper.includes('UPDATE USERS SET PASSWORD_HASH')) {
       const targetId = Number(params[params.length - 1]);
       const user = store.users.find(u => Number(u.id) === targetId);
       if (user) {
