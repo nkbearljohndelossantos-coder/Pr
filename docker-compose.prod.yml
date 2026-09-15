@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # MySQL 8.0 Enterprise Database Service (Optional container if not using Hostinger external MySQL)
   # To use containerized MySQL: set DB_HOST=mysql in environment
